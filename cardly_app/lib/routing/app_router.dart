@@ -1,0 +1,119 @@
+import 'package:cardly_app/injection_container.dart';
+import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
+import 'package:cardly_app/presentation/auth/view/login_page.dart';
+import 'package:cardly_app/presentation/home/cubit/home_cubit.dart';
+import 'package:cardly_app/presentation/home/view/home_screen.dart';
+import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
+import 'package:cardly_app/domain/enums/document_type.dart';
+import 'package:cardly_app/presentation/scan/sub_screens/custom_camera/custom_camera_screen.dart';
+import 'package:cardly_app/presentation/scan/sub_screens/scan_edit/edit_screen.dart';
+import 'package:cardly_app/presentation/scan/sub_screens/scan_preview/preview_screen.dart';
+import 'package:cardly_app/presentation/scan/sub_screens/scan_preview/review_screen.dart';
+import 'package:cardly_app/presentation/scan/scan_screen.dart';
+import 'package:cardly_app/presentation/scan/sub_screens/scan_upload/upload_screen.dart';
+import 'package:cardly_app/presentation/scan/sub_screens/scan_upload/upload_success_screen.dart';
+import 'package:cardly_app/presentation/splash/splash_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+class AppRouter {
+  static final GoRouter router = GoRouter(
+    initialLocation: "/home",
+    routes: [
+      GoRoute(
+        path: "/splash",
+        builder: (context, state) => BlocProvider(
+          create: (context) => getIt<AuthCubit>(),
+          child: const SplashScreen(),
+        ),
+      ),
+
+      GoRoute(
+        path: "/login",
+        builder: (context, state) => BlocProvider(
+          create: (context) => getIt<AuthCubit>(),
+          child: const LoginPage(),
+        ),
+      ),
+
+      GoRoute(
+        path: "/home",
+        builder: (context, state) => MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (context) => getIt<AuthCubit>()..getUser()),
+            BlocProvider(create: (context) => getIt<HomeCubit>()),
+          ],
+          child: const HomePage(),
+        ),
+      ),
+
+      GoRoute(
+        path: "/scan",
+        builder: (context, state) {
+          final cubit = getIt<ScanCubit>();
+          if (state.extra is DocumentType) {
+            cubit.setDocumentType(state.extra as DocumentType);
+          }
+          return BlocProvider.value(value: cubit, child: const ScanScreen());
+        },
+        routes: [
+          GoRoute(
+            path: "review",
+            builder: (context, state) {
+              return BlocProvider.value(
+                value: state.extra as ScanCubit,
+                child: const ReviewScreen(),
+              );
+            },
+          ),
+          GoRoute(
+            path: "custom-camera",
+            builder: (context, state) {
+              return BlocProvider.value(
+                value: state.extra as ScanCubit,
+                child: const CustomCameraScreen(),
+              );
+            },
+          ),
+          GoRoute(
+            path: "upload",
+            builder: (context, state) {
+              return BlocProvider.value(
+                value: state.extra as ScanCubit,
+                child: const UploadScreen(),
+              );
+            },
+          ),
+          GoRoute(
+            path: "upload-success",
+            builder: (context, state) {
+              return BlocProvider.value(
+                value: state.extra as ScanCubit,
+                child: const UploadSuccessScreen(),
+              );
+            },
+          ),
+
+          GoRoute(
+            path: "edit",
+            builder: (context, state) {
+              return BlocProvider.value(
+                value: state.extra as ScanCubit,
+                child: const EditScreen(),
+              );
+            },
+          ),
+          GoRoute(
+            path: "preview",
+            builder: (context, state) {
+              return BlocProvider.value(
+                value: state.extra as ScanCubit,
+                child: const PreviewScreen(),
+              );
+            },
+          ),
+        ],
+      ),
+    ],
+  );
+}
