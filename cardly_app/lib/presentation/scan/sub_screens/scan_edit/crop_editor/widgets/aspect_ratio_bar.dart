@@ -30,7 +30,7 @@ class AspectRatioBar extends StatelessWidget {
               visualDensity: VisualDensity.compact,
               selectedColor: AppColor.primary.withValues(alpha: 0.2),
               labelStyle: TextStyle(
-                color: isSelected ? AppColor.primary : Colors.black87,
+                color: isSelected ? AppColor.primary : AppColor.black87,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),

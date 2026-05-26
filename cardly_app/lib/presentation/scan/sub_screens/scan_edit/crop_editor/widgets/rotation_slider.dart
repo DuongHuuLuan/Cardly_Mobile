@@ -1,3 +1,4 @@
+import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:flutter/material.dart';
 
 class RotationSlider extends StatelessWidget {
@@ -16,7 +17,7 @@ class RotationSlider extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         children: [
-          const Icon(Icons.rotate_left, size: 20, color: Colors.grey),
+          const Icon(Icons.rotate_left, size: 20, color: AppColor.grey),
           Expanded(
             child: Slider(
               value: value,
@@ -27,9 +28,9 @@ class RotationSlider extends StatelessWidget {
               onChanged: onChanged,
             ),
           ),
-          const Icon(Icons.rotate_right, size: 20, color: Colors.grey),
+          const Icon(Icons.rotate_right, size: 20, color: AppColor.grey),
           SizedBox(
-            width: 40,
+            width: MediaQuery.of(context).size.width * 0.05,
             child: Text(
               '${value.round()}\u00B0',
               style: const TextStyle(fontSize: 12),

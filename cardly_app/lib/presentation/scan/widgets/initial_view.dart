@@ -6,7 +6,6 @@ import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 class InitialView extends StatelessWidget {
   final ScanCubit cubit;
@@ -23,7 +22,8 @@ class InitialView extends StatelessWidget {
           title: "Notification",
           errors: [state.errorMessage ?? 'Invalid file'],
           onConfirm: () {
-            context.pop();
+            cubit.reset();
+            Navigator.pop(context);
           },
         ),
       ),
@@ -107,7 +107,7 @@ class _CameraGalleryView extends StatelessWidget {
                 context.goToHome();
               },
               child: const Text(
-                "Change document type",
+                "Back to home",
                 style: TextStyle(color: AppColor.grey),
               ),
             ),

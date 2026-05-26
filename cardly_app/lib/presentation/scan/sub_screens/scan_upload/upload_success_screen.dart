@@ -65,7 +65,7 @@ class _UploadSuccessScreenState extends State<UploadSuccessScreen> {
                           borderRadius: BorderRadius.circular(30),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
+                              color: AppColor.black.withValues(alpha: 0.1),
                               spreadRadius: 2,
                               blurRadius: 10,
                               offset: const Offset(0, 8),
@@ -94,7 +94,7 @@ class _UploadSuccessScreenState extends State<UploadSuccessScreen> {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black12,
+                              color: AppColor.black87,
                               blurRadius: 4,
                               offset: Offset(0, 2),
                             ),
@@ -121,7 +121,7 @@ class _UploadSuccessScreenState extends State<UploadSuccessScreen> {
                       right: 25,
                       child: Icon(
                         Icons.star_border_purple500_sharp,
-                        color: Colors.cyan,
+                        color: AppColor.secondary,
                         size: 20,
                       ),
                     ),
@@ -178,64 +178,27 @@ class _DocumentResultTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final d = document as BusinessCardDocument;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: switch (document) {
-        PassportDocument d => ListTile(
-          leading: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColor.primary.withValues(alpha: 0.07),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.book, color: AppColor.black87),
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppColor.primary.withValues(alpha: 0.07),
+            shape: BoxShape.circle,
           ),
-          title: Text(
-            '${d.data.firstName ?? ''} ${d.data.lastName ?? ''}'.trim(),
-            style: AppTextStyles.bodyMedium.copyWith(color: AppColor.black87),
-          ),
-          subtitle: Text(
-            'Passport · ${d.data.passportNumber ?? ''}',
-            style: AppTextStyles.bodySmall.copyWith(color: AppColor.greyDark),
-          ),
+          child: const Icon(Icons.badge_outlined, color: AppColor.black87),
         ),
-        DriverLicenceDocument d => ListTile(
-          leading: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColor.primary.withValues(alpha: 0.07),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.drive_eta, color: AppColor.black87),
-          ),
-          title: Text(
-            '${d.data.firstName ?? ''} ${d.data.lastName ?? ''}'.trim(),
-            style: AppTextStyles.bodyMedium.copyWith(color: AppColor.black87),
-          ),
-          subtitle: Text(
-            'Driver Licence · ${d.data.licenceNumber ?? ''}',
-            style: AppTextStyles.bodySmall.copyWith(color: AppColor.greyDark),
-          ),
+        title: Text(
+          d.card.fullName ?? 'Unknown',
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColor.black87),
         ),
-        MedicareDocument d => ListTile(
-          leading: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColor.primary.withValues(alpha: 0.07),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.medical_services, color: AppColor.black87),
-          ),
-          title: Text(
-            '${d.data.firstName ?? ''} ${d.data.lastName ?? ''}'.trim(),
-            style: AppTextStyles.bodyMedium.copyWith(color: AppColor.black87),
-          ),
-          subtitle: Text(
-            'Medicare · ${d.data.cardNumber ?? ''}',
-            style: AppTextStyles.bodySmall.copyWith(color: AppColor.greyDark),
-          ),
+        subtitle: Text(
+          d.card.company ?? d.card.jobTitle ?? 'Business Card',
+          style: AppTextStyles.bodySmall.copyWith(color: AppColor.greyDark),
         ),
-      },
+      ),
     );
   }
 }

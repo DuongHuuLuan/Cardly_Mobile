@@ -37,7 +37,7 @@ class ModeToggleBar extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColor.primary : Colors.grey.shade200,
+          color: isSelected ? AppColor.primary : AppColor.grey,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
@@ -46,13 +46,13 @@ class ModeToggleBar extends StatelessWidget {
             Icon(
               icon,
               size: 16,
-              color: isSelected ? Colors.white : Colors.black87,
+              color: isSelected ? AppColor.white : AppColor.black87,
             ),
             const SizedBox(width: 4),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? Colors.white : Colors.black87,
+                color: isSelected ? AppColor.white : AppColor.black87,
                 fontWeight: FontWeight.w500,
                 fontSize: 13,
               ),

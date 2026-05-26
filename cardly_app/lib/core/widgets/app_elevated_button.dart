@@ -1,3 +1,4 @@
+import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:flutter/material.dart';
 
 class AppElevatedButton extends StatelessWidget {
@@ -24,7 +25,7 @@ class AppElevatedButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? Theme.of(context).primaryColor,
+          backgroundColor: backgroundColor ?? AppColor.primary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -35,13 +36,13 @@ class AppElevatedButton extends StatelessWidget {
                 width: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Colors.white,
+                  color: AppColor.white,
                 ),
               )
             : Text(
                 label,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppColor.white,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),

@@ -74,7 +74,7 @@ class AppAlertDialog extends StatelessWidget {
                 onPressed: onConfirm,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: color,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColor.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

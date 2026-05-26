@@ -1,6 +1,5 @@
 import 'package:cardly_app/core/error/failures.dart';
 import 'package:cardly_app/domain/Entities/scanned_document.dart';
-import 'package:cardly_app/domain/enums/document_type.dart';
 import 'package:cardly_app/domain/repositories/card_repository.dart';
 import 'package:dartz/dartz.dart';
 
@@ -10,9 +9,8 @@ class ScanCardUsecase {
   ScanCardUsecase({required this.repository});
 
   Future<Either<Failure, List<ScannedDocument>>> call(
-    DocumentType documentType,
     List<String> imagePaths,
   ) async {
-    return await repository.scanCard(documentType, imagePaths);
+    return await repository.scanCard(imagePaths);
   }
 }

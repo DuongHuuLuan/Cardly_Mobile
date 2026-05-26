@@ -20,7 +20,7 @@ class _CardService implements CardService {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<HttpResponse<ScanResponseModel>> scanCard(
+  Future<HttpResponse<BaseResponse<ScanResponseModel>>> scanCard(
     Map<String, dynamic> body,
   ) async {
     final _extra = <String, dynamic>{};
@@ -28,20 +28,23 @@ class _CardService implements CardService {
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
-    final _options = _setStreamType<HttpResponse<ScanResponseModel>>(
-      Options(method: 'POST', headers: _headers, extra: _extra)
-          .compose(
-            _dio.options,
-            '/cards/scan',
-            queryParameters: queryParameters,
-            data: _data,
-          )
-          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
-    );
+    final _options =
+        _setStreamType<HttpResponse<BaseResponse<ScanResponseModel>>>(
+          Options(method: 'POST', headers: _headers, extra: _extra)
+              .compose(
+                _dio.options,
+                '/cards/scan',
+                queryParameters: queryParameters,
+                data: _data,
+              )
+              .copyWith(
+                baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl),
+              ),
+        );
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late ScanResponseModel _value;
+    late BaseResponse<ScanResponseModel> _value;
     try {
-      _value = ScanResponseModel.fromJson(_result.data!);
+      _value = BaseResponse<ScanResponseModel>.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
@@ -51,7 +54,7 @@ class _CardService implements CardService {
   }
 
   @override
-  Future<HttpResponse<ScanResponseModel>> updateCard(
+  Future<HttpResponse<BaseResponse<ScanResponseModel>>> updateCard(
     String id,
     Map<String, dynamic> body,
   ) async {
@@ -60,20 +63,23 @@ class _CardService implements CardService {
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
-    final _options = _setStreamType<HttpResponse<ScanResponseModel>>(
-      Options(method: 'PUT', headers: _headers, extra: _extra)
-          .compose(
-            _dio.options,
-            '/cards/${id}',
-            queryParameters: queryParameters,
-            data: _data,
-          )
-          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
-    );
+    final _options =
+        _setStreamType<HttpResponse<BaseResponse<ScanResponseModel>>>(
+          Options(method: 'PUT', headers: _headers, extra: _extra)
+              .compose(
+                _dio.options,
+                '/cards/${id}',
+                queryParameters: queryParameters,
+                data: _data,
+              )
+              .copyWith(
+                baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl),
+              ),
+        );
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late ScanResponseModel _value;
+    late BaseResponse<ScanResponseModel> _value;
     try {
-      _value = ScanResponseModel.fromJson(_result.data!);
+      _value = BaseResponse<ScanResponseModel>.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;

@@ -8,7 +8,8 @@ class CropOverlayPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final overlayPaint = Paint()..color = Colors.black.withValues(alpha: 0.55);
+    final overlayPaint = Paint()
+      ..color = AppColor.black.withValues(alpha: 0.55);
     final outer = Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
     final inner = Path()..addRect(cropRect);
     canvas.drawPath(
@@ -17,7 +18,7 @@ class CropOverlayPainter extends CustomPainter {
     );
 
     final bracketPaint = Paint()
-      ..color = Colors.white
+      ..color = AppColor.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.5;
     final len = cornerBracketLength;
@@ -75,7 +76,7 @@ class CropOverlayPainter extends CustomPainter {
     canvas.drawRect(cropRect, borderPaint);
 
     final gridPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.4)
+      ..color = AppColor.white.withValues(alpha: 0.4)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.5;
 
@@ -123,7 +124,7 @@ class PerspectiveOverlayPainter extends CustomPainter {
     );
 
     final bracketPaint = Paint()
-      ..color = Colors.white
+      ..color = AppColor.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.5;
     final len = cornerBracketLength;

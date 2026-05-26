@@ -1,4 +1,5 @@
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:cardly_app/presentation/scan/scan_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -74,8 +75,7 @@ class UploadScreen extends StatelessWidget {
                   return ErrorView(
                     message: state.errorMessage ?? "Failed to scan",
                     onRetry: () {
-                      cubit.reset();
-                      context.pop();
+                      context.goToHome();
                     },
                   );
                 default:

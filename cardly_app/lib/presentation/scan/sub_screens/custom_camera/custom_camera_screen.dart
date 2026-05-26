@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:camera/camera.dart';
+import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/custom_camera/widgets/camera_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
-import 'package:cardly_app/domain/enums/document_type.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
@@ -21,8 +21,8 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
     with WidgetsBindingObserver {
   late final ScanCubit cubit;
   CameraController? _controller;
-  List<CameraDescription>? _cameras;
   bool _isReady = false;
+  bool _isLandscape = true;
   @override
   void initState() {
     super.initState();
@@ -33,12 +33,10 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
 
   Future<void> _initCamera() async {
     final cameras = await availableCameras();
-    if (cameras.isEmpty) return;
     final controller = CameraController(cameras.first, ResolutionPreset.high);
     await controller.initialize();
     if (!mounted) return;
     setState(() {
-      _cameras = cameras;
       _controller = controller;
       _isReady = true;
     });
@@ -66,37 +64,27 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
       final image = img.decodeImage(await file.readAsBytes());
       if (image == null) throw Exception('Cannot decode image');
 
-      final docType = cubit.state.documentType;
-      final isLandscape =
-          docType == DocumentType.driverLicence ||
-          docType == DocumentType.medicareCard;
-
-      final targetRatio = isLandscape ? 0.62 : 1.35;
+      final targetRatio = _isLandscape ? 0.62 : 1.35;
 
       final imgW = image.width;
       final imgH = image.height;
 
       int cropX, cropY, cropW, cropH;
 
-      // Tính crop theo tỷ lệ chuẩn trước
       if (imgH / imgW > targetRatio) {
-        // Ảnh quá dài → crop chiều cao
         cropW = imgW;
         cropH = (imgW * targetRatio).toInt();
         cropX = 0;
         cropY = (imgH - cropH) ~/ 2;
       } else {
-        // Ảnh quá rộng → crop chiều rộng
         cropH = imgH;
         cropW = (imgH / targetRatio).toInt();
         cropX = (imgW - cropW) ~/ 2;
         cropY = 0;
       }
 
-      // ==================== CROP THÊM (TĂNG ĐỘ CHẶT) ====================
-      final double marginPercent = 0.085; // crop đều 2 bên + trên
-      final double bottomExtraPercent =
-          0.15; // crop thêm ở bottom (tăng số này nếu muốn cắt dưới nhiều hơn)
+      final double marginPercent = 0.085;
+      final double bottomExtraPercent = 0.15;
 
       final int extraLeftRight = (cropW * marginPercent).toInt();
       final int extraTop = (cropH * marginPercent).toInt();
@@ -108,9 +96,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
 
       final int newCropX = cropX + extraLeftRight;
       final int newCropY = cropY + extraTop;
-      // =================================================================
 
-      // Kiểm tra an toàn để không crop ra ngoài ảnh
       final safeX = newCropX.clamp(0, imgW - newCropW);
       final safeY = newCropY.clamp(0, imgH - newCropH);
       final safeW = newCropW.clamp(1, imgW - safeX);
@@ -149,16 +135,6 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
     }
   }
 
-  void _flipCamera() {
-    if (_cameras == null || _cameras!.length < 2) return;
-    final idx = _cameras!.indexOf(_controller!.description);
-    final newIdx = idx == 0 ? 1 : 0;
-    _controller = CameraController(_cameras![newIdx], ResolutionPreset.high);
-    _controller!.initialize().then((_) {
-      if (mounted) setState(() {});
-    });
-  }
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (_controller == null || !_controller!.value.isInitialized) return;
@@ -176,15 +152,11 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
 
   @override
   Widget build(BuildContext context) {
-    final docType = context.read<ScanCubit>().state.documentType;
-    final isLandscape =
-        docType == DocumentType.driverLicence ||
-        docType == DocumentType.medicareCard;
     if (!_isReady) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColor.black,
       body: Stack(
         children: [
           // Camera preview
@@ -195,45 +167,58 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
                 ? CameraPreview(_controller!)
                 : const Center(child: Text("No camera")),
           ),
-          // Overlay frame
-          IgnorePointer(child: CameraOverlay(isLandscape: isLandscape)),
+          IgnorePointer(child: CameraOverlay(isLandscape: _isLandscape)),
 
           Positioned(
             bottom: 60,
             left: 0,
             right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                IconButton(
-                  onPressed: () => context.pop(),
-                  icon: const Icon(Icons.close, color: Colors.white, size: 32),
-                ),
-                GestureDetector(
-                  onTap: _takePicture,
-                  child: Container(
-                    width: 72,
-                    height: 72,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.camera_alt,
-                      color: Colors.black,
-                      size: 36,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      context.pop();
+                    },
+                    icon: const Icon(
+                      Icons.close,
+                      color: AppColor.white,
+                      size: 35,
                     ),
                   ),
-                ),
-                IconButton(
-                  onPressed: _flipCamera,
-                  icon: const Icon(
-                    Icons.flip_camera_android,
-                    color: Colors.white,
-                    size: 32,
+                  GestureDetector(
+                    onTap: _takePicture,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.2,
+                      height: MediaQuery.of(context).size.height * 0.1,
+                      decoration: const BoxDecoration(
+                        color: AppColor.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.camera_alt,
+                        color: AppColor.black,
+                        size: 42,
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                  IconButton(
+                    icon: Icon(
+                      _isLandscape ? Icons.sync_alt : Icons.sync,
+                      color: AppColor.white,
+                      size: 28,
+                    ),
+                    tooltip: _isLandscape
+                        ? 'Switch to portrait'
+                        : 'Switch to landscape',
+                    onPressed: () =>
+                        setState(() => _isLandscape = !_isLandscape),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

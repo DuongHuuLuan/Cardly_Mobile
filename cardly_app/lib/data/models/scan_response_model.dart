@@ -4,18 +4,16 @@ part 'scan_response_model.g.dart';
 
 @JsonSerializable()
 class ScanResponseModel {
-  final String type;
   final String id;
-  final Map<String, dynamic> data;
-  final List<String>? frontImages;
-  final List<String>? backImages;
+  @JsonKey(name: "data")
+  final Map<String, dynamic> rawData;
+  @JsonKey(name: "images")
+  final List<String> images;
 
   const ScanResponseModel({
-    required this.type,
     required this.id,
-    required this.data,
-    this.backImages,
-    this.frontImages,
+    required this.rawData,
+    this.images = const [],
   });
 
   factory ScanResponseModel.fromJson(Map<String, dynamic> json) =>

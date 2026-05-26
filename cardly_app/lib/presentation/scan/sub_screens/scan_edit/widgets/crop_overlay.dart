@@ -177,7 +177,7 @@ class _CropOverlayState extends State<CropOverlay> {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColor.white,
             border: Border.all(color: AppColor.primary, width: 2.5),
           ),
         ),
@@ -189,10 +189,10 @@ class _CropOverlayState extends State<CropOverlay> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppColor.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -4),
           ),
@@ -241,7 +241,8 @@ class _CropOverlayPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final overlayPaint = Paint()..color = Colors.black.withValues(alpha: 0.55);
+    final overlayPaint = Paint()
+      ..color = AppColor.black.withValues(alpha: 0.55);
     final outer = Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
     final inner = Path()..addRect(cropRect);
     canvas.drawPath(
@@ -250,13 +251,13 @@ class _CropOverlayPainter extends CustomPainter {
     );
 
     final borderPaint = Paint()
-      ..color = Colors.white
+      ..color = AppColor.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     canvas.drawRect(cropRect, borderPaint);
 
     final gridPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.3)
+      ..color = AppColor.white.withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.5;
     for (int i = 1; i <= 2; i++) {

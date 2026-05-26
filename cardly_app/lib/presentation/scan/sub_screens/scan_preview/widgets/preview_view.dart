@@ -62,13 +62,13 @@ class PreviewView extends StatelessWidget {
                       onTap: () => onRemove(index),
                       child: Container(
                         decoration: const BoxDecoration(
-                          color: Colors.black54,
+                          color: AppColor.black87,
                           shape: BoxShape.circle,
                         ),
                         padding: const EdgeInsets.all(4),
                         child: const Icon(
                           Icons.close,
-                          color: Colors.white,
+                          color: AppColor.white,
                           size: 18,
                         ),
                       ),

@@ -1,36 +1,53 @@
+import 'package:cardly_app/data/mappers/user_mapper.dart';
 import 'package:cardly_app/data/models/user_model.dart';
+import 'package:cardly_app/domain/Entities/user_entity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
-class AuthLocalDataSource {
-  static const String _tokenKey = 'auth_token';
-  static const String _userKey = 'auth_user';
+abstract class AuthLocalDataSource {
+  Future<void> saveToken(String token);
+  Future<void> saveUser(UserEntity user);
+  Future<String?> getToken();
+  Future<UserEntity?> getUser();
+  Future<void> clear();
+}
 
+class AuthLocalDataSourceImpl implements AuthLocalDataSource {
+  final SharedPreferences sharedPreferences;
+
+  AuthLocalDataSourceImpl(this.sharedPreferences);
+
+  static const String _tokenKey = "access_token";
+  static const String _userKey = "current_user";
+
+  @override
   Future<void> saveToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_tokenKey, token);
+    await sharedPreferences.setString(_tokenKey, token);
   }
 
-  Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey);
+  @override
+  Future<void> saveUser(UserEntity user) async {
+    final model = UserMapper.toModel(user);
+    final json = jsonEncode(model.toJson());
+    await sharedPreferences.setString(_userKey, json);
   }
 
-  Future<void> saveUser(UserModel user) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_userKey, jsonEncode(user.toJson()));
-  }
+  @override
+  Future<String?> getToken() async => sharedPreferences.getString(_tokenKey);
 
-  Future<UserModel?> getUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    final json = prefs.getString(_userKey);
+  @override
+  Future<UserEntity?> getUser() async {
+    final json = sharedPreferences.getString(_userKey);
     if (json == null) return null;
-    return UserModel.fromJson(jsonDecode(json));
+
+    final model = UserModel.fromJson(jsonDecode(json));
+
+    return UserMapper.fromModel(model);
   }
 
+  @override
   Future<void> clear() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-    await prefs.remove(_userKey);
+    await sharedPreferences.remove(_tokenKey);
+    await sharedPreferences.remove(_userKey);
   }
 }

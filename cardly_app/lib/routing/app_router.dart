@@ -1,10 +1,10 @@
 import 'package:cardly_app/injection_container.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/view/login_page.dart';
+import 'package:cardly_app/presentation/auth/view/register.dart';
 import 'package:cardly_app/presentation/home/cubit/home_cubit.dart';
 import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
-import 'package:cardly_app/domain/enums/document_type.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/custom_camera/custom_camera_screen.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_edit/edit_screen.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_preview/preview_screen.dart';
@@ -18,7 +18,7 @@ import 'package:go_router/go_router.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: "/home",
+    initialLocation: "/login",
     routes: [
       GoRoute(
         path: "/splash",
@@ -33,6 +33,13 @@ class AppRouter {
         builder: (context, state) => BlocProvider(
           create: (context) => getIt<AuthCubit>(),
           child: const LoginPage(),
+        ),
+      ),
+      GoRoute(
+        path: "/register",
+        builder: (context, state) => BlocProvider(
+          create: (context) => getIt<AuthCubit>(),
+          child: const RegisterPage(),
         ),
       ),
 
@@ -50,11 +57,10 @@ class AppRouter {
       GoRoute(
         path: "/scan",
         builder: (context, state) {
-          final cubit = getIt<ScanCubit>();
-          if (state.extra is DocumentType) {
-            cubit.setDocumentType(state.extra as DocumentType);
-          }
-          return BlocProvider.value(value: cubit, child: const ScanScreen());
+          return BlocProvider.value(
+            value: getIt<ScanCubit>(),
+            child: const ScanScreen(),
+          );
         },
         routes: [
           GoRoute(

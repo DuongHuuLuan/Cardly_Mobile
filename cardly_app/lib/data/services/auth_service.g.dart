@@ -20,13 +20,15 @@ class _AuthService implements AuthService {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<HttpResponse<UserModel>> login(Map<String, dynamic> body) async {
+  Future<HttpResponse<BaseResponse<UserModel>>> login(
+    Map<String, dynamic> body,
+  ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
-    final _options = _setStreamType<HttpResponse<UserModel>>(
+    final _options = _setStreamType<HttpResponse<BaseResponse<UserModel>>>(
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -37,9 +39,9 @@ class _AuthService implements AuthService {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late UserModel _value;
+    late BaseResponse<UserModel> _value;
     try {
-      _value = UserModel.fromJson(_result.data!);
+      _value = BaseResponse<UserModel>.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
@@ -49,13 +51,15 @@ class _AuthService implements AuthService {
   }
 
   @override
-  Future<HttpResponse<UserModel>> register(Map<String, dynamic> body) async {
+  Future<HttpResponse<BaseResponse<UserModel>>> register(
+    Map<String, dynamic> body,
+  ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(body);
-    final _options = _setStreamType<HttpResponse<UserModel>>(
+    final _options = _setStreamType<HttpResponse<BaseResponse<UserModel>>>(
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -66,9 +70,9 @@ class _AuthService implements AuthService {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late UserModel _value;
+    late BaseResponse<UserModel> _value;
     try {
-      _value = UserModel.fromJson(_result.data!);
+      _value = BaseResponse<UserModel>.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;

@@ -1,11 +1,9 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
-import 'package:cardly_app/core/widgets/app_elevated_button.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
 import 'package:cardly_app/presentation/auth/view/login_page.dart';
-import 'package:cardly_app/presentation/home/view/widgets/document_card.dart';
-import 'package:cardly_app/domain/enums/document_type.dart';
+import 'package:cardly_app/presentation/home/view/widgets/quick_action_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -14,14 +12,9 @@ extension HomeNavigation on BuildContext {
   void goToHome() => go('/home');
 }
 
-class HomePage extends StatefulWidget {
+class HomePage extends StatelessWidget {
   const HomePage({super.key});
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
 
-class _HomePageState extends State<HomePage> {
-  DocumentType? _selectedType;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,57 +41,50 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "Choose your document type",
+              "What do you want to do?",
               style: AppTextStyles.heading2,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.only(left: 40, right: 40),
+                padding: const EdgeInsets.symmetric(horizontal: 40),
                 children: [
-                  DocumentCard(
-                    imagePath: 'assets/images/passport_card.jpg',
-                    title: 'Passport',
-                    isSelected: _selectedType == DocumentType.passport,
-                    onTap: () =>
-                        setState(() => _selectedType = DocumentType.passport),
+                  QuickActionCard(
+                    icon: Icons.camera_alt_outlined,
+                    label: 'Scan Business Card',
+                    color: AppColor.primary,
+                    onTap: () => context.go('/scan'),
                   ),
-                  const SizedBox(height: 30),
-                  DocumentCard(
-                    imagePath: 'assets/images/driver_licence.jpg',
-                    title: 'Driver Licence',
-                    isSelected: _selectedType == DocumentType.driverLicence,
-                    onTap: () => setState(
-                      () => _selectedType = DocumentType.driverLicence,
-                    ),
+                  const SizedBox(height: 20),
+                  QuickActionCard(
+                    icon: Icons.edit_note_outlined,
+                    label: 'Manual Entry',
+                    color: AppColor.primary,
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Coming soon')),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 30),
-                  DocumentCard(
-                    imagePath: 'assets/images/medicare_card.png',
-                    title: 'Medicare Card',
-                    isSelected: _selectedType == DocumentType.medicareCard,
-                    onTap: () => setState(
-                      () => _selectedType = DocumentType.medicareCard,
-                    ),
+                  const SizedBox(height: 20),
+                  QuickActionCard(
+                    icon: Icons.person_outline,
+                    label: 'My Digital Card',
+                    color: AppColor.primary,
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Coming soon')),
+                      );
+                    },
                   ),
                 ],
               ),
             ),
-            if (_selectedType != null) ...[
-              SizedBox(
-                width: double.infinity,
-                child: AppElevatedButton(
-                  label: "Let's Begin",
-                  onPressed: () => context.go('/scan', extra: _selectedType),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
           ],
         ),
       ),

@@ -1,8 +1,10 @@
+import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:flutter/material.dart';
 
 class CameraOverlay extends StatelessWidget {
   final bool isLandscape;
-  const CameraOverlay({super.key, required this.isLandscape});
+  const CameraOverlay({super.key, this.isLandscape = true});
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -35,13 +37,13 @@ class _OverlayPainter extends CustomPainter {
       ..fillType = PathFillType.evenOdd;
 
     final overlayPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.8)
+      ..color = AppColor.black.withValues(alpha: 0.8)
       ..style = PaintingStyle.fill;
 
     canvas.drawPath(backgroundPath, overlayPaint);
 
     final borderPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.5)
+      ..color = AppColor.white.withValues(alpha: 0.5)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
 

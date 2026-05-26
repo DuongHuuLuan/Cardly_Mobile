@@ -27,22 +27,37 @@ Future<void> init() async {
   final sharedPreferences = await SharedPreferences.getInstance();
   getIt.registerLazySingleton(() => sharedPreferences);
 
-  getIt.registerLazySingleton(
-    () => Dio(
+  getIt.registerLazySingleton<Dio>(() {
+    final dio = Dio(
       BaseOptions(
         baseUrl: AppConstant.baseUrl,
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
+        connectTimeout: Duration(seconds: 30),
+        receiveTimeout: Duration(seconds: 30),
       ),
-    ),
-  );
+    );
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          final prefs = getIt<SharedPreferences>();
+          final token = prefs.getString("access_token");
+          if (token != null) {
+            options.headers["Authorization"] = "Bearer $token";
+          }
+          handler.next(options);
+        },
+      ),
+    );
+    return dio;
+  });
 
   // Service
   getIt.registerLazySingleton<AuthService>(() => AuthService(getIt<Dio>()));
   getIt.registerLazySingleton<CardService>(() => CardService(getIt<Dio>()));
 
   // Data Source
-  getIt.registerLazySingleton<AuthLocalDataSource>(() => AuthLocalDataSource());
+  getIt.registerLazySingleton<AuthLocalDataSource>(
+    () => AuthLocalDataSourceImpl(getIt<SharedPreferences>()),
+  );
 
   // Remote Data Source
   getIt.registerLazySingleton<AuthRemoteDataSource>(
@@ -63,7 +78,7 @@ Future<void> init() async {
     () => CardRepositoryImpl(remoteDataSource: getIt<CardRemoteDataSource>()),
   );
 
-  // Usecases
+  // Use cases
   getIt.registerLazySingleton<LoginUsecase>(
     () => LoginUsecase(repository: getIt<AuthRepository>()),
   );
@@ -86,6 +101,7 @@ Future<void> init() async {
   // Cubit
   getIt.registerFactory(
     () => AuthCubit(
+      localStorage: getIt<AuthLocalDataSource>(),
       loginUsecase: getIt<LoginUsecase>(),
       registerUsecase: getIt<RegisterUsecase>(),
       logoutUsecase: getIt<LogoutUsecase>(),

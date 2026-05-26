@@ -1,4 +1,5 @@
-import 'package:cardly_app/domain/Entities/user.dart';
+import 'package:cardly_app/data/datasources/local/auth_local_data_source.dart';
+import 'package:cardly_app/domain/Entities/user_entity.dart';
 import 'package:cardly_app/domain/usecase/auth/get_current_user_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/login_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/logout_usecase.dart';
@@ -7,6 +8,7 @@ import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AuthCubit extends Cubit<AuthState> {
+  final AuthLocalDataSource localStorage;
   final LoginUsecase loginUsecase;
   final RegisterUsecase registerUsecase;
   final LogoutUsecase logoutUsecase;
@@ -14,6 +16,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   AuthCubit({
     required this.loginUsecase,
+    required this.localStorage,
     required this.registerUsecase,
     required this.logoutUsecase,
     required this.getCurrentUserUsecase,
@@ -24,14 +27,17 @@ class AuthCubit extends Cubit<AuthState> {
     final result = await loginUsecase(email, password);
 
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: AuthStatus.failed,
-        errorMessage: failure.message,
-      )),
-      (user) => emit(state.copyWith(
-        status: AuthStatus.authenticated,
-        user: user,
-      )),
+      (failure) => emit(
+        state.copyWith(
+          status: AuthStatus.failed,
+          errorMessage: failure.message,
+        ),
+      ),
+      (user) async {
+        await localStorage.saveToken(user.accessToken!);
+        await localStorage.saveUser(user);
+        emit(state.copyWith(status: AuthStatus.authenticated, user: user));
+      },
     );
   }
 
@@ -40,14 +46,14 @@ class AuthCubit extends Cubit<AuthState> {
     final result = await registerUsecase(user);
 
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: AuthStatus.failed,
-        errorMessage: failure.message,
-      )),
-      (user) => emit(state.copyWith(
-        status: AuthStatus.authenticated,
-        user: user,
-      )),
+      (failure) => emit(
+        state.copyWith(
+          status: AuthStatus.failed,
+          errorMessage: failure.message,
+        ),
+      ),
+      (user) =>
+          emit(state.copyWith(status: AuthStatus.authenticated, user: user)),
     );
   }
 
@@ -58,10 +64,7 @@ class AuthCubit extends Cubit<AuthState> {
       (failure) => emit(state.copyWith(status: AuthStatus.unauthenticated)),
       (user) {
         if (user != null) {
-          emit(state.copyWith(
-            status: AuthStatus.authenticated,
-            user: user,
-          ));
+          emit(state.copyWith(status: AuthStatus.authenticated, user: user));
         } else {
           emit(state.copyWith(status: AuthStatus.unauthenticated));
         }
@@ -74,10 +77,12 @@ class AuthCubit extends Cubit<AuthState> {
     final result = await logoutUsecase();
 
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: AuthStatus.failed,
-        errorMessage: failure.message,
-      )),
+      (failure) => emit(
+        state.copyWith(
+          status: AuthStatus.failed,
+          errorMessage: failure.message,
+        ),
+      ),
       (_) => emit(state.copyWith(status: AuthStatus.unauthenticated)),
     );
   }

@@ -21,7 +21,7 @@ class DocumentCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColor.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? AppColor.primary : AppColor.greyLight,
@@ -31,7 +31,7 @@ class DocumentCard extends StatelessWidget {
             BoxShadow(
               color: isSelected
                   ? AppColor.primary.withValues(alpha: 0.15)
-                  : Colors.black.withValues(alpha: 0.05),
+                  : AppColor.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),

@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:cardly_app/domain/Entities/scanned_document.dart';
-import 'package:cardly_app/domain/enums/document_type.dart';
 
 enum ScanStatus {
   initial,
@@ -16,7 +15,6 @@ enum ImageSourceType { camera, gallery }
 
 class ScanState extends Equatable {
   final ScanStatus status;
-  final DocumentType? documentType;
   final List<String> imagePaths;
   final ImageSourceType? imageSource;
   final List<ScannedDocument> scannedDocuments;
@@ -26,7 +24,6 @@ class ScanState extends Equatable {
 
   const ScanState({
     this.status = ScanStatus.initial,
-    this.documentType,
     this.imagePaths = const [],
     this.imageSource,
     this.scannedDocuments = const [],
@@ -37,7 +34,6 @@ class ScanState extends Equatable {
 
   ScanState copyWith({
     ScanStatus? status,
-    DocumentType? documentType,
     List<String>? imagePaths,
     ImageSourceType? imageSource,
     List<ScannedDocument>? scannedDocuments,
@@ -46,7 +42,6 @@ class ScanState extends Equatable {
     String? errorMessage,
   }) => ScanState(
     status: status ?? this.status,
-    documentType: documentType ?? this.documentType,
     imagePaths: imagePaths ?? this.imagePaths,
     imageSource: imageSource ?? this.imageSource,
     scannedDocuments: scannedDocuments ?? this.scannedDocuments,
@@ -58,7 +53,6 @@ class ScanState extends Equatable {
   @override
   List<Object?> get props => [
     status,
-    documentType,
     imagePaths,
     imageSource,
     scannedDocuments,

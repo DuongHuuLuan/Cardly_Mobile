@@ -26,14 +26,14 @@ class UploadStepsCard extends StatelessWidget {
             title: "Image quality check",
             status: step1Status,
           ),
-          const Divider(height: 24, color: Colors.transparent),
+          SizedBox(height: 24),
           StepRow(
             icon: Icons.lens,
             title: "Uploading to secure server",
             status: step2Status,
             isDotIcon: true,
           ),
-          const Divider(height: 24, color: Colors.transparent),
+          SizedBox(height: 24),
           StepRow(
             icon: Icons.lock_outline,
             title: "Extracting data fields",

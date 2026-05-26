@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:cardly_app/domain/Entities/scanned_document.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:cardly_app/domain/enums/document_type.dart';
 import 'package:cardly_app/domain/usecase/card/scan_card_usecase.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,6 +16,7 @@ class ScanCubit extends Cubit<ScanState> {
   static const int _maxImages = 2;
 
   Future<void> pickFromCamera() async {
+    emit(state.copyWith(status: ScanStatus.initial));
     emit(
       state.copyWith(
         status: ScanStatus.imageSelected,
@@ -28,6 +28,7 @@ class ScanCubit extends Cubit<ScanState> {
   Future<void> pickFromGallery() async {
     final existing = state.imagePaths;
     if (existing.length >= _maxImages) {
+      emit(state.copyWith(status: ScanStatus.initial));
       emit(
         state.copyWith(
           status: ScanStatus.validationFailed,
@@ -107,9 +108,7 @@ class ScanCubit extends Cubit<ScanState> {
       return;
     }
     final newPaths = existing.contains(path) ? existing : [...existing, path];
-    emit(
-      state.copyWith(status: ScanStatus.imageSelected, imagePaths: newPaths),
-    );
+    emit(state.copyWith(imagePaths: newPaths));
   }
 
   void removeImage(int index) {
@@ -158,20 +157,10 @@ class ScanCubit extends Cubit<ScanState> {
 
   Future<void> uploadAndScan() async {
     if (!validate()) return;
-    final docType = state.documentType;
-    if (docType == null) {
-      emit(
-        state.copyWith(
-          status: ScanStatus.validationFailed,
-          errorMessage: 'Document type not selected',
-        ),
-      );
-      return;
-    }
     emit(state.copyWith(status: ScanStatus.uploading, uploadProgress: 0.0));
     try {
       await _simulateProgress();
-      final result = await scanCardUsecase(docType, state.imagePaths);
+      final result = await scanCardUsecase(state.imagePaths);
       result.fold(
         (failure) => emit(
           state.copyWith(
@@ -213,9 +202,6 @@ class ScanCubit extends Cubit<ScanState> {
     await File(path).writeAsBytes(await file.readAsBytes());
     return path;
   }
-
-  void setDocumentType(DocumentType type) =>
-      emit(state.copyWith(documentType: type));
 
   void reset() => emit(const ScanState());
 }

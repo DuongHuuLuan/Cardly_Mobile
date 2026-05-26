@@ -1,11 +1,13 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:cardly_app/domain/Entities/user.dart';
+import 'package:cardly_app/domain/Entities/user_entity.dart';
 
 part 'user_model.g.dart';
 
 @JsonSerializable()
 class UserModel {
   final int id;
+  @JsonKey(name: "access_token")
+  final String? accessToken;
   final String name;
   final String email;
   final String phone;
@@ -14,6 +16,7 @@ class UserModel {
 
   const UserModel({
     required this.id,
+    this.accessToken,
     required this.name,
     required this.email,
     required this.phone,
@@ -26,10 +29,12 @@ class UserModel {
   Map<String, dynamic> toJson() => _$UserModelToJson(this);
 
   UserEntity toEntity() => UserEntity(
-        id: id,
-        name: name,
-        email: email,
-        phone: phone,
-        avatar: avatar,
-      );
+    id: id,
+    accessToken: accessToken,
+    name: name,
+    email: email,
+    phone: phone,
+    password: password!,
+    avatar: avatar,
+  );
 }

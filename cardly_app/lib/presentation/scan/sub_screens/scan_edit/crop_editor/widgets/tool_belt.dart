@@ -1,3 +1,4 @@
+import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:flutter/material.dart';
 
 class ToolBelt extends StatelessWidget {
@@ -47,13 +48,13 @@ class ToolBelt extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: enabled ? Colors.grey.shade100 : Colors.grey.shade50,
+            color: enabled ? AppColor.greyLight : AppColor.greyDark,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Icon(
             icon,
             size: 20,
-            color: enabled ? Colors.black87 : Colors.grey.shade400,
+            color: enabled ? AppColor.black87 : AppColor.grey,
           ),
         ),
       ),
