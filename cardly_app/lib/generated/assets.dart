@@ -24,6 +24,15 @@ class $AssetsImagesGen {
   final AssetGenImage medicareCard = const AssetGenImage(
     'assets/images/medicare_card.png',
   );
+  final AssetGenImage onboardingFinalLine = const AssetGenImage(
+    'assets/images/onboarding_final_line.png',
+  );
+  final AssetGenImage onboardingFirstLine = const AssetGenImage(
+    'assets/images/onboarding_first_line.png',
+  );
+  final AssetGenImage onboardingSecondLine = const AssetGenImage(
+    'assets/images/onboarding_second_line.png',
+  );
   final AssetGenImage passportCard = const AssetGenImage(
     'assets/images/passport_card.jpg',
   );
@@ -49,6 +58,8 @@ class $AssetsWidgetsGen {
   final String appPasswordTextFormField =
       'lib/core/widgets/app_password_text_form_field.dart';
   final String appTextFormField = 'lib/core/widgets/app_text_form_field.dart';
+  final String passwordStrengthWidget =
+      'lib/core/widgets/password_strength_widget.dart';
   final String submitButton = 'lib/core/widgets/submit_button.dart';
 }
 

@@ -1,4 +1,5 @@
 import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/widgets/password_strength_widget.dart';
 import 'package:cardly_app/core/widgets/submit_button.dart';
 import 'package:cardly_app/domain/Entities/user_entity.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
@@ -30,6 +31,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+
+  bool _passwordValid = false;
 
   @override
   void initState() {
@@ -123,6 +126,12 @@ class _RegisterPageState extends State<RegisterPage> {
                     passwordController: passwordController,
                     confirmPasswordController: confirmPasswordController,
                   ),
+                  const SizedBox(height: 8),
+                  PasswordStrengthWidget(
+                    passwordController: passwordController,
+                    onStrengthChanged: (v) =>
+                        setState(() => _passwordValid = v),
+                  ),
 
                   const SizedBox(height: 30),
                   SubmitButton(
@@ -135,6 +144,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ],
                     onPressed: () => _register(),
                     label: "Register",
+                    canSubmit: _passwordValid,
                   ),
 
                   const SizedBox(height: 40),

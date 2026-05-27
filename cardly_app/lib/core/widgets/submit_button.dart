@@ -62,14 +62,20 @@ class _SubmitButtonState extends State<SubmitButton> {
       height: 56,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: _isFilled ? AppColor.primary : AppColor.greyLight,
-          foregroundColor: _isFilled ? AppColor.white : AppColor.greyDark,
+          backgroundColor: (_isFilled && widget.canSubmit)
+              ? AppColor.primary
+              : AppColor.greyLight,
+          foregroundColor: (_isFilled && widget.canSubmit)
+              ? AppColor.white
+              : AppColor.greyDark,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-        onPressed: (_isFilled && !widget.isLoading) ? widget.onPressed : null,
+        onPressed: (_isFilled && widget.canSubmit && !widget.isLoading)
+            ? widget.onPressed
+            : null,
         child: widget.isLoading
             ? const CircularProgressIndicator(color: AppColor.white)
             : Text(widget.label),

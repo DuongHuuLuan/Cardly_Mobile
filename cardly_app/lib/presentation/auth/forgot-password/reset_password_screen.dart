@@ -2,6 +2,7 @@ import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
 import 'package:cardly_app/core/widgets/app_password_text_form_field.dart';
+import 'package:cardly_app/core/widgets/password_strength_widget.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
 import 'package:cardly_app/presentation/auth/forgot-password/forgot_password_screen.dart';
@@ -27,6 +28,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   late String _email;
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+
+  bool _passwordValid = false;
+
   @override
   void initState() {
     super.initState();
@@ -51,12 +55,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text("Passwords do not match")));
-      return;
-    }
-    if (_passwordController.text.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Password must be at least 6 characters")),
-      );
       return;
     }
     _authCubit.resetPassword(_email, _passwordController.text);
@@ -127,16 +125,22 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   labelText: "Password",
                   hintText: "Enter password",
                 ),
+
                 const SizedBox(height: 20),
                 AppPasswordTextFormField(
                   controller: _confirmPasswordController,
                   labelText: "Confirm Password",
                   hintText: "Confirm password",
                 ),
+                const SizedBox(height: 8),
+                PasswordStrengthWidget(
+                  passwordController: _passwordController,
+                  onStrengthChanged: (v) => setState(() => _passwordValid = v),
+                ),
                 const SizedBox(height: 40),
                 AppElevatedButton(
                   label: "Save",
-                  onPressed: _save,
+                  onPressed: _passwordValid ? _save : null,
                   isLoading: isLoading,
                 ),
                 const SizedBox(height: 20),
