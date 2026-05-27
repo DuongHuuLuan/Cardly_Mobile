@@ -1,7 +1,10 @@
 import 'package:cardly_app/injection_container.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
-import 'package:cardly_app/presentation/auth/view/login_page.dart';
-import 'package:cardly_app/presentation/auth/view/register.dart';
+import 'package:cardly_app/presentation/auth/forgot-password/forgot_password_screen.dart';
+import 'package:cardly_app/presentation/auth/forgot-password/input_otp_screen.dart';
+import 'package:cardly_app/presentation/auth/forgot-password/reset_password_screen.dart';
+import 'package:cardly_app/presentation/auth/view/login_screen.dart';
+import 'package:cardly_app/presentation/auth/view/register_screen.dart';
 import 'package:cardly_app/presentation/home/cubit/home_cubit.dart';
 import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
@@ -18,7 +21,7 @@ import 'package:go_router/go_router.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: "/login",
+    initialLocation: "/splash",
     routes: [
       GoRoute(
         path: "/splash",
@@ -40,6 +43,27 @@ class AppRouter {
         builder: (context, state) => BlocProvider(
           create: (context) => getIt<AuthCubit>(),
           child: const RegisterPage(),
+        ),
+      ),
+      GoRoute(
+        path: "/forgot-password",
+        builder: (context, state) => BlocProvider(
+          create: (context) => getIt<AuthCubit>(),
+          child: ForgotPasswordScreen(),
+        ),
+      ),
+      GoRoute(
+        path: "/verify-otp",
+        builder: (context, state) => BlocProvider(
+          create: (context) => getIt<AuthCubit>(),
+          child: OtpVerificationScreen(),
+        ),
+      ),
+      GoRoute(
+        path: "/reset-password",
+        builder: (context, state) => BlocProvider(
+          create: (context) => getIt<AuthCubit>(),
+          child: ResetPasswordScreen(),
         ),
       ),
 

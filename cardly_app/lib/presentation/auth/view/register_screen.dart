@@ -3,7 +3,7 @@ import 'package:cardly_app/core/widgets/submit_button.dart';
 import 'package:cardly_app/domain/Entities/user_entity.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
-import 'package:cardly_app/presentation/auth/view/login_page.dart';
+import 'package:cardly_app/presentation/auth/view/login_screen.dart';
 import 'package:cardly_app/presentation/auth/view/widgets/auth_form.dart';
 import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:flutter/material.dart';

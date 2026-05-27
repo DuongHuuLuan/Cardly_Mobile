@@ -1,3 +1,4 @@
+import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/widgets/app_password_text_form_field.dart';
 import 'package:cardly_app/core/widgets/app_text_form_field.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,9 @@ class AuthForm extends StatelessWidget {
   final TextEditingController? phoneController;
   final TextEditingController? passwordController;
   final TextEditingController? confirmPasswordController;
+  final String? emailError;
+  final String? passwordError;
+
   const AuthForm({
     super.key,
     required this.formKey,
@@ -17,6 +21,8 @@ class AuthForm extends StatelessWidget {
     this.phoneController,
     this.passwordController,
     this.confirmPasswordController,
+    this.emailError,
+    this.passwordError,
   });
   @override
   Widget build(BuildContext context) {
@@ -40,6 +46,13 @@ class AuthForm extends StatelessWidget {
               hintText: "Enter Email",
               prefixIcon: Icons.email_outlined,
             ),
+            if (emailError != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                emailError!,
+                style: const TextStyle(color: AppColor.error, fontSize: 12),
+              ),
+            ],
             const SizedBox(height: 20),
           ],
           if (phoneController != null) ...[
@@ -58,6 +71,13 @@ class AuthForm extends StatelessWidget {
               labelText: "Password",
               hintText: "Enter Password",
             ),
+            if (passwordError != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                passwordError!,
+                style: const TextStyle(color: AppColor.error, fontSize: 12),
+              ),
+            ],
             const SizedBox(height: 20),
           ],
           if (confirmPasswordController != null) ...[

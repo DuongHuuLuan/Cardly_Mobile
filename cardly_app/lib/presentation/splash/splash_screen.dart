@@ -1,4 +1,4 @@
-import 'package:cardly_app/presentation/auth/view/login_page.dart';
+import 'package:cardly_app/presentation/auth/view/login_screen.dart';
 import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

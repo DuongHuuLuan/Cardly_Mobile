@@ -6,6 +6,7 @@ class SubmitButton extends StatefulWidget {
   final VoidCallback onPressed;
   final String label;
   final bool isLoading;
+  final bool canSubmit;
 
   const SubmitButton({
     super.key,
@@ -13,6 +14,7 @@ class SubmitButton extends StatefulWidget {
     required this.onPressed,
     required this.label,
     this.isLoading = false,
+    this.canSubmit = true,
   });
 
   @override

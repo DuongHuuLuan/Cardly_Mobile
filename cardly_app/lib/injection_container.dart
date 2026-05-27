@@ -8,6 +8,9 @@ import 'package:cardly_app/data/services/auth_service.dart';
 import 'package:cardly_app/data/services/card_service.dart';
 import 'package:cardly_app/domain/repositories/auth_repository.dart';
 import 'package:cardly_app/domain/repositories/card_repository.dart';
+import 'package:cardly_app/domain/usecase/auth/forgot-password/forgot_password_usecase.dart';
+import 'package:cardly_app/domain/usecase/auth/forgot-password/reset_password_usecase.dart';
+import 'package:cardly_app/domain/usecase/auth/forgot-password/verify_otp_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/get_current_user_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/login_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/logout_usecase.dart';
@@ -97,6 +100,15 @@ Future<void> init() async {
   getIt.registerLazySingleton<UpdateCardUsecase>(
     () => UpdateCardUsecase(repository: getIt<CardRepository>()),
   );
+  getIt.registerLazySingleton<ForgotPasswordUsecase>(
+    () => ForgotPasswordUsecase(repository: getIt<AuthRepository>()),
+  );
+  getIt.registerLazySingleton<VerifyOtpUsecase>(
+    () => VerifyOtpUsecase(repository: getIt<AuthRepository>()),
+  );
+  getIt.registerLazySingleton<ResetPasswordUsecase>(
+    () => ResetPasswordUsecase(repository: getIt<AuthRepository>()),
+  );
 
   // Cubit
   getIt.registerFactory(
@@ -106,6 +118,10 @@ Future<void> init() async {
       registerUsecase: getIt<RegisterUsecase>(),
       logoutUsecase: getIt<LogoutUsecase>(),
       getCurrentUserUsecase: getIt<GetCurrentUserUsecase>(),
+
+      forgotPasswordUsecase: getIt<ForgotPasswordUsecase>(),
+      verifyOtpUsecase: getIt<VerifyOtpUsecase>(),
+      resetPasswordUsecase: getIt<ResetPasswordUsecase>(),
     ),
   );
   getIt.registerFactory(() => HomeCubit());
