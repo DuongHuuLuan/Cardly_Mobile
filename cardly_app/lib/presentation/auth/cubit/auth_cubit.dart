@@ -134,14 +134,24 @@ class AuthCubit extends Cubit<AuthState> {
     final result = await registerUsecase(user);
 
     result.fold(
-      (failure) => emit(
+      (failure) {
+        final isEmailError = failure.message.contains(
+          "already been registered",
+        );
+        emit(
+          state.copyWith(
+            status: AuthStatus.failed,
+            emailError: isEmailError ? failure.message : null,
+            errorMessage: isEmailError ? null : failure.message,
+          ),
+        );
+      },
+      (user) => emit(
         state.copyWith(
-          status: AuthStatus.failed,
-          errorMessage: failure.message,
+          status: AuthStatus.registrationSuccess,
+          successMessage: "Check your email to confirm your account.",
         ),
       ),
-      (user) =>
-          emit(state.copyWith(status: AuthStatus.authenticated, user: user)),
     );
   }
 

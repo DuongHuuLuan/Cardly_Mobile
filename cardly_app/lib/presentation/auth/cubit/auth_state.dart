@@ -9,6 +9,7 @@ enum AuthStatus {
   authenticated,
   unauthenticated,
   failed,
+  registrationSuccess,
   forgotPasswordLoading,
   forgotPasswordSuccess,
   forgotPasswordFailure,

@@ -1,5 +1,5 @@
-import 'package:cardly_app/presentation/auth/view/login_screen.dart';
 import 'package:cardly_app/presentation/home/view/home_screen.dart';
+import 'package:cardly_app/presentation/onboarding/views/onboarding_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cardly_app/core/theme/app_color.dart';
@@ -33,7 +33,7 @@ class _SplashScreenState extends State<SplashScreen> {
         if (state.status == AuthStatus.authenticated) {
           context.goToHome();
         } else if (state.status == AuthStatus.unauthenticated) {
-          context.goToLogin();
+          context.goToOnboarding();
         }
       },
       child: const Scaffold(

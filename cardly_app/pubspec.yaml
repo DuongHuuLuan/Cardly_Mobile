@@ -42,4 +42,5 @@ flutter:
   assets:
     - .env
     - assets/images/
+    - assets/data/mock/
     - lib/core/widgets/

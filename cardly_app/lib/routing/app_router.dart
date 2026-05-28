@@ -7,6 +7,9 @@ import 'package:cardly_app/presentation/auth/view/login_screen.dart';
 import 'package:cardly_app/presentation/auth/view/register_screen.dart';
 import 'package:cardly_app/presentation/home/cubit/home_cubit.dart';
 import 'package:cardly_app/presentation/home/view/home_screen.dart';
+import 'package:cardly_app/presentation/onboarding/cubit/onboarding_cubit.dart';
+import 'package:cardly_app/presentation/onboarding/views/onboarding_screen.dart';
+import 'package:cardly_app/presentation/profile/profile_screen.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/custom_camera/custom_camera_screen.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_edit/edit_screen.dart';
@@ -28,6 +31,13 @@ class AppRouter {
         builder: (context, state) => BlocProvider(
           create: (context) => getIt<AuthCubit>(),
           child: const SplashScreen(),
+        ),
+      ),
+      GoRoute(
+        path: "/onboarding",
+        builder: (context, state) => BlocProvider(
+          create: (context) => getIt<OnboardingCubit>()..loadData(),
+          child: const OnboardingScreen(),
         ),
       ),
 
@@ -143,6 +153,13 @@ class AppRouter {
             },
           ),
         ],
+      ),
+      GoRoute(
+        path: "/profile",
+        builder: (context, state) => BlocProvider(
+          create: (context) => getIt<AuthCubit>(),
+          child: const ProfileScreen(),
+        ),
       ),
     ],
   );

@@ -1,4 +1,5 @@
 import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/password_strength_widget.dart';
 import 'package:cardly_app/core/widgets/submit_button.dart';
 import 'package:cardly_app/domain/Entities/user_entity.dart';
@@ -37,11 +38,19 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   void initState() {
     super.initState();
+    emailController.addListener(_onEmailChanged);
     _authCubit = context.read<AuthCubit>();
+  }
+
+  void _onEmailChanged() {
+    if (_authCubit.state.emailError != null) {
+      _authCubit.clearEmailError();
+    }
   }
 
   @override
   void dispose() {
+    emailController.removeListener(_onEmailChanged);
     nameController.dispose();
     emailController.dispose();
     phoneController.dispose();
@@ -74,105 +83,121 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: MultiBlocListener(
-        listeners: [
-          BlocListener<AuthCubit, AuthState>(
-            listener: (context, state) {
-              if (state.status == AuthStatus.failed &&
-                  state.errorMessage != null) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
-              }
+      body: BlocConsumer<AuthCubit, AuthState>(
+        listener: (context, state) {
+          if (state.status == AuthStatus.failed &&
+              state.errorMessage != null &&
+              state.emailError == null) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+          }
 
-              if (state.status == AuthStatus.authenticated) {
-                context.goToHome();
-              }
-            },
-          ),
-        ],
-        child: Stack(
-          children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.all(25),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                // crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 40),
-
-                  Text(
-                    "Sign Up",
-                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
-
-                  Text(
-                    "Enter your information below",
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: AppColor.grey),
-                  ),
-                  const SizedBox(height: 30),
-
-                  AuthForm(
-                    formKey: _formKey,
-                    nameController: nameController,
-                    emailController: emailController,
-                    phoneController: phoneController,
-                    passwordController: passwordController,
-                    confirmPasswordController: confirmPasswordController,
-                  ),
-                  const SizedBox(height: 8),
-                  PasswordStrengthWidget(
-                    passwordController: passwordController,
-                    onStrengthChanged: (v) =>
-                        setState(() => _passwordValid = v),
-                  ),
-
-                  const SizedBox(height: 30),
-                  SubmitButton(
-                    controllers: [
-                      nameController,
-                      emailController,
-                      phoneController,
-                      passwordController,
-                      confirmPasswordController,
-                    ],
-                    onPressed: () => _register(),
-                    label: "Register",
-                    canSubmit: _passwordValid,
-                  ),
-
-                  const SizedBox(height: 40),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text("Already a member?"),
-                      TextButton(
-                        onPressed: () {
-                          context.goToLogin();
-                        },
-                        child: Text(
-                          "Login",
-                          style: Theme.of(context).textTheme.bodyLarge
-                              ?.copyWith(
-                                color: AppColor.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+          if (state.status == AuthStatus.authenticated) {
+            context.goToHome();
+          }
+          if (state.status == AuthStatus.registrationSuccess) {
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (_) => AppAlertDialog(
+                icon: Icons.check_circle,
+                color: AppColor.success,
+                title: "Register Successfully",
+                message: "Check your email to confirm your account.",
+                buttonLabel: "Go to Login",
+                onConfirm: () {
+                  Navigator.pop(context);
+                  context.goToLogin();
+                },
               ),
-            ),
-          ],
-        ),
+            );
+          }
+        },
+        builder: (context, state) {
+          return Stack(
+            children: [
+              SingleChildScrollView(
+                padding: const EdgeInsets.all(25),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  // crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 40),
+
+                    Text(
+                      "Sign Up",
+                      style: Theme.of(context).textTheme.headlineLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+
+                    Text(
+                      "Enter your information below",
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: AppColor.grey),
+                    ),
+                    const SizedBox(height: 30),
+
+                    AuthForm(
+                      formKey: _formKey,
+                      nameController: nameController,
+                      emailController: emailController,
+                      phoneController: phoneController,
+                      passwordController: passwordController,
+                      confirmPasswordController: confirmPasswordController,
+                      emailError: state.emailError,
+                    ),
+                    const SizedBox(height: 8),
+                    PasswordStrengthWidget(
+                      passwordController: passwordController,
+                      onStrengthChanged: (v) =>
+                          setState(() => _passwordValid = v),
+                    ),
+
+                    const SizedBox(height: 30),
+                    SubmitButton(
+                      controllers: [
+                        nameController,
+                        emailController,
+                        phoneController,
+                        passwordController,
+                        confirmPasswordController,
+                      ],
+                      onPressed: () => _register(),
+                      label: "Register",
+                      canSubmit: _passwordValid,
+                    ),
+
+                    const SizedBox(height: 40),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text("Already a member?"),
+                        TextButton(
+                          onPressed: () {
+                            context.goToLogin();
+                          },
+                          child: Text(
+                            "Login",
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(
+                                  color: AppColor.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
