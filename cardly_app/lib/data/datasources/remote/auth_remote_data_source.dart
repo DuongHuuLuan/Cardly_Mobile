@@ -29,6 +29,13 @@ class AuthRemoteDataSource {
           email: "test@gmail.com",
           phone: "+84 123 456 789",
           password: "123456",
+          position: "Software Engineer",
+          company: "Cardly Inc.",
+          address: "123 Nguyễn Huệ, Q.1, TP.HCM",
+          website: "https://cardly.ai",
+          linkedIn: "https://linkedin.com/in/cardly",
+          cardUrl: "https://cardly.ai/u/test",
+          bio: "Chuyên gia giải pháp danh thiếp số",
         );
       }
       throw ServerException("Invalid email or password");

@@ -4,6 +4,8 @@ import 'package:cardly_app/core/widgets/app_bottom_nav.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
 import 'package:cardly_app/presentation/auth/view/login_screen.dart';
+import 'package:cardly_app/presentation/home/view/home_screen.dart';
+import 'package:cardly_app/presentation/profile/widgets/profile_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -14,34 +16,39 @@ extension ProfileNavigation on BuildContext {
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: BlocBuilder<AuthCubit, AuthState>(
-          builder: (context, state) {
-            final username = state.status == AuthStatus.authenticated
-                ? state.user!.name
-                : "User";
-            return Text(
-              "Hello, $username",
-              style: AppTextStyles.heading3.copyWith(color: AppColor.black87),
-            );
+        title: Text("Setting", style: AppTextStyles.heading3),
+        centerTitle: true,
+        leading: IconButton(
+          onPressed: () => context.goToHome(),
+          icon: Icon(Icons.arrow_back),
+        ),
+      ),
+      body: BlocBuilder<AuthCubit, AuthState>(
+        builder: (context, state) => ProfileContent(
+          user: state.user,
+          onEdit: () {
+            // TODO: navigate to edit profile
+          },
+          onNotifications: () {
+            // TODO: navigate to notifications
+          },
+          onPrivacy: () {
+            // TODO: navigate to privacy
+          },
+          onHelp: () {
+            // TODO: navigate to help
+          },
+          onLogout: () {
+            context.read<AuthCubit>().logout();
+            context.goToLogin();
           },
         ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              context.read<AuthCubit>().logout();
-              context.goToLogin();
-            },
-            icon: const Icon(Icons.logout, color: AppColor.grey),
-          ),
-        ],
       ),
-
-      bottomNavigationBar: AppBottomNav(currentIndex: 3),
+      bottomNavigationBar: AppBottomNav(currentIndex: 2),
     );
   }
 }

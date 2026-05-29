@@ -1,10 +1,14 @@
 import 'package:cardly_app/core/theme/app_color.dart';
-import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/widgets/app_bottom_nav.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
-import 'package:cardly_app/presentation/auth/view/login_screen.dart';
-import 'package:cardly_app/presentation/home/view/widgets/quick_action_card.dart';
+import 'package:cardly_app/presentation/contact/view/contact_screen.dart';
+import 'package:cardly_app/presentation/digital_card/digital_card_screen.dart';
+import 'package:cardly_app/presentation/home/view/widgets/digital_card_preview.dart';
+import 'package:cardly_app/presentation/home/view/widgets/home_header.dart';
+import 'package:cardly_app/presentation/home/view/widgets/recent_contacts_section.dart';
+import 'package:cardly_app/presentation/home/view/widgets/scan_action_button.dart';
+import 'package:cardly_app/presentation/home/view/widgets/stats_overview.dart';
 import 'package:cardly_app/presentation/profile/profile_screen.dart';
 import 'package:cardly_app/presentation/scan/scan_screen.dart';
 import 'package:flutter/material.dart';
@@ -17,131 +21,83 @@ extension HomeNavigation on BuildContext {
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
-
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.only(
-          left: 24,
-          top: 50,
-          right: 24,
-          bottom: 24,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: "Search",
-                      hintStyle: TextStyle(color: AppColor.grey),
-                      prefixIcon: const Icon(
-                        Icons.search,
-                        size: 26,
-                        color: AppColor.grey,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: AppColor.greyLight,
-                          width: 1,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: AppColor.grey,
-                          width: 2.0,
-                        ),
-                      ),
-                      filled: true,
-                      fillColor: AppColor.grey.withValues(alpha: 0.1),
+      backgroundColor: AppColor.background,
+      body: BlocBuilder<AuthCubit, AuthState>(
+        builder: (context, state) {
+          final user = state.status == AuthStatus.authenticated
+              ? state.user!
+              : null;
+          final userName = user?.name ?? "Your Name";
+          final position = user?.position ?? "Your Position";
+          final company = user?.company ?? "Your Company";
+          return SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20, right: 20),
+                    child: HomeHeader(
+                      userName: userName,
+                      onSettings: () => context.goToProfile(),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColor.greyLight,
-                  ),
-                  child: IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.filter_list, size: 28),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 40),
-                children: [
-                  QuickActionCard(
-                    icon: Icons.camera_alt_outlined,
-                    label: 'Scan Business Card',
-                    color: AppColor.primary,
-                    onTap: () => context.goToScan(),
+                  const SizedBox(height: 28),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: DigitalCardPreview(
+                      name: userName,
+                      position: position,
+                      company: company,
+                      onViewDetail: () {
+                        context.goToDigitalCard();
+                      },
+                    ),
                   ),
                   const SizedBox(height: 20),
-                  QuickActionCard(
-                    icon: Icons.edit_note_outlined,
-                    label: 'Manual Entry',
-                    color: AppColor.primary,
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Coming soon')),
-                      );
-                    },
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: ScanActionButton(onTap: () => context.goToScan()),
                   ),
-                  const SizedBox(height: 20),
-                  QuickActionCard(
-                    icon: Icons.person_outline,
-                    label: 'My Digital Card',
-                    color: AppColor.primary,
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Coming soon')),
-                      );
-                    },
-                  ),
+                  const SizedBox(height: 28),
+                  RecentContactsSection(onViewAll: () => context.goToContact()),
+                  const SizedBox(height: 28),
+                  const StatsOverview(),
+                  const SizedBox(height: 80),
                 ],
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
-
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: Container(
         width: MediaQuery.of(context).size.width * 0.15,
-        height: MediaQuery.of(context).size.height * 0.15,
-        decoration: BoxDecoration(
+        height: MediaQuery.of(context).size.width * 0.15,
+        decoration: const BoxDecoration(
           color: AppColor.primary,
           shape: BoxShape.circle,
         ),
         child: RawMaterialButton(
           shape: const CircleBorder(),
-          onPressed: () {
-            context.goToScan();
-          },
-          child: Icon(Icons.camera_enhance, color: AppColor.white, size: 28),
+          onPressed: () => context.goToScan(),
+          child: const Icon(
+            Icons.camera_enhance,
+            color: AppColor.white,
+            size: 28,
+          ),
         ),
       ),
-      bottomNavigationBar: AppBottomNav(currentIndex: 0),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 0),
     );
   }
 }

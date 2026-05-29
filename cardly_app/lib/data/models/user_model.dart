@@ -13,6 +13,15 @@ class UserModel {
   final String phone;
   final String? avatar;
   final String? password;
+  final String? position;
+  final String? company;
+  final String? address;
+  final String? website;
+  @JsonKey(name: "linked_in")
+  final String? linkedIn;
+  @JsonKey(name: "card_url")
+  final String? cardUrl;
+  final String? bio;
 
   const UserModel({
     required this.id,
@@ -22,6 +31,13 @@ class UserModel {
     required this.phone,
     this.avatar,
     this.password,
+    this.position,
+    this.company,
+    this.address,
+    this.website,
+    this.linkedIn,
+    this.cardUrl,
+    this.bio,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>
@@ -36,5 +52,12 @@ class UserModel {
     phone: phone,
     password: password!,
     avatar: avatar,
+    position: position,
+    company: company,
+    address: address,
+    website: website,
+    linkedIn: linkedIn,
+    cardUrl: cardUrl,
+    bio: bio,
   );
 }

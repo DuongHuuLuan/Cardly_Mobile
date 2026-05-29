@@ -12,5 +12,12 @@ class UserMapper {
     phone: entity.phone,
     password: entity.password,
     avatar: entity.avatar,
+    position: entity.position,
+    company: entity.company,
+    address: entity.address,
+    website: entity.website,
+    linkedIn: entity.linkedIn,
+    cardUrl: entity.cardUrl,
+    bio: entity.bio,
   );
 }

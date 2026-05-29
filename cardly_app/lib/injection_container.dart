@@ -3,13 +3,17 @@ import 'package:cardly_app/data/datasources/local/auth_local_data_source.dart';
 import 'package:cardly_app/data/datasources/mock/onboarding_mock_data_source.dart';
 import 'package:cardly_app/data/datasources/remote/auth_remote_data_source.dart';
 import 'package:cardly_app/data/datasources/remote/card_remote_data_source.dart';
+import 'package:cardly_app/data/datasources/remote/contact_remote_data_source.dart';
 import 'package:cardly_app/data/repositories/auth_repository_impl.dart';
 import 'package:cardly_app/data/repositories/card_repository_impl.dart';
+import 'package:cardly_app/data/repositories/contact_repository_impl.dart';
 import 'package:cardly_app/data/repositories/onboarding_repository_impl.dart';
 import 'package:cardly_app/data/services/auth_service.dart';
 import 'package:cardly_app/data/services/card_service.dart';
+import 'package:cardly_app/data/services/contact_service.dart';
 import 'package:cardly_app/domain/repositories/auth_repository.dart';
 import 'package:cardly_app/domain/repositories/card_repository.dart';
+import 'package:cardly_app/domain/repositories/contact_repository.dart';
 import 'package:cardly_app/domain/repositories/onboarding_repository.dart';
 import 'package:cardly_app/domain/usecase/auth/forgot-password/forgot_password_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/forgot-password/reset_password_usecase.dart';
@@ -21,7 +25,11 @@ import 'package:cardly_app/domain/usecase/auth/logout_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/register_usecase.dart';
 import 'package:cardly_app/domain/usecase/card/scan_card_usecase.dart';
 import 'package:cardly_app/domain/usecase/card/update_card_usecase.dart';
+import 'package:cardly_app/domain/usecase/contact/delete_contact_usecase.dart';
+import 'package:cardly_app/domain/usecase/contact/get_contacts_usecase.dart';
+import 'package:cardly_app/domain/usecase/contact/save_contact_usecase.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
+import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
 import 'package:cardly_app/presentation/home/cubit/home_cubit.dart';
 import 'package:cardly_app/presentation/onboarding/cubit/onboarding_cubit.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
@@ -61,6 +69,9 @@ Future<void> init() async {
   // Service
   getIt.registerLazySingleton<AuthService>(() => AuthService(getIt<Dio>()));
   getIt.registerLazySingleton<CardService>(() => CardService(getIt<Dio>()));
+  getIt.registerLazySingleton<ContactService>(
+    () => ContactService(getIt<Dio>()),
+  );
 
   // Data Source
   getIt.registerLazySingleton<OnboardingMockDataSource>(
@@ -77,6 +88,9 @@ Future<void> init() async {
   getIt.registerLazySingleton<CardRemoteDataSource>(
     () => CardRemoteDataSource(getIt<CardService>(), userMock: true),
   );
+  getIt.registerLazySingleton<ContactRemoteDataSource>(
+    () => ContactRemoteDataSource(getIt<ContactService>(), userMock: true),
+  );
 
   // Repositories
   getIt.registerLazySingleton<OnboardingRepository>(
@@ -92,6 +106,11 @@ Future<void> init() async {
   );
   getIt.registerLazySingleton<CardRepository>(
     () => CardRepositoryImpl(remoteDataSource: getIt<CardRemoteDataSource>()),
+  );
+  getIt.registerLazySingleton<ContactRepository>(
+    () => ContactRepositoryImpl(
+      remoteDataSource: getIt<ContactRemoteDataSource>(),
+    ),
   );
 
   // Use cases
@@ -115,6 +134,15 @@ Future<void> init() async {
   );
   getIt.registerLazySingleton<UpdateCardUsecase>(
     () => UpdateCardUsecase(repository: getIt<CardRepository>()),
+  );
+  getIt.registerLazySingleton<SaveContactUsecase>(
+    () => SaveContactUsecase(repository: getIt<ContactRepository>()),
+  );
+  getIt.registerLazySingleton<GetContactsUsecase>(
+    () => GetContactsUsecase(repository: getIt<ContactRepository>()),
+  );
+  getIt.registerLazySingleton<DeleteContactUsecase>(
+    () => DeleteContactUsecase(repository: getIt<ContactRepository>()),
   );
   getIt.registerLazySingleton<ForgotPasswordUsecase>(
     () => ForgotPasswordUsecase(repository: getIt<AuthRepository>()),
@@ -141,8 +169,18 @@ Future<void> init() async {
       resetPasswordUsecase: getIt<ResetPasswordUsecase>(),
     ),
   );
-  getIt.registerFactory(() => HomeCubit());
+  getIt.registerFactory(
+    () => HomeCubit(getContactsUsecase: getIt<GetContactsUsecase>()),
+  );
   getIt.registerFactory(
     () => ScanCubit(scanCardUsecase: getIt<ScanCardUsecase>()),
+  );
+
+  getIt.registerFactory(
+    () => ContactCubit(
+      getContacts: getIt<GetContactsUsecase>(),
+      saveContact: getIt<SaveContactUsecase>(),
+      deleteContact: getIt<DeleteContactUsecase>(),
+    ),
   );
 }

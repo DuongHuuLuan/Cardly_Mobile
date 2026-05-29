@@ -1,11 +1,15 @@
+import 'package:cardly_app/domain/Entities/business_card_entity.dart';
 import 'package:cardly_app/injection_container.dart';
+import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
+import 'package:cardly_app/presentation/contact/view/contact_screen.dart';
+import 'package:cardly_app/presentation/digital_card/digital_card_screen.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/forgot-password/forgot_password_screen.dart';
 import 'package:cardly_app/presentation/auth/forgot-password/input_otp_screen.dart';
 import 'package:cardly_app/presentation/auth/forgot-password/reset_password_screen.dart';
 import 'package:cardly_app/presentation/auth/view/login_screen.dart';
 import 'package:cardly_app/presentation/auth/view/register_screen.dart';
-import 'package:cardly_app/presentation/home/cubit/home_cubit.dart';
+import 'package:cardly_app/presentation/contact/view/contact_detail_screen.dart';
 import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:cardly_app/presentation/onboarding/cubit/onboarding_cubit.dart';
 import 'package:cardly_app/presentation/onboarding/views/onboarding_screen.dart';
@@ -82,10 +86,29 @@ class AppRouter {
         builder: (context, state) => MultiBlocProvider(
           providers: [
             BlocProvider(create: (context) => getIt<AuthCubit>()..getUser()),
-            BlocProvider(create: (context) => getIt<HomeCubit>()),
+            BlocProvider(
+              create: (context) => getIt<ContactCubit>()..loadContacts(),
+            ),
           ],
           child: const HomePage(),
         ),
+      ),
+      GoRoute(
+        path: "/contact",
+        builder: (context, state) => BlocProvider(
+          create: (context) => getIt<ContactCubit>()..loadContacts(),
+          child: const ContactScreen(),
+        ),
+      ),
+      GoRoute(
+        path: "/contact-detail",
+        builder: (context, state) {
+          final contact = state.extra as BusinessCardEntity;
+          return BlocProvider(
+            create: (context) => getIt<ContactCubit>(),
+            child: ContactDetailScreen(contact: contact),
+          );
+        },
       ),
 
       GoRoute(
@@ -157,8 +180,16 @@ class AppRouter {
       GoRoute(
         path: "/profile",
         builder: (context, state) => BlocProvider(
-          create: (context) => getIt<AuthCubit>(),
+          create: (context) => getIt<AuthCubit>()..getUser(),
           child: const ProfileScreen(),
+        ),
+      ),
+
+      GoRoute(
+        path: "/digital-card",
+        builder: (context, state) => BlocProvider(
+          create: (context) => getIt<AuthCubit>()..getUser(),
+          child: const DigitalCardScreen(),
         ),
       ),
     ],

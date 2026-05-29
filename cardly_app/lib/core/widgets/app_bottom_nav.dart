@@ -1,6 +1,6 @@
 import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/presentation/contact/view/contact_screen.dart';
 import 'package:cardly_app/presentation/home/view/home_screen.dart';
-import 'package:cardly_app/presentation/profile/profile_screen.dart';
 import 'package:flutter/material.dart';
 
 class AppBottomNav extends StatelessWidget {
@@ -16,28 +16,23 @@ class AppBottomNav extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: SizedBox(
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _NavItem(
-              icon: Icons.home,
+              icon: Icons.credit_card_outlined,
               isActive: currentIndex == 0,
               onPressed: () => context.goToHome(),
             ),
             _NavItem(
-              icon: Icons.search,
+              // icon: Icons.search,
               isActive: currentIndex == 1,
               onPressed: () {},
             ),
-            const SizedBox(width: 48),
+
             _NavItem(
-              icon: Icons.wallet,
+              icon: Icons.people_outline,
               isActive: currentIndex == 2,
-              onPressed: () {},
-            ),
-            _NavItem(
-              icon: Icons.person,
-              isActive: currentIndex == 3,
-              onPressed: () => context.goToProfile(),
+              onPressed: () => context.goToContact(),
             ),
           ],
         ),
@@ -47,14 +42,10 @@ class AppBottomNav extends StatelessWidget {
 }
 
 class _NavItem extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
   final bool isActive;
   final VoidCallback onPressed;
-  const _NavItem({
-    required this.icon,
-    required this.isActive,
-    required this.onPressed,
-  });
+  const _NavItem({this.icon, required this.isActive, required this.onPressed});
   @override
   Widget build(BuildContext context) {
     return IconButton(

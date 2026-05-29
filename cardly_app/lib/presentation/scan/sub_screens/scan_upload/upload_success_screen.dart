@@ -153,6 +153,7 @@ class _UploadSuccessScreenState extends State<UploadSuccessScreen> {
                       ),
                     );
                   },
+                  labelColor: AppColor.white,
                 ),
                 const SizedBox(height: 12),
                 Text('Redirecting to home...', style: AppTextStyles.caption),

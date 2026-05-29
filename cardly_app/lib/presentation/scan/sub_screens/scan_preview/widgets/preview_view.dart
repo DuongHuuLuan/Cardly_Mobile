@@ -98,7 +98,11 @@ class PreviewView extends StatelessWidget {
             ),
             const SizedBox(height: 12),
           ],
-          AppElevatedButton(label: 'Confirm & Upload', onPressed: onConfirm),
+          AppElevatedButton(
+            label: 'Confirm & Upload',
+            onPressed: onConfirm,
+            labelColor: AppColor.white,
+          ),
         ],
       ),
     );
