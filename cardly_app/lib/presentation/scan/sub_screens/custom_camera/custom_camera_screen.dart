@@ -12,6 +12,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image/image.dart' as img;
+import 'package:permission_handler/permission_handler.dart';
 
 class CustomCameraScreen extends StatefulWidget {
   const CustomCameraScreen({super.key});
@@ -39,30 +40,71 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
     if (_controller != null) {
       await _controller!.dispose();
       _controller = null;
+      if (mounted) {
+        setState(() {
+          _isReady = false;
+        });
+      }
     }
     try {
-      final cameras = await availableCameras();
-      if (cameras.isEmpty) {
-        if (mounted) {
-          cubit.reset();
+      final status = await Permission.camera.request();
+
+      if (status.isGranted) {
+        final cameras = await availableCameras();
+        if (cameras.isEmpty) {
+          if (mounted) {
+            cubit.reset();
+            context.goToHome();
+          }
+          return;
+        }
+        final controller = CameraController(
+          cameras.first,
+          ResolutionPreset.high,
+          enableAudio: false,
+        );
+        await controller.initialize();
+        if (!mounted) {
+          await controller.dispose();
+          return;
+        }
+
+        setState(() {
+          _controller = controller;
+          _isReady = true;
+        });
+        return;
+      }
+
+      if (mounted) {
+        cubit.reset();
+        if (status.isPermanentlyDenied) {
+          await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => AppAlertDialog(
+              title: "Camera Permission Required",
+              message:
+                  "Please enable camera permission in Settings to use this feature.",
+              buttonLabel: "Go To Settings",
+              cancelLabel: "Back To Home",
+              icon: Icons.camera_alt_outlined,
+              color: AppColor.primary,
+              onCancel: () {
+                Navigator.pop(context);
+                context.goToHome();
+              },
+              onConfirm: () {
+                openAppSettings();
+                Navigator.pop(context);
+                context.goToHome();
+              },
+            ),
+          );
+        } else {
           context.goToHome();
         }
-        return;
       }
-      final controller = CameraController(
-        cameras.first,
-        ResolutionPreset.high,
-        enableAudio: false, // tránh xin quyền camera không cần thiết
-      );
-      await controller.initialize();
-      if (!mounted) {
-        await controller.dispose();
-        return;
-      }
-      setState(() {
-        _controller = controller;
-        _isReady = true;
-      });
     } catch (e) {
       if (mounted) {
         cubit.reset();

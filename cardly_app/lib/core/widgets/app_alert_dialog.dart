@@ -10,6 +10,10 @@ class AppAlertDialog extends StatelessWidget {
   final VoidCallback onConfirm;
   final IconData icon;
   final Color color;
+  final String? cancelLabel;
+  final TextStyle? cancelLabelStyle;
+  final TextStyle? buttonLabelStyle;
+  final VoidCallback? onCancel;
 
   const AppAlertDialog({
     super.key,
@@ -17,6 +21,10 @@ class AppAlertDialog extends StatelessWidget {
     this.message,
     this.errors,
     required this.onConfirm,
+    this.cancelLabel,
+    this.onCancel,
+    this.buttonLabelStyle,
+    this.cancelLabelStyle,
     this.buttonLabel = "Retry",
     this.icon = Icons.error_outline,
     this.color = AppColor.error,
@@ -24,6 +32,7 @@ class AppAlertDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showCancelButton = onCancel != null && cancelLabel != null;
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
@@ -68,21 +77,68 @@ class AppAlertDialog extends StatelessWidget {
               ),
 
             const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: onConfirm,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: color,
-                  foregroundColor: AppColor.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+
+            if (showCancelButton)
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: onCancel,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColor.grey,
+                        side: const BorderSide(color: AppColor.grey),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        cancelLabel!,
+                        style: cancelLabelStyle ?? AppTextStyles.bodyMedium,
+                      ),
+                    ),
                   ),
+                  const SizedBox(width: 12),
+
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: onConfirm,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: color,
+                        foregroundColor: AppColor.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        buttonLabel,
+                        style:
+                            buttonLabelStyle ??
+                            AppTextStyles.bodyMedium.copyWith(
+                              color: AppColor.white,
+                            ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            else
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: onConfirm,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: color,
+                    foregroundColor: AppColor.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(buttonLabel),
                 ),
-                child: Text(buttonLabel),
               ),
-            ),
           ],
         ),
       ),
