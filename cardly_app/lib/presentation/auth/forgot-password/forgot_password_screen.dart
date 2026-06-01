@@ -1,6 +1,7 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
+import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/submit_button.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
@@ -40,13 +41,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Forgot Password", style: AppTextStyles.heading3),
-        leading: IconButton(
-          onPressed: () => context.goToLogin(),
-          icon: const Icon(Icons.arrow_back),
-        ),
-        centerTitle: true,
+      appBar: AppAppBar(
+        title: "Forgot Password",
+        onLeadingPressed: () => context.goToLogin(),
       ),
       body: BlocListener<AuthCubit, AuthState>(
         listener: (context, state) {

@@ -1,3 +1,5 @@
+import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:flutter/material.dart';
 
 class AppTextFormField extends StatelessWidget {
@@ -8,6 +10,14 @@ class AppTextFormField extends StatelessWidget {
   final Widget? suffixIcon;
   final bool obscureText;
   final String? Function(String?)? validator;
+  final bool border;
+
+  final bool showAsGroup;
+  final Color? groupBackground;
+  final double? groupRadius;
+  final EdgeInsetsGeometry? groupPadding;
+  final TextStyle? groupLabelStyle;
+  final TextStyle? groupInputStyle;
 
   const AppTextFormField({
     super.key,
@@ -18,10 +28,22 @@ class AppTextFormField extends StatelessWidget {
     this.suffixIcon,
     this.obscureText = false,
     this.validator,
+    this.border = true,
+    this.showAsGroup = false,
+    this.groupBackground,
+    this.groupRadius,
+    this.groupPadding,
+    this.groupLabelStyle,
+    this.groupInputStyle,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (showAsGroup) return _buildGroup(context);
+    return _buildDefault();
+  }
+
+  Widget _buildDefault() {
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
@@ -31,13 +53,60 @@ class AppTextFormField extends StatelessWidget {
         hintText: hintText,
         prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
         suffixIcon: suffixIcon,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: border
+            ? OutlineInputBorder(borderRadius: BorderRadius.circular(12))
+            : InputBorder.none,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
         ),
+      ),
+    );
+  }
+
+  /// Container + label
+  Widget _buildGroup(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: groupPadding ?? const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: groupBackground ?? AppColor.white,
+        borderRadius: BorderRadius.circular(groupRadius ?? 12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (labelText != null)
+            Text(
+              labelText!,
+              style:
+                  groupLabelStyle ??
+                  AppTextStyles.caption.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: AppColor.grey,
+                  ),
+            ),
+          if (labelText != null) const SizedBox(height: 6),
+          TextFormField(
+            controller: controller,
+            obscureText: obscureText,
+            validator: validator,
+            style: groupInputStyle ?? AppTextStyles.bodyMedium,
+            decoration: InputDecoration(
+              hintText: hintText,
+              hintStyle: AppTextStyles.bodyMedium.copyWith(
+                color: AppColor.grey,
+              ),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
+            ),
+          ),
+        ],
       ),
     );
   }

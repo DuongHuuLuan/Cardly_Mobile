@@ -6,11 +6,13 @@ class ActionBar extends StatelessWidget {
   final VoidCallback? onEnrich;
   final VoidCallback? onSave;
   final bool isEnriching;
+  final bool isSaving;
   const ActionBar({
     super.key,
     this.onEnrich,
     this.onSave,
     this.isEnriching = false,
+    this.isSaving = false,
   });
   @override
   Widget build(BuildContext context) {
@@ -56,10 +58,20 @@ class ActionBar extends StatelessWidget {
               ),
               elevation: 0,
             ),
-            onPressed: onSave,
-            icon: const Icon(Icons.save_outlined, size: 20),
+            onPressed: isSaving ? null : onSave,
+            icon: isSaving
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColor.white,
+                    ),
+                  )
+                : Icon(Icons.save_outlined, size: 20),
+
             label: Text(
-              "Save contact",
+              isSaving ? "Saving..." : "Save contact",
               style: AppTextStyles.bodyMedium.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppColor.white,

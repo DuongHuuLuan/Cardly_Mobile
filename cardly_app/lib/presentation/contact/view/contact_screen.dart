@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import 'contact_detail_screen.dart';
+import 'contact_detail/contact_detail_screen.dart';
 
 extension ContactNavigation on BuildContext {
   void goToContact() => push('/contact');

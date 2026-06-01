@@ -82,4 +82,12 @@ class ContactCubit extends Cubit<ContactState> {
     );
     return true;
   }
+
+  void enrich() {
+    emit(state.copyWith(status: ContactStatus.enriching));
+  }
+
+  void enrichComplete() {
+    emit(state.copyWith(status: ContactStatus.loaded));
+  }
 }

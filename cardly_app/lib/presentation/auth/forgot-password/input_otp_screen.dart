@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
+import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
@@ -99,12 +101,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => context.goToForgotPassword(),
-          icon: const Icon(Icons.arrow_back),
-        ),
-      ),
+      appBar: AppAppBar(onLeadingPressed: () => context.goToForgotPassword()),
       body: BlocConsumer<AuthCubit, AuthState>(
         listenWhen: (previous, current) => previous.status != current.status,
         listener: (context, state) {
@@ -169,6 +166,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   onPressed: _otp.length == 6
                       ? () => _authCubit.verifyOtp(_email, _otp)
                       : null,
+                  labelStyle: AppTextStyles.bodyLarge.copyWith(
+                    color: AppColor.white,
+                  ),
                   isLoading: isLoading,
                 ),
                 const SizedBox(height: 20),

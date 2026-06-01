@@ -1,12 +1,13 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
 import 'package:cardly_app/domain/Entities/scanned_document.dart';
 import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
-import 'package:cardly_app/presentation/scan/sub_screens/scan_document/document_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class UploadSuccessScreen extends StatefulWidget {
   const UploadSuccessScreen({super.key});
@@ -28,15 +29,10 @@ class _UploadSuccessScreenState extends State<UploadSuccessScreen> {
     return PopScope(
       canPop: false,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text("Success", style: AppTextStyles.heading3),
-          centerTitle: true,
-          leading: IconButton(
-            onPressed: () {
-              context.goToHome();
-            },
-            icon: Icon(Icons.close, size: 28),
-          ),
+        appBar: AppAppBar(
+          title: "Success",
+          leadingType: AppBarLeading.close,
+          onLeadingPressed: () => context.goToHome(),
         ),
         body: Center(
           child: Padding(
@@ -145,13 +141,7 @@ class _UploadSuccessScreenState extends State<UploadSuccessScreen> {
                       ? 'View Documents'
                       : 'View Document',
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            DocumentDetailScreen(documents: _documents),
-                      ),
-                    );
+                    context.push('/scan/document-detail', extra: _documents);
                   },
                   labelColor: AppColor.white,
                 ),

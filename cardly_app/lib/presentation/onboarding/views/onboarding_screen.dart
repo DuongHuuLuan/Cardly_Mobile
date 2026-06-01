@@ -92,7 +92,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     AppIndicator(
                       currentIndex: _page,
                       totalPages: data.length,
-                      showSkip: _page < data.length - 1,
+                      // showSkip: _page < data.length - 1,
+                      showSkip: true,
                       onSkip: () => context.goToLogin(),
                       onBack: _page > 0
                           ? () => _controller.previousPage(

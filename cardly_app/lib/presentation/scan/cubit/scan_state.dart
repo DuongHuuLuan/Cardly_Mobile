@@ -16,6 +16,7 @@ enum ImageSourceType { camera, gallery }
 class ScanState extends Equatable {
   final ScanStatus status;
   final List<String> imagePaths;
+  final bool isProcessing;
   final ImageSourceType? imageSource;
   final List<ScannedDocument> scannedDocuments;
   final double uploadProgress;
@@ -30,6 +31,7 @@ class ScanState extends Equatable {
     this.uploadProgress = 0.0,
     this.validationErrors = const [],
     this.errorMessage,
+    this.isProcessing = false,
   });
 
   ScanState copyWith({
@@ -40,6 +42,7 @@ class ScanState extends Equatable {
     double? uploadProgress,
     List<String>? validationErrors,
     String? errorMessage,
+    bool? isProcessing,
   }) => ScanState(
     status: status ?? this.status,
     imagePaths: imagePaths ?? this.imagePaths,
@@ -48,6 +51,7 @@ class ScanState extends Equatable {
     uploadProgress: uploadProgress ?? this.uploadProgress,
     validationErrors: validationErrors ?? this.validationErrors,
     errorMessage: errorMessage ?? this.errorMessage,
+    isProcessing: isProcessing ?? this.isProcessing,
   );
 
   @override

@@ -1,4 +1,4 @@
-import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:cardly_app/presentation/scan/scan_screen.dart';
 import 'package:flutter/material.dart';
@@ -31,21 +31,13 @@ class UploadScreen extends StatelessWidget {
         },
 
         child: Scaffold(
-          appBar: AppBar(
+          appBar: AppAppBar(
             elevation: 0,
-            leading: IconButton(
-              icon: const Icon(
-                Icons.arrow_back_ios_new,
-                color: AppColor.black,
-                size: 20,
-              ),
-              onPressed: () {
-                cubit.reset();
-                context.goToScan();
-              },
-            ),
-            title: Text("Uploading", style: AppTextStyles.heading3),
-            centerTitle: true,
+            title: "Uploading",
+            onLeadingPressed: () {
+              cubit.reset();
+              context.goToScan();
+            },
             actions: [
               IconButton(
                 icon: const Icon(

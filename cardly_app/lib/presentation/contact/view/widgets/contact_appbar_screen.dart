@@ -2,6 +2,7 @@ import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/widgets/app_icon_action.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ContactAppbarScreen extends StatelessWidget {
   const ContactAppbarScreen({super.key});
@@ -21,6 +22,7 @@ class ContactAppbarScreen extends StatelessWidget {
                 icon: Icons.add,
                 containerSize: 30,
                 containerColor: AppColor.greyLight,
+                onTap: () => context.push("/contact-add"),
               ),
             ],
           ),

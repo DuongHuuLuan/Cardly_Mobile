@@ -1,5 +1,5 @@
-import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
+import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_state.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_preview/widgets/preview_view.dart';
@@ -38,10 +38,7 @@ class ReviewScreen extends StatelessWidget {
       child: BlocBuilder<ScanCubit, ScanState>(
         builder: (context, state) {
           return Scaffold(
-            appBar: AppBar(
-              title: Text('Review', style: AppTextStyles.heading3),
-              centerTitle: true,
-            ),
+            appBar: const AppAppBar(title: 'Review'),
             body: PreviewView(
               imagePaths: state.imagePaths,
               onCamera: () => context.go('/scan/custom-camera', extra: cubit),

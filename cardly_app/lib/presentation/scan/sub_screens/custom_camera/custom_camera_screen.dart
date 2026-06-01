@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
+import 'package:cardly_app/presentation/home/view/home_screen.dart';
+import 'package:cardly_app/presentation/scan/cubit/scan_state.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/custom_camera/widgets/camera_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
@@ -23,6 +25,8 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
   CameraController? _controller;
   bool _isReady = false;
   bool _isLandscape = true;
+  FlashMode _flashMode = FlashMode.off;
+
   @override
   void initState() {
     super.initState();
@@ -32,14 +36,73 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
   }
 
   Future<void> _initCamera() async {
-    final cameras = await availableCameras();
-    final controller = CameraController(cameras.first, ResolutionPreset.high);
-    await controller.initialize();
+    if (_controller != null) {
+      await _controller!.dispose();
+      _controller = null;
+    }
+    try {
+      final cameras = await availableCameras();
+      if (cameras.isEmpty) {
+        if (mounted) {
+          cubit.reset();
+          context.goToHome();
+        }
+        return;
+      }
+      final controller = CameraController(
+        cameras.first,
+        ResolutionPreset.high,
+        enableAudio: false, // tránh xin quyền camera không cần thiết
+      );
+      await controller.initialize();
+      if (!mounted) {
+        await controller.dispose();
+        return;
+      }
+      setState(() {
+        _controller = controller;
+        _isReady = true;
+      });
+    } catch (e) {
+      if (mounted) {
+        cubit.reset();
+        context.goToHome();
+      }
+    }
+  }
+
+  Future<void> _toggleFlash() async {
+    if (_controller == null) return;
+    final modes = [
+      FlashMode.off,
+      FlashMode.auto,
+      FlashMode.always,
+      FlashMode.torch,
+    ];
+    final next = modes[(_flashMode.index + 1) % modes.length];
+    await _controller!.setFlashMode(next);
+    setState(() => _flashMode = next);
+  }
+
+  Future<void> _onPickFromGallery() async {
+    await cubit.pickFromGallery();
     if (!mounted) return;
-    setState(() {
-      _controller = controller;
-      _isReady = true;
-    });
+    if (cubit.state.imagePaths.isNotEmpty) {
+      context.go('/scan/preview', extra: cubit);
+    }
+  }
+
+  IconData _flashIcon(FlashMode mode) {
+    switch (mode) {
+      case FlashMode.off:
+        return Icons.flash_off;
+      case FlashMode.auto:
+        return Icons.flash_auto;
+      case FlashMode.always:
+        return Icons.flash_on;
+      case FlashMode.torch:
+        return Icons.flashlight_on;
+    }
   }
 
   Future<void> _takePicture() async {
@@ -137,9 +200,16 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    final CameraController? cameraController = _controller;
+
     if (_controller == null || !_controller!.value.isInitialized) return;
-    if (state == AppLifecycleState.resumed) {
-      _controller!.resumePreview();
+
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
+      setState(() => _isReady = false);
+      cameraController?.dispose();
+    } else if (state == AppLifecycleState.resumed) {
+      _initCamera();
     }
   }
 
@@ -157,71 +227,123 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
     }
     return Scaffold(
       backgroundColor: AppColor.black,
-      body: Stack(
-        children: [
-          // Camera preview
-          SizedBox(
-            width: double.infinity,
-            height: double.infinity,
-            child: _controller != null
-                ? CameraPreview(_controller!)
-                : const Center(child: Text("No camera")),
+      body: BlocListener<ScanCubit, ScanState>(
+        listenWhen: (_, current) =>
+            current.status == ScanStatus.validationFailed,
+        listener: (context, state) => showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AppAlertDialog(
+            title: "Notification",
+            errors: [state.errorMessage ?? 'Invalid file'],
+            onConfirm: () {
+              cubit.reset();
+              Navigator.pop(context);
+            },
           ),
-          IgnorePointer(child: CameraOverlay(isLandscape: _isLandscape)),
+        ),
+        child: Stack(
+          children: [
+            // Camera preview
+            SizedBox(
+              width: double.infinity,
+              height: double.infinity,
+              child: _controller != null
+                  ? CameraPreview(_controller!)
+                  : const Center(child: Text("No camera")),
+            ),
+            IgnorePointer(child: CameraOverlay(isLandscape: _isLandscape)),
 
-          Positioned(
-            bottom: 60,
-            left: 0,
-            right: 0,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      context.pop();
-                    },
-                    icon: const Icon(
-                      Icons.close,
-                      color: AppColor.white,
-                      size: 35,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: _takePicture,
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.2,
-                      height: MediaQuery.of(context).size.height * 0.1,
-                      decoration: const BoxDecoration(
-                        color: AppColor.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.camera_alt,
-                        color: AppColor.black,
-                        size: 42,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      _isLandscape ? Icons.sync_alt : Icons.sync,
-                      color: AppColor.white,
-                      size: 28,
-                    ),
-                    tooltip: _isLandscape
-                        ? 'Switch to portrait'
-                        : 'Switch to landscape',
-                    onPressed: () =>
-                        setState(() => _isLandscape = !_isLandscape),
-                  ),
-                ],
+            //icon back
+            Positioned(
+              top: 48,
+              left: 16,
+              child: IconButton(
+                onPressed: () => context.goToHome(),
+                icon: const Icon(Icons.close, color: AppColor.white, size: 30),
               ),
             ),
-          ),
-        ],
+
+            // xoay khung camera
+            Positioned(
+              top: 48,
+              right: 16,
+              child: IconButton(
+                onPressed: () => setState(() => _isLandscape = !_isLandscape),
+                icon: Icon(
+                  _isLandscape ? Icons.sync_alt : Icons.sync,
+                  color: AppColor.white,
+                  size: 28,
+                ),
+                tooltip: _isLandscape
+                    ? 'Switch to portrait'
+                    : 'Switch to landscape',
+              ),
+            ),
+
+            // den flash
+            Positioned(
+              bottom: 60,
+              left: 0,
+              right: 0,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      onPressed: _toggleFlash,
+                      icon: Icon(
+                        _flashIcon(_flashMode),
+                        color: AppColor.white,
+                        size: 30,
+                      ),
+                      tooltip: 'Flash',
+                    ),
+                    GestureDetector(
+                      onTap: _takePicture,
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.2,
+                        height: MediaQuery.of(context).size.height * 0.1,
+                        decoration: const BoxDecoration(
+                          color: AppColor.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.camera_alt,
+                          color: AppColor.black,
+                          size: 42,
+                        ),
+                      ),
+                    ),
+                    // IconButton(
+                    //   icon: Icon(
+                    //     _isLandscape ? Icons.sync_alt : Icons.sync,
+                    //     color: AppColor.white,
+                    //     size: 28,
+                    //   ),
+                    //   tooltip: _isLandscape
+                    //       ? 'Switch to portrait'
+                    //       : 'Switch to landscape',
+                    //   onPressed: () =>
+                    //       setState(() => _isLandscape = !_isLandscape),
+                    // ),
+                    IconButton(
+                      onPressed: _onPickFromGallery,
+                      icon: const Icon(
+                        Icons.photo_library,
+                        color: AppColor.white,
+                        size: 28,
+                      ),
+                      tooltip: 'Choose from gallery',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

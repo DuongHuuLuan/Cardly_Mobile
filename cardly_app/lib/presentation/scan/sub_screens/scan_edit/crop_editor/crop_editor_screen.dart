@@ -22,7 +22,6 @@ class CropEditorScreen extends StatefulWidget {
 
 class _CropEditorScreenState extends State<CropEditorScreen> {
   late final CropEditorController _controller;
-  bool _isProcessing = false;
 
   @override
   void initState() {
@@ -44,9 +43,9 @@ class _CropEditorScreenState extends State<CropEditorScreen> {
   }
 
   Future<void> _onConfirm() async {
-    if (_isProcessing) return;
-    setState(() => _isProcessing = true);
-
+    final cubit = context.read<ScanCubit>();
+    if (cubit.state.isProcessing) return;
+    cubit.setProcessing(true);
     try {
       final outputPath = await _controller.processImage();
       if (!mounted) return;
@@ -60,7 +59,7 @@ class _CropEditorScreenState extends State<CropEditorScreen> {
         ).showSnackBar(SnackBar(content: Text('Processing failed: $e')));
       }
     } finally {
-      if (mounted) setState(() => _isProcessing = false);
+      if (mounted) cubit.setProcessing(false);
     }
   }
 
@@ -70,6 +69,8 @@ class _CropEditorScreenState extends State<CropEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isProcessing = context.watch<ScanCubit>().state.isProcessing;
+
     return Scaffold(
       backgroundColor: AppColor.black87,
       appBar: AppBar(
@@ -107,7 +108,7 @@ class _CropEditorScreenState extends State<CropEditorScreen> {
           BottomActions(
             onCancel: _onCancel,
             onConfirm: _onConfirm,
-            isLoading: _isProcessing,
+            isLoading: isProcessing,
           ),
         ],
       ),

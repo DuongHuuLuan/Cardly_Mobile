@@ -1,5 +1,4 @@
-import 'package:cardly_app/core/theme/app_color.dart';
-import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_bottom_nav.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
@@ -19,13 +18,9 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Setting", style: AppTextStyles.heading3),
-        centerTitle: true,
-        leading: IconButton(
-          onPressed: () => context.goToHome(),
-          icon: Icon(Icons.arrow_back),
-        ),
+      appBar: AppAppBar(
+        title: "Setting",
+        onLeadingPressed: () => context.goToHome(),
       ),
       body: BlocBuilder<AuthCubit, AuthState>(
         builder: (context, state) => ProfileContent(

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
 
@@ -34,18 +35,14 @@ class _PreviewScreenState extends State<PreviewScreen> {
   Widget build(BuildContext context) {
     final imagePaths = cubit.state.imagePaths;
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go("/scan", extra: cubit),
-        ),
-        title: Text(
+      appBar: AppAppBar(
+        titleWidget: Text(
           imagePaths.length > 1
               ? 'Preview (${_currentIndex + 1}/${imagePaths.length})'
               : 'Preview',
           style: AppTextStyles.heading3,
         ),
-        centerTitle: true,
+        onLeadingPressed: () => context.go("/scan", extra: cubit),
       ),
       body: Column(
         children: [
@@ -90,6 +87,15 @@ class _PreviewScreenState extends State<PreviewScreen> {
             padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
             child: AppElevatedButton(
               label: 'Continue',
+              labelStyle: AppTextStyles.bodyLarge.copyWith(
+                color: AppColor.white,
+              ),
+              iconAfterText: true,
+              icon: Icon(
+                Icons.arrow_forward_ios,
+                color: AppColor.white,
+                size: 20,
+              ),
               onPressed: () => context.go('/scan/review', extra: cubit),
             ),
           ),

@@ -1,4 +1,4 @@
-import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,26 +11,40 @@ extension ScanNavigation on BuildContext {
   void goToScan() => go('/scan');
 }
 
-class ScanScreen extends StatelessWidget {
+class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
 
   @override
+  State<ScanScreen> createState() => _ScanScreenState();
+}
+
+class _ScanScreenState extends State<ScanScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      final cubit = context.read<ScanCubit>();
+      cubit.reset();
+      cubit.pickFromCamera();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final cubit = context.read<ScanCubit>();
     return Scaffold(
-      appBar: AppBar(
-        title: Text("OCR Scanning", style: AppTextStyles.heading3),
-        centerTitle: true,
-        leading: IconButton(
-          onPressed: () => context.goToHome(),
-          icon: const Icon(Icons.arrow_back),
-        ),
-      ),
+      appBar:
+          context.select((ScanCubit c) => c.state.status) == ScanStatus.initial
+          ? null
+          : AppAppBar(
+              title: "OCR Scanning",
+              onLeadingPressed: () => context.goToHome(),
+            ),
       body: BlocListener<ScanCubit, ScanState>(
         listenWhen: (prev, current) =>
             prev.status == ScanStatus.initial &&
             current.status == ScanStatus.imageSelected,
         listener: (context, state) {
+          final cubit = context.read<ScanCubit>();
           if (state.imageSource == ImageSourceType.camera) {
             context.push('/scan/custom-camera', extra: cubit);
           } else {
@@ -39,7 +53,10 @@ class ScanScreen extends StatelessWidget {
         },
         child: BlocBuilder<ScanCubit, ScanState>(
           builder: (context, state) {
-            return InitialView(cubit: cubit);
+            if (state.status == ScanStatus.initial) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            return InitialView(cubit: context.read<ScanCubit>());
           },
         ),
       ),

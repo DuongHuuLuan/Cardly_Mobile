@@ -183,6 +183,10 @@ class ScanCubit extends Cubit<ScanState> {
     }
   }
 
+  void setProcessing(bool value) {
+    emit(state.copyWith(isProcessing: value));
+  }
+
   void updateDocument(int index, ScannedDocument updatedDoc) {
     final docs = [...state.scannedDocuments];
     docs[index] = updatedDoc;

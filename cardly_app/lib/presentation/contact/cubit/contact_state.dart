@@ -1,7 +1,15 @@
 import 'package:cardly_app/domain/Entities/business_card_entity.dart';
 import 'package:equatable/equatable.dart';
 
-enum ContactStatus { initial, loading, loaded, saving, deleting, failure }
+enum ContactStatus {
+  initial,
+  loading,
+  loaded,
+  saving,
+  enriching,
+  deleting,
+  failure,
+}
 
 class ContactState extends Equatable {
   final ContactStatus status;

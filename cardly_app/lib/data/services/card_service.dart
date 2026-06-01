@@ -9,9 +9,10 @@ part 'card_service.g.dart';
 abstract class CardService {
   factory CardService(Dio dio, {String baseUrl}) = _CardService;
 
+  @MultiPart()
   @POST('/cards/scan')
   Future<HttpResponse<BaseResponse<ScanResponseModel>>> scanCard(
-    @Body() Map<String, dynamic> body,
+    @Part(name: "images") List<MultipartFile> images,
   );
 
   @PUT('/cards/{id}')

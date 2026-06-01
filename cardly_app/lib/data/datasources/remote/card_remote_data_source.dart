@@ -41,7 +41,15 @@ class CardRemoteDataSource {
     }
 
     try {
-      final response = await _cardService.scanCard({"image_paths": imagePaths});
+      final files = await Future.wait(
+        imagePaths.map(
+          (e) => MultipartFile.fromFile(
+            e,
+            filename: e.split(RegExp(r'[/\\]')).last,
+          ),
+        ),
+      );
+      final response = await _cardService.scanCard(files);
       return [ScannedDocumentMapper.fromResponse(response.data.data!)];
     } on DioException catch (e) {
       throw ServerException(e.message ?? "Network error");

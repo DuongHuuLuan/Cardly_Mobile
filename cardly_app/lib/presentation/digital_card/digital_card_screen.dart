@@ -1,5 +1,6 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
 import 'package:cardly_app/presentation/digital_card/widgets/digital_card_preview.dart';
@@ -20,16 +21,10 @@ class DigitalCardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          "Business card number",
-          style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          onPressed: () => context.goToHome(),
-          icon: Icon(Icons.arrow_back_ios),
-        ),
+      appBar: AppAppBar(
+        title: "Business card number",
+        showBorder: true,
+        onLeadingPressed: () => context.goToHome(),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
@@ -42,7 +37,11 @@ class DigitalCardScreen extends StatelessWidget {
             ),
           ),
         ],
+        titleStyle: AppTextStyles.bodyLarge.copyWith(
+          fontWeight: FontWeight.bold,
+        ),
       ),
+
       body: BlocBuilder<AuthCubit, AuthState>(
         builder: (context, state) {
           final user = state.status == AuthStatus.authenticated

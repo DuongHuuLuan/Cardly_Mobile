@@ -1,6 +1,8 @@
 import 'package:cardly_app/domain/Entities/business_card_entity.dart';
+import 'package:cardly_app/domain/Entities/scanned_document.dart';
 import 'package:cardly_app/injection_container.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
+import 'package:cardly_app/presentation/contact/view/contact_add/contact_add_screen.dart';
 import 'package:cardly_app/presentation/contact/view/contact_screen.dart';
 import 'package:cardly_app/presentation/digital_card/digital_card_screen.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
@@ -9,13 +11,14 @@ import 'package:cardly_app/presentation/auth/forgot-password/input_otp_screen.da
 import 'package:cardly_app/presentation/auth/forgot-password/reset_password_screen.dart';
 import 'package:cardly_app/presentation/auth/view/login_screen.dart';
 import 'package:cardly_app/presentation/auth/view/register_screen.dart';
-import 'package:cardly_app/presentation/contact/view/contact_detail_screen.dart';
+import 'package:cardly_app/presentation/contact/view/contact_detail/contact_detail_screen.dart';
 import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:cardly_app/presentation/onboarding/cubit/onboarding_cubit.dart';
 import 'package:cardly_app/presentation/onboarding/views/onboarding_screen.dart';
 import 'package:cardly_app/presentation/profile/profile_screen.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/custom_camera/custom_camera_screen.dart';
+import 'package:cardly_app/presentation/scan/sub_screens/scan_document/document_detail_screen.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_edit/edit_screen.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_preview/preview_screen.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_preview/review_screen.dart';
@@ -112,10 +115,18 @@ class AppRouter {
       ),
 
       GoRoute(
+        path: "/contact-add",
+        builder: (context, state) => BlocProvider(
+          create: (context) => getIt<ContactCubit>(),
+          child: ContactAddScreen(),
+        ),
+      ),
+
+      GoRoute(
         path: "/scan",
         builder: (context, state) {
-          return BlocProvider.value(
-            value: getIt<ScanCubit>(),
+          return BlocProvider(
+            create: (context) => getIt<ScanCubit>(),
             child: const ScanScreen(),
           );
         },
@@ -153,6 +164,16 @@ class AppRouter {
               return BlocProvider.value(
                 value: state.extra as ScanCubit,
                 child: const UploadSuccessScreen(),
+              );
+            },
+          ),
+          GoRoute(
+            path: "document-detail",
+            builder: (context, state) {
+              final documents = state.extra as List<ScannedDocument>;
+              return BlocProvider(
+                create: (_) => getIt<ContactCubit>(),
+                child: DocumentDetailScreen(documents: documents),
               );
             },
           ),

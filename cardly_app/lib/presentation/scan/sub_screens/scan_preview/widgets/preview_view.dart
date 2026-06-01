@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
 import 'package:flutter/material.dart';
 
@@ -46,13 +47,16 @@ class PreviewView extends StatelessWidget {
               itemCount: imagePaths.length,
               itemBuilder: (context, index) => Stack(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.file(
-                      File(imagePaths[index]),
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
+                  GestureDetector(
+                    onTap: () => _showPreview(context, index),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        File(imagePaths[index]),
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                      ),
                     ),
                   ),
                   Positioned(
@@ -135,6 +139,70 @@ class PreviewView extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showPreview(BuildContext context, int initialIndex) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => _ImagePreviewPage(
+          imagePaths: imagePaths,
+          initialIndex: initialIndex,
+        ),
+      ),
+    );
+  }
+}
+
+class _ImagePreviewPage extends StatefulWidget {
+  final List<String> imagePaths;
+  final int initialIndex;
+  const _ImagePreviewPage({
+    required this.imagePaths,
+    required this.initialIndex,
+  });
+
+  @override
+  State<_ImagePreviewPage> createState() => _ImagePreviewPageState();
+}
+
+class _ImagePreviewPageState extends State<_ImagePreviewPage> {
+  late final PageController _pageController;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColor.black,
+      appBar: AppAppBar(
+        title: 'Preview (${_currentIndex + 1}/${widget.imagePaths.length})',
+        leadingType: AppBarLeading.close,
+        backgroundColor: AppColor.black,
+        iconLeadingColor: AppColor.white,
+        titleStyle: const TextStyle(color: AppColor.white),
+      ),
+      body: PageView.builder(
+        controller: _pageController,
+        itemCount: widget.imagePaths.length,
+        onPageChanged: (i) => setState(() => _currentIndex = i),
+        itemBuilder: (ctx, i) => InteractiveViewer(
+          child: Center(child: Image.file(File(widget.imagePaths[i]))),
         ),
       ),
     );
