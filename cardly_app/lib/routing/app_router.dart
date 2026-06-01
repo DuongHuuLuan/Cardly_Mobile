@@ -15,6 +15,7 @@ import 'package:cardly_app/presentation/contact/view/contact_detail/contact_deta
 import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:cardly_app/presentation/onboarding/cubit/onboarding_cubit.dart';
 import 'package:cardly_app/presentation/onboarding/views/onboarding_screen.dart';
+import 'package:cardly_app/presentation/profile/edit-profile/edit_profile_screen.dart';
 import 'package:cardly_app/presentation/profile/profile_screen.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/custom_camera/custom_camera_screen.dart';
@@ -203,6 +204,13 @@ class AppRouter {
         builder: (context, state) => BlocProvider(
           create: (context) => getIt<AuthCubit>()..getUser(),
           child: const ProfileScreen(),
+        ),
+      ),
+      GoRoute(
+        path: "/edit-profile",
+        builder: (context, state) => BlocProvider(
+          create: (context) => getIt<AuthCubit>()..getUser(),
+          child: const EditProfileScreen(),
         ),
       ),
 

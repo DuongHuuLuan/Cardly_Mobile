@@ -4,6 +4,7 @@ import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
 import 'package:cardly_app/presentation/auth/view/login_screen.dart';
 import 'package:cardly_app/presentation/home/view/home_screen.dart';
+import 'package:cardly_app/presentation/profile/edit-profile/edit_profile_screen.dart';
 import 'package:cardly_app/presentation/profile/widgets/profile_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,17 +27,11 @@ class ProfileScreen extends StatelessWidget {
         builder: (context, state) => ProfileContent(
           user: state.user,
           onEdit: () {
-            // TODO: navigate to edit profile
+            context.goToEditProfile();
           },
-          onNotifications: () {
-            // TODO: navigate to notifications
-          },
-          onPrivacy: () {
-            // TODO: navigate to privacy
-          },
-          onHelp: () {
-            // TODO: navigate to help
-          },
+          onNotifications: () {},
+          onPrivacy: () {},
+          onHelp: () {},
           onLogout: () {
             context.read<AuthCubit>().logout();
             context.goToLogin();

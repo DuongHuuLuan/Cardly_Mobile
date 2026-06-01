@@ -5,6 +5,7 @@ import 'package:cardly_app/domain/Entities/business_card_entity.dart';
 import 'package:cardly_app/domain/Entities/scanned_document.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_state.dart';
+import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_document/widgets/action_bar.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_document/widgets/document_form_field.dart';
 import 'package:flutter/material.dart';
@@ -119,9 +120,10 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
         final isEnriching = state.status == ContactStatus.enriching;
 
         return Scaffold(
-          appBar: const AppAppBar(
+          appBar: AppAppBar(
             title: "Review Information",
-            leadingType: AppBarLeading.none,
+            leadingType: AppBarLeading.close,
+            onLeadingPressed: () => context.goToHome(),
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(20),

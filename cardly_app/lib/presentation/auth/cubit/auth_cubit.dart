@@ -170,6 +170,11 @@ class AuthCubit extends Cubit<AuthState> {
     );
   }
 
+  Future<void> updateUser(UserEntity updatedUser) async {
+    await localStorage.saveUser(updatedUser);
+    emit(state.copyWith(status: AuthStatus.authenticated, user: updatedUser));
+  }
+
   Future<void> logout() async {
     emit(state.copyWith(status: AuthStatus.loading));
     final result = await logoutUsecase();

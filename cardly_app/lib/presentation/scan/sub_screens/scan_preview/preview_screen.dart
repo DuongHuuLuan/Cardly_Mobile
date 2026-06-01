@@ -42,7 +42,8 @@ class _PreviewScreenState extends State<PreviewScreen> {
               : 'Preview',
           style: AppTextStyles.heading3,
         ),
-        onLeadingPressed: () => context.go("/scan", extra: cubit),
+        leadingType: AppBarLeading.close,
+        onLeadingPressed: () => context.push("/scan", extra: cubit),
       ),
       body: Column(
         children: [
@@ -85,18 +86,43 @@ class _PreviewScreenState extends State<PreviewScreen> {
             ),
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-            child: AppElevatedButton(
-              label: 'Continue',
-              labelStyle: AppTextStyles.bodyLarge.copyWith(
-                color: AppColor.white,
-              ),
-              iconAfterText: true,
-              icon: Icon(
-                Icons.arrow_forward_ios,
-                color: AppColor.white,
-                size: 20,
-              ),
-              onPressed: () => context.go('/scan/review', extra: cubit),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      cubit.reset();
+                      cubit.pickFromGallery();
+                    },
+                    icon: Icon(Icons.photo_library),
+                    label: Text("Select again", style: AppTextStyles.bodyLarge),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColor.primary,
+                      side: const BorderSide(color: AppColor.primary),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: AppElevatedButton(
+                    label: 'Continue',
+                    labelStyle: AppTextStyles.bodyLarge.copyWith(
+                      color: AppColor.white,
+                    ),
+                    iconAfterText: true,
+                    icon: Icon(
+                      Icons.arrow_forward_ios,
+                      color: AppColor.white,
+                      size: 20,
+                    ),
+                    onPressed: () => context.go('/scan/review', extra: cubit),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
