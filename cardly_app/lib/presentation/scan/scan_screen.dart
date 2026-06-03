@@ -1,17 +1,14 @@
+import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
-import 'package:cardly_app/presentation/home/view/home_screen.dart';
+import 'package:cardly_app/presentation/scan/widgets/initial_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_state.dart';
-import 'package:cardly_app/presentation/scan/widgets/initial_view.dart';
-
-extension ScanNavigation on BuildContext {
-  void goToScan() => go('/scan');
-}
 
 class ScanScreen extends StatefulWidget {
+  static const routerName = "/scan";
+
   const ScanScreen({super.key});
 
   @override
@@ -46,9 +43,9 @@ class _ScanScreenState extends State<ScanScreen> {
         listener: (context, state) {
           final cubit = context.read<ScanCubit>();
           if (state.imageSource == ImageSourceType.camera) {
-            context.push('/scan/custom-camera', extra: cubit);
+            context.goToScanCamera(cubit);
           } else {
-            context.push('/scan/preview', extra: cubit);
+            context.goToScanPreview(cubit);
           }
         },
         child: BlocBuilder<ScanCubit, ScanState>(

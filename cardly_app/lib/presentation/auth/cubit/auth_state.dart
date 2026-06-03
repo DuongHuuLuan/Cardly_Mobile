@@ -18,6 +18,10 @@ enum AuthStatus {
   verifyOtpSuccess,
   verifyOtpFailure,
 
+  resendOtpLoading,
+  resendOtpSuccess,
+  resendOtpFailure,
+
   resetPasswordLoading,
   resetPasswordSuccess,
   resetPasswordFailure,
@@ -31,6 +35,7 @@ class AuthState extends Equatable {
   final String? nextStep;
   final String? emailError;
   final String? passwordError;
+  final String? email;
   final int failedAttempts;
   final int lockoutSeconds;
 
@@ -42,6 +47,7 @@ class AuthState extends Equatable {
     this.successMessage,
     this.emailError,
     this.passwordError,
+    this.email,
     this.failedAttempts = 0,
     this.lockoutSeconds = 0,
   });
@@ -54,6 +60,7 @@ class AuthState extends Equatable {
     String? nextStep,
     Object? emailError = _nullValue,
     Object? passwordError = _nullValue,
+    Object? email = _nullValue,
     int? failedAttempts,
     int? lockoutSeconds,
   }) => AuthState(
@@ -68,6 +75,7 @@ class AuthState extends Equatable {
     passwordError: identical(passwordError, _nullValue)
         ? this.passwordError
         : passwordError as String?,
+    email: identical(email, _nullValue) ? this.email : email as String?,
     failedAttempts: failedAttempts ?? this.failedAttempts,
     lockoutSeconds: lockoutSeconds ?? this.lockoutSeconds,
   );
@@ -81,6 +89,7 @@ class AuthState extends Equatable {
     nextStep,
     emailError,
     passwordError,
+    email,
     failedAttempts,
     lockoutSeconds,
   ];

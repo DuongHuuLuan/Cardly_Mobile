@@ -32,17 +32,17 @@ import 'package:go_router/go_router.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
-    initialLocation: "/splash",
+    initialLocation: SplashScreen.routerName,
     routes: [
       GoRoute(
-        path: "/splash",
+        path: SplashScreen.routerName,
         builder: (context, state) => BlocProvider(
           create: (context) => getIt<AuthCubit>(),
           child: const SplashScreen(),
         ),
       ),
       GoRoute(
-        path: "/onboarding",
+        path: OnboardingScreen.routerName,
         builder: (context, state) => BlocProvider(
           create: (context) => getIt<OnboardingCubit>()..loadData(),
           child: const OnboardingScreen(),
@@ -50,35 +50,35 @@ class AppRouter {
       ),
 
       GoRoute(
-        path: "/login",
+        path: LoginPage.routerName,
         builder: (context, state) => BlocProvider(
           create: (context) => getIt<AuthCubit>(),
           child: const LoginPage(),
         ),
       ),
       GoRoute(
-        path: "/register",
+        path: RegisterPage.routerName,
         builder: (context, state) => BlocProvider(
           create: (context) => getIt<AuthCubit>(),
           child: const RegisterPage(),
         ),
       ),
       GoRoute(
-        path: "/forgot-password",
+        path: ForgotPasswordScreen.routerName,
         builder: (context, state) => BlocProvider(
           create: (context) => getIt<AuthCubit>(),
           child: ForgotPasswordScreen(),
         ),
       ),
       GoRoute(
-        path: "/verify-otp",
+        path: OtpVerificationScreen.routerName,
         builder: (context, state) => BlocProvider(
           create: (context) => getIt<AuthCubit>(),
           child: OtpVerificationScreen(),
         ),
       ),
       GoRoute(
-        path: "/reset-password",
+        path: ResetPasswordScreen.routerName,
         builder: (context, state) => BlocProvider(
           create: (context) => getIt<AuthCubit>(),
           child: ResetPasswordScreen(),
@@ -86,7 +86,7 @@ class AppRouter {
       ),
 
       GoRoute(
-        path: "/home",
+        path: HomePage.routerName,
         builder: (context, state) => MultiBlocProvider(
           providers: [
             BlocProvider(create: (context) => getIt<AuthCubit>()..getUser()),
@@ -98,14 +98,14 @@ class AppRouter {
         ),
       ),
       GoRoute(
-        path: "/contact",
+        path: ContactScreen.routerName,
         builder: (context, state) => BlocProvider(
           create: (context) => getIt<ContactCubit>()..loadContacts(),
           child: const ContactScreen(),
         ),
       ),
       GoRoute(
-        path: "/contact-detail",
+        path: ContactDetailScreen.routerName,
         builder: (context, state) {
           final contact = state.extra as BusinessCardEntity;
           return BlocProvider(
@@ -116,7 +116,7 @@ class AppRouter {
       ),
 
       GoRoute(
-        path: "/contact-add",
+        path: ContactAddScreen.routerName,
         builder: (context, state) => BlocProvider(
           create: (context) => getIt<ContactCubit>(),
           child: ContactAddScreen(),
@@ -124,7 +124,7 @@ class AppRouter {
       ),
 
       GoRoute(
-        path: "/scan",
+        path: ScanScreen.routerName,
         builder: (context, state) {
           return BlocProvider(
             create: (context) => getIt<ScanCubit>(),
@@ -133,7 +133,7 @@ class AppRouter {
         },
         routes: [
           GoRoute(
-            path: "review",
+            path: ReviewScreen.routerName,
             builder: (context, state) {
               return BlocProvider.value(
                 value: state.extra as ScanCubit,
@@ -142,7 +142,7 @@ class AppRouter {
             },
           ),
           GoRoute(
-            path: "custom-camera",
+            path: CustomCameraScreen.routerName,
             builder: (context, state) {
               return BlocProvider.value(
                 value: state.extra as ScanCubit,
@@ -151,7 +151,7 @@ class AppRouter {
             },
           ),
           GoRoute(
-            path: "upload",
+            path: UploadScreen.routerName,
             builder: (context, state) {
               return BlocProvider.value(
                 value: state.extra as ScanCubit,
@@ -160,7 +160,7 @@ class AppRouter {
             },
           ),
           GoRoute(
-            path: "upload-success",
+            path: UploadSuccessScreen.routerName,
             builder: (context, state) {
               return BlocProvider.value(
                 value: state.extra as ScanCubit,
@@ -169,7 +169,7 @@ class AppRouter {
             },
           ),
           GoRoute(
-            path: "document-detail",
+            path: DocumentDetailScreen.routerName,
             builder: (context, state) {
               final documents = state.extra as List<ScannedDocument>;
               return BlocProvider(
@@ -180,7 +180,7 @@ class AppRouter {
           ),
 
           GoRoute(
-            path: "edit",
+            path: EditScreen.routerName,
             builder: (context, state) {
               return BlocProvider.value(
                 value: state.extra as ScanCubit,
@@ -189,7 +189,7 @@ class AppRouter {
             },
           ),
           GoRoute(
-            path: "preview",
+            path: PreviewScreen.routerName,
             builder: (context, state) {
               return BlocProvider.value(
                 value: state.extra as ScanCubit,
@@ -200,14 +200,14 @@ class AppRouter {
         ],
       ),
       GoRoute(
-        path: "/profile",
+        path: ProfileScreen.routerName,
         builder: (context, state) => BlocProvider(
           create: (context) => getIt<AuthCubit>()..getUser(),
           child: const ProfileScreen(),
         ),
       ),
       GoRoute(
-        path: "/edit-profile",
+        path: EditProfileScreen.routerName,
         builder: (context, state) => BlocProvider(
           create: (context) => getIt<AuthCubit>()..getUser(),
           child: const EditProfileScreen(),
@@ -215,7 +215,7 @@ class AppRouter {
       ),
 
       GoRoute(
-        path: "/digital-card",
+        path: DigitalCardScreen.routerName,
         builder: (context, state) => BlocProvider(
           create: (context) => getIt<AuthCubit>()..getUser(),
           child: const DigitalCardScreen(),

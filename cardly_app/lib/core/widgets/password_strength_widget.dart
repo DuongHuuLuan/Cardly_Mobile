@@ -1,3 +1,4 @@
+import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:flutter/material.dart';
 
 class PasswordStrengthWidget extends StatefulWidget {
@@ -56,26 +57,23 @@ class _PasswordStrengthWidgetState extends State<PasswordStrengthWidget> {
       children: [
         ...List.generate(_messages.length, (i) {
           final passed = _checks[i];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 4),
-            child: Row(
-              children: [
-                Icon(
-                  passed ? Icons.check_circle : Icons.cancel,
-                  size: 16,
+          return Row(
+            children: [
+              Icon(
+                passed ? Icons.check_circle : Icons.cancel,
+                size: 16,
+                color: passed ? Colors.green : Colors.red,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                _messages[i],
+                style: TextStyle(
+                  fontSize: 12,
                   color: passed ? Colors.green : Colors.red,
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  _messages[i],
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: passed ? Colors.green : Colors.red,
-                  ),
-                ),
-              ],
-            ),
-          );
+              ),
+            ],
+          ).paddingOnly(bottom: 4);
         }),
         const SizedBox(height: 8),
         ClipRRect(

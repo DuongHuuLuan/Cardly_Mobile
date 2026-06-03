@@ -1,3 +1,4 @@
+import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_icon_action.dart';
 import 'package:flutter/material.dart';
 
@@ -17,44 +18,41 @@ class ContactIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          AppIconAction(
-            icon: Icons.phone_outlined,
-            label: "Gọi",
-            iconSize: 20,
-            containerSize: 55,
-            onTap: onCall,
-          ),
-          const SizedBox(width: 10),
-          AppIconAction(
-            icon: Icons.email_outlined,
-            label: "Email",
-            iconSize: 20,
-            containerSize: 55,
-            onTap: onEmail,
-          ),
-          const SizedBox(width: 10),
-          AppIconAction(
-            icon: Icons.phone_outlined,
-            label: "LinkedIn",
-            iconSize: 20,
-            containerSize: 55,
-            onTap: onLinkedIn,
-          ),
-          const SizedBox(width: 10),
-          AppIconAction(
-            icon: Icons.language_outlined,
-            label: "Web",
-            iconSize: 20,
-            containerSize: 55,
-            onTap: onWebsite,
-          ),
-        ],
-      ),
-    );
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        AppIconAction(
+          icon: Icons.phone_outlined,
+          label: "Gọi",
+          iconSize: 20,
+          containerSize: 55,
+          onTap: onCall,
+        ),
+        const SizedBox(width: 10),
+        AppIconAction(
+          icon: Icons.email_outlined,
+          label: "Email",
+          iconSize: 20,
+          containerSize: 55,
+          onTap: onEmail,
+        ),
+        const SizedBox(width: 10),
+        AppIconAction(
+          icon: Icons.phone_outlined,
+          label: "LinkedIn",
+          iconSize: 20,
+          containerSize: 55,
+          onTap: onLinkedIn,
+        ),
+        const SizedBox(width: 10),
+        AppIconAction(
+          icon: Icons.language_outlined,
+          label: "Web",
+          iconSize: 20,
+          containerSize: 55,
+          onTap: onWebsite,
+        ),
+      ],
+    ).paddingHorizontal(16);
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
 import 'package:flutter/material.dart';
@@ -116,11 +117,9 @@ class PreviewView extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       builder: (_) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+        child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
               ListTile(
                 leading: const Icon(Icons.camera_alt),
                 title: const Text('Take a photo'),
@@ -138,9 +137,9 @@ class PreviewView extends StatelessWidget {
                 },
               ),
             ],
-          ),
+          )
+            .paddingVertical(16),
         ),
-      ),
     );
   }
 

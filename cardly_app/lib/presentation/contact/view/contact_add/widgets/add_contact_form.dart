@@ -1,5 +1,6 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/utils/string_ext.dart';
 import 'package:cardly_app/core/widgets/app_text_form_field.dart';
 import 'package:cardly_app/domain/Entities/business_card_entity.dart';
 import 'package:flutter/material.dart';
@@ -94,9 +95,8 @@ class ContactFormState extends State<ContactForm> {
               ),
               showAsGroup: true,
               groupBackground: AppColor.white,
-              validator: (v) => v == null || v.trim().isEmpty
-                  ? "Full name is required"
-                  : null,
+              validator: (v) =>
+                  v.isNullOrTrimEmpty ? "Full name is required" : null,
             ),
             const SizedBox(height: 6),
             AppTextFormField(

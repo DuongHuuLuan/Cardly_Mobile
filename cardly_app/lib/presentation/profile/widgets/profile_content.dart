@@ -1,5 +1,6 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_avatar.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
 import 'package:cardly_app/core/widgets/app_info_tile.dart';
@@ -14,6 +15,7 @@ class ProfileContent extends StatelessWidget {
   final VoidCallback? onPrivacy;
   final VoidCallback? onHelp;
   final VoidCallback? onLogout;
+  final bool isLoading;
   const ProfileContent({
     super.key,
     this.user,
@@ -22,6 +24,7 @@ class ProfileContent extends StatelessWidget {
     this.onPrivacy,
     this.onHelp,
     this.onLogout,
+    this.isLoading = false,
   });
 
   @override
@@ -51,6 +54,8 @@ class ProfileContent extends StatelessWidget {
                   onTap: onNotifications,
                   labelStyle: AppTextStyles.bodySmall,
                   iconSize: 22,
+                  trailingIcon: Icons.arrow_forward_ios,
+                  trailingIconSize: 18,
                 ),
                 const Divider(height: 1),
                 const SizedBox(height: 16),
@@ -60,6 +65,8 @@ class ProfileContent extends StatelessWidget {
                   onTap: onPrivacy,
                   labelStyle: AppTextStyles.bodySmall,
                   iconSize: 22,
+                  trailingIcon: Icons.arrow_forward_ios,
+                  trailingIconSize: 18,
                 ),
                 const Divider(height: 1),
                 const SizedBox(height: 16),
@@ -69,22 +76,22 @@ class ProfileContent extends StatelessWidget {
                   onTap: onHelp,
                   labelStyle: AppTextStyles.bodySmall,
                   iconSize: 22,
+                  trailingIcon: Icons.arrow_forward_ios,
+                  trailingIconSize: 18,
                 ),
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: AppElevatedButton(
-              label: "Log out",
-              labelColor: AppColor.error,
-              iconAfterText: false,
-              icon: Icon(Icons.logout, color: AppColor.error, size: 26),
-              onPressed: onLogout,
-              borderColor: AppColor.error.withValues(alpha: 0.4),
-              backgroundColor: AppColor.white,
-            ),
-          ),
+          AppElevatedButton(
+            label: "Log out",
+            labelColor: AppColor.error,
+            iconAfterText: false,
+            icon: Icon(Icons.logout, color: AppColor.error, size: 26),
+            onPressed: onLogout,
+            borderColor: AppColor.error.withValues(alpha: 0.4),
+            backgroundColor: AppColor.white,
+            isLoading: isLoading,
+          ).paddingAll(20),
         ],
       ),
     );

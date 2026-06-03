@@ -1,5 +1,8 @@
 import 'package:cardly_app/core/constants/app_constant.dart';
 import 'package:cardly_app/data/datasources/local/auth_local_data_source.dart';
+import 'package:cardly_app/data/datasources/local/card_local_data_source.dart';
+import 'package:cardly_app/data/datasources/local/contact_local_data_source.dart';
+import 'package:cardly_app/data/datasources/local/database_helper.dart';
 import 'package:cardly_app/data/datasources/mock/onboarding_mock_data_source.dart';
 import 'package:cardly_app/data/datasources/remote/auth_remote_data_source.dart';
 import 'package:cardly_app/data/datasources/remote/card_remote_data_source.dart';
@@ -16,10 +19,12 @@ import 'package:cardly_app/domain/repositories/card_repository.dart';
 import 'package:cardly_app/domain/repositories/contact_repository.dart';
 import 'package:cardly_app/domain/repositories/onboarding_repository.dart';
 import 'package:cardly_app/domain/usecase/auth/forgot-password/forgot_password_usecase.dart';
+import 'package:cardly_app/domain/usecase/auth/forgot-password/resend_otp_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/forgot-password/reset_password_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/forgot-password/verify_otp_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/get_current_user_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/get_onboardin_usecase.dart';
+import 'package:cardly_app/domain/usecase/auth/get_profile_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/login_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/logout_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/register_usecase.dart';
@@ -52,6 +57,10 @@ Future<void> init() async {
       ),
     );
     dio.interceptors.add(
+      LogInterceptor(requestBody: true, responseBody: true, error: true),
+    );
+
+    dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           final prefs = getIt<SharedPreferences>();
@@ -60,6 +69,37 @@ Future<void> init() async {
             options.headers["Authorization"] = "Bearer $token";
           }
           handler.next(options);
+        },
+        onError: (error, handler) async {
+          if (error.response?.statusCode == 401) {
+            final prefs = getIt<SharedPreferences>();
+            final refreshToken = prefs.getString("refresh_token");
+            if (refreshToken != null) {
+              try {
+                // Gọi refresh endpoint
+                final dio = getIt<Dio>();
+                final res = await dio.post(
+                  '/api/v1/auth/refresh',
+                  data: {"refresh_token": refreshToken},
+                );
+                final newToken = res.data['access_token'] as String;
+                final newRefresh = res.data['refresh_token'] as String;
+                await prefs.setString("access_token", newToken);
+                await prefs.setString("refresh_token", newRefresh);
+                // Retry request với token mới
+                error.requestOptions.headers["Authorization"] =
+                    "Bearer $newToken";
+                final retryResponse = await dio.fetch(error.requestOptions);
+                handler.resolve(retryResponse);
+                return;
+              } catch (_) {
+                // Refresh thất bại → clear + redirect login
+                await prefs.remove("access_token");
+                await prefs.remove("refresh_token");
+              }
+            }
+          }
+          handler.next(error);
         },
       ),
     );
@@ -73,17 +113,28 @@ Future<void> init() async {
     () => ContactService(getIt<Dio>()),
   );
 
+  //  Data base
+  getIt.registerLazySingleton<DatabaseHelper>(() => DatabaseHelper.instance);
+
   // Data Source
   getIt.registerLazySingleton<OnboardingMockDataSource>(
     () => OnboardingMockDataSource(),
   );
+
   // Local Data Source
   getIt.registerLazySingleton<AuthLocalDataSource>(
     () => AuthLocalDataSourceImpl(getIt<SharedPreferences>()),
   );
+  getIt.registerLazySingleton<ContactLocalDataSource>(
+    () => ContactLocalDataSourceImpl(getIt<DatabaseHelper>()),
+  );
+  getIt.registerLazySingleton<CardLocalDataSource>(
+    () => CardLocalDataSourceImpl(getIt<DatabaseHelper>()),
+  );
+
   // Remote Data Source
   getIt.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSource(getIt<AuthService>(), userMock: true),
+    () => AuthRemoteDataSource(getIt<AuthService>(), userMock: false),
   );
   getIt.registerLazySingleton<CardRemoteDataSource>(
     () => CardRemoteDataSource(getIt<CardService>(), userMock: true),
@@ -105,11 +156,15 @@ Future<void> init() async {
     ),
   );
   getIt.registerLazySingleton<CardRepository>(
-    () => CardRepositoryImpl(remoteDataSource: getIt<CardRemoteDataSource>()),
+    () => CardRepositoryImpl(
+      remoteDataSource: getIt<CardRemoteDataSource>(),
+      localDataSource: getIt<CardLocalDataSource>(),
+    ),
   );
   getIt.registerLazySingleton<ContactRepository>(
     () => ContactRepositoryImpl(
       remoteDataSource: getIt<ContactRemoteDataSource>(),
+      localDataSource: getIt<ContactLocalDataSource>(),
     ),
   );
 
@@ -150,8 +205,14 @@ Future<void> init() async {
   getIt.registerLazySingleton<VerifyOtpUsecase>(
     () => VerifyOtpUsecase(repository: getIt<AuthRepository>()),
   );
+  getIt.registerLazySingleton<ResendOtpUsecase>(
+    () => ResendOtpUsecase(repository: getIt<AuthRepository>()),
+  );
   getIt.registerLazySingleton<ResetPasswordUsecase>(
     () => ResetPasswordUsecase(repository: getIt<AuthRepository>()),
+  );
+  getIt.registerLazySingleton<GetProfileUsecase>(
+    () => GetProfileUsecase(repository: getIt<AuthRepository>()),
   );
 
   // Cubit
@@ -160,12 +221,14 @@ Future<void> init() async {
     () => AuthCubit(
       localStorage: getIt<AuthLocalDataSource>(),
       loginUsecase: getIt<LoginUsecase>(),
+      getProfileUsecase: getIt<GetProfileUsecase>(),
       registerUsecase: getIt<RegisterUsecase>(),
       logoutUsecase: getIt<LogoutUsecase>(),
       getCurrentUserUsecase: getIt<GetCurrentUserUsecase>(),
 
       forgotPasswordUsecase: getIt<ForgotPasswordUsecase>(),
       verifyOtpUsecase: getIt<VerifyOtpUsecase>(),
+      resendOtpUsecase: getIt<ResendOtpUsecase>(),
       resetPasswordUsecase: getIt<ResetPasswordUsecase>(),
     ),
   );

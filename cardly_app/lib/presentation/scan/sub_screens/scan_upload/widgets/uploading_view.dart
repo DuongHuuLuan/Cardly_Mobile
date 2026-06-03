@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_upload/widgets/upload_progress_circle.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_upload/widgets/upload_steps_card.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_upload/widgets/upload_security_footer.dart';
@@ -19,10 +20,8 @@ class UploadingView extends StatelessWidget {
     final int percent = (progress * 100).toInt();
 
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        child: Column(
-          children: [
+      child: Column(
+            children: [
             const SizedBox(height: 20),
             UploadProgressCircle(progress: progress),
             const SizedBox(height: 32),
@@ -81,8 +80,9 @@ class UploadingView extends StatelessWidget {
             ),
             const SizedBox(height: 8),
           ],
-        ),
-      ),
+        )
+            .paddingHorizontal(24)
+            .paddingVertical(16),
     );
   }
 }

@@ -63,6 +63,8 @@ class ContactCubit extends Cubit<ContactState> {
 
     final result = await deleteContact(id);
 
+    bool success = false;
+
     result.fold(
       (failure) {
         emit(
@@ -71,16 +73,16 @@ class ContactCubit extends Cubit<ContactState> {
             errorMessage: failure.message,
           ),
         );
-        return false;
       },
       (r) {
+        success = true;
         final updated = state.contacts
             .where((element) => element.id != id)
             .toList();
         emit(state.copyWith(status: ContactStatus.loaded, contacts: updated));
       },
     );
-    return true;
+    return success;
   }
 
   void enrich() {

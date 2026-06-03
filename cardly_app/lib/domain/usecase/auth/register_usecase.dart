@@ -8,7 +8,7 @@ class RegisterUsecase {
 
   RegisterUsecase({required this.repository});
 
-  Future<Either<Failure, UserEntity>> call(UserEntity user) async {
+  Future<Either<Failure, void>> call(UserEntity user) async {
     return await repository.register(user);
   }
 }

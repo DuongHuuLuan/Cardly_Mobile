@@ -1,3 +1,4 @@
+import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
@@ -5,9 +6,10 @@ import 'package:cardly_app/presentation/scan/cubit/scan_state.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_preview/widgets/preview_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 class ReviewScreen extends StatelessWidget {
+  static const routerName = "scan-review";
+
   const ReviewScreen({super.key});
   @override
   Widget build(BuildContext context) {
@@ -32,7 +34,7 @@ class ReviewScreen extends StatelessWidget {
         BlocListener<ScanCubit, ScanState>(
           listenWhen: (prev, current) => current.status == ScanStatus.uploading,
           listener: (context, state) =>
-              context.go('/scan/upload', extra: cubit),
+              context.goToScanUpload(cubit),
         ),
       ],
       child: BlocBuilder<ScanCubit, ScanState>(
@@ -41,7 +43,7 @@ class ReviewScreen extends StatelessWidget {
             appBar: const AppAppBar(title: 'Review'),
             body: PreviewView(
               imagePaths: state.imagePaths,
-              onCamera: () => context.go('/scan/custom-camera', extra: cubit),
+              onCamera: () => context.goToScanCamera(cubit),
               onGallery: () => cubit.pickFromGallery(),
               onConfirm: () => cubit.uploadAndScan(),
               onRemove: cubit.removeImage,
