@@ -1,20 +1,15 @@
 import 'package:cardly_app/core/constants/app_transition.dart';
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
-import 'package:cardly_app/core/widgets/app_animated_switcher.dart';
+import 'package:cardly_app/core/utils/navigation_exp.dart';
+import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_indicator.dart';
 import 'package:cardly_app/core/widgets/onboarding_icon.dart';
 import 'package:cardly_app/domain/Entities/onboarding.dart';
-import 'package:cardly_app/presentation/auth/view/login_screen.dart';
 import 'package:cardly_app/presentation/onboarding/cubit/onboarding_cubit.dart';
 import 'package:cardly_app/presentation/onboarding/cubit/onboarding_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-
-extension OnboardingNavigation on BuildContext {
-  void goToOnboarding() => go('/onboarding');
-}
 
 IconData _resolveIcon(String? name) {
   switch (name) {
@@ -30,6 +25,7 @@ IconData _resolveIcon(String? name) {
 }
 
 class OnboardingScreen extends StatefulWidget {
+  static const routerName = "/onboarding";
   const OnboardingScreen({super.key});
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -70,43 +66,35 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           if (state is OnboardingLoaded) {
             final data = state.data;
             return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 24,
-                ),
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: Expanded(
-                        child: PageView(
-                          controller: _controller,
-                          physics: const ClampingScrollPhysics(),
-                          onPageChanged: (i) => setState(() => _page = i),
-                          children: data
-                              .map((item) => _buildPage(item))
-                              .toList(),
-                        ),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Expanded(
+                      child: PageView(
+                        controller: _controller,
+                        physics: const ClampingScrollPhysics(),
+                        onPageChanged: (i) => setState(() => _page = i),
+                        children: data.map((item) => _buildPage(item)).toList(),
                       ),
                     ),
-                    AppIndicator(
-                      currentIndex: _page,
-                      totalPages: data.length,
-                      // showSkip: _page < data.length - 1,
-                      showSkip: true,
-                      onSkip: () => context.goToLogin(),
-                      onBack: _page > 0
-                          ? () => _controller.previousPage(
-                              duration: const Duration(milliseconds: 350),
-                              curve: Curves.easeInOut,
-                            )
-                          : null,
-                      onNext: () => _next(data),
-                      padding: const EdgeInsets.only(bottom: 16),
-                    ),
-                  ],
-                ),
-              ),
+                  ),
+                  AppIndicator(
+                    currentIndex: _page,
+                    totalPages: data.length,
+                    // showSkip: _page < data.length - 1,
+                    showSkip: true,
+                    onSkip: () => context.goToLogin(),
+                    onBack: _page > 0
+                        ? () => _controller.previousPage(
+                            duration: const Duration(milliseconds: 350),
+                            curve: Curves.easeInOut,
+                          )
+                        : null,
+                    onNext: () => _next(data),
+                    padding: const EdgeInsets.only(bottom: 16),
+                  ),
+                ],
+              ).paddingHorizontal(32).paddingVertical(24),
             );
           }
           return const SizedBox.shrink();

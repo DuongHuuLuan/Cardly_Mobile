@@ -1,4 +1,7 @@
 import 'package:cardly_app/data/models/auth/forgot_password_response.dart';
+import 'package:cardly_app/data/models/auth/login_response.dart';
+import 'package:cardly_app/data/models/auth/register_response.dart';
+import 'package:cardly_app/data/models/auth/resend_otp_response.dart';
 import 'package:cardly_app/data/models/auth/reset_password_response.dart';
 import 'package:cardly_app/data/models/auth/verify_otp_response.dart';
 import 'package:cardly_app/data/models/base_response.dart';
@@ -12,26 +15,44 @@ part 'auth_service.g.dart';
 abstract class AuthService {
   factory AuthService(Dio dio, {String baseUrl}) = _AuthService;
 
-  @POST('/auth/login')
-  Future<HttpResponse<BaseResponse<UserModel>>> login(
+  @POST('/api/v1/auth/login')
+  Future<HttpResponse<LoginResponse>> login(@Body() Map<String, dynamic> body);
+
+  @POST('/api/v1/auth/register')
+  Future<HttpResponse<RegisterResponse>> register(
     @Body() Map<String, dynamic> body,
   );
 
-  @POST('/auth/register')
-  Future<HttpResponse<BaseResponse<UserModel>>> register(
+  @POST('/api/v1/auth/refresh')
+  Future<HttpResponse<LoginResponse>> refresh(
     @Body() Map<String, dynamic> body,
   );
 
-  @POST("/auth/forgot-password/email")
-  Future<HttpResponse<BaseResponse<ForgotPasswordResponse>>>
-  forgotPasswordWithEmail(@Body() Map<String, dynamic> body);
-
-  @POST("/auth/verify-otp")
-  Future<HttpResponse<BaseResponse<VerifyOtpResponse>>> verifyOtp(
+  @POST('/api/v1/auth/logout')
+  Future<HttpResponse<RegisterResponse>> logout(
     @Body() Map<String, dynamic> body,
   );
 
-  @POST("/auth/resetPassword/email")
-  Future<HttpResponse<BaseResponse<ResetPasswordResponse>>>
-  resetPasswordByEmail(@Body() Map<String, dynamic> body);
+  @GET('/api/v1/auth/me')
+  Future<HttpResponse<UserModel>> getProfile();
+
+  @POST("/api/v1/auth/forgot-password")
+  Future<HttpResponse<ForgotPasswordResponse>> forgotPasswordWithEmail(
+    @Body() Map<String, dynamic> body,
+  );
+
+  @POST("/api/v1/auth/verify-otp")
+  Future<HttpResponse<VerifyOtpResponse>> verifyOtp(
+    @Body() Map<String, dynamic> body,
+  );
+
+  @POST("/api/v1/auth/resend-otp")
+  Future<HttpResponse<ResendOtpResponse>> resendOtp(
+    @Body() Map<String, dynamic> body,
+  );
+
+  @POST("/api/v1/auth/reset-password")
+  Future<HttpResponse<ResetPasswordResponse>> resetPasswordByEmail(
+    @Body() Map<String, dynamic> body,
+  );
 }

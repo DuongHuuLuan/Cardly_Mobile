@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/utils/widget_padding.dart';
 
 class ErrorView extends StatelessWidget {
   final String message;
@@ -15,11 +16,9 @@ class ErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+      child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
             const Icon(Icons.error_outline, size: 64, color: AppColor.error),
             const SizedBox(height: 16),
             Text(message, style: AppTextStyles.bodyLarge, textAlign: TextAlign.center),
@@ -41,8 +40,7 @@ class ErrorView extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
+        ).paddingAll(32),
     );
   }
 }

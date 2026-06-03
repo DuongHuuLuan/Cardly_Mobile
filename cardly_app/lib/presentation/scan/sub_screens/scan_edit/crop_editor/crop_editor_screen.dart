@@ -1,4 +1,5 @@
 import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -51,7 +52,7 @@ class _CropEditorScreenState extends State<CropEditorScreen> {
       if (!mounted) return;
       final cubit = context.read<ScanCubit>();
       cubit.confirmEdit(outputPath);
-      context.go('/scan/review', extra: cubit);
+      context.goToScanReview(cubit);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(

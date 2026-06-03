@@ -1,21 +1,16 @@
 import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/utils/navigation_exp.dart';
+import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/submit_button.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
-import 'package:cardly_app/presentation/auth/forgot-password/forgot_password_screen.dart';
-import 'package:cardly_app/presentation/auth/view/register_screen.dart';
 import 'package:cardly_app/presentation/auth/view/widgets/auth_form.dart';
-import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-
-extension LoginNavigation on BuildContext {
-  void goToLogin() => go('/login');
-}
 
 class LoginPage extends StatefulWidget {
+  static const routerName = "/login";
   const LoginPage({super.key});
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -99,12 +94,26 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocConsumer<AuthCubit, AuthState>(
+        listenWhen: (previous, current) => previous.status != current.status,
         listener: (context, state) {
           if (state.status == AuthStatus.authenticated) {
             context.goToHome();
           } else if (state.status == AuthStatus.failed &&
               state.lockoutSeconds > 0) {
             _showLockoutDialog();
+          } else if (state.errorMessage != null &&
+              state.status != AuthStatus.loading) {
+            showDialog(
+              context: context,
+              builder: (dialogContext) => AppAlertDialog(
+                icon: Icons.error_outline,
+                color: AppColor.error,
+                title: "Login Failed",
+                message: state.errorMessage,
+                buttonLabel: "OK",
+                onConfirm: () => Navigator.pop(dialogContext),
+              ),
+            );
           }
         },
         builder: (context, state) {
@@ -133,14 +142,12 @@ class _LoginPageState extends State<LoginPage> {
                     Row(
                       children: [
                         Expanded(child: Divider(color: AppColor.greyLight)),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 15),
-                          child: Text(
-                            "Or login with",
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: AppColor.greyDark),
-                          ),
-                        ),
+                        Text(
+                          "Or login with",
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColor.greyDark),
+                        ).paddingHorizontal(16),
+
                         Expanded(child: Divider(color: AppColor.greyLight)),
                       ],
                     ),
@@ -174,19 +181,17 @@ class _LoginPageState extends State<LoginPage> {
                       },
                       label: "Login",
                       canSubmit: state.lockoutSeconds == 0,
+                      isLoading: state.status == AuthStatus.loading,
                     ),
                     if (state.lockoutSeconds > 0)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: Text(
-                          "Too many attempts. Try again in ${state.lockoutSeconds}s",
-                          style: const TextStyle(
-                            color: AppColor.error,
-                            fontSize: 13,
-                          ),
-                          textAlign: TextAlign.center,
+                      Text(
+                        "Too many attempts. Try again in ${state.lockoutSeconds}s",
+                        style: const TextStyle(
+                          color: AppColor.error,
+                          fontSize: 13,
                         ),
-                      ),
+                        textAlign: TextAlign.center,
+                      ).paddingOnly(top: 12),
 
                     const SizedBox(height: 30),
                     Row(

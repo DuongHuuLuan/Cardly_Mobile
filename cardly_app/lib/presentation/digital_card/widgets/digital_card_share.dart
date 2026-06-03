@@ -1,5 +1,6 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
 import 'package:cardly_app/core/widgets/app_icon_action.dart';
 import 'package:flutter/material.dart';
@@ -62,39 +63,36 @@ class DigitalCardShare extends StatelessWidget {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: AppElevatedButton(
-                    label: "Shared",
-                    onPressed: () {},
-                    labelStyle: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColor.white,
-                    ),
-                    iconAfterText: false,
-                    icon: Icon(Icons.share_outlined, color: AppColor.white),
+          Row(
+            children: [
+              Expanded(
+                child: AppElevatedButton(
+                  label: "Shared",
+                  onPressed: () {},
+                  labelStyle: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColor.white,
                   ),
+                  iconAfterText: false,
+                  icon: Icon(Icons.share_outlined, color: AppColor.white),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: AppElevatedButton(
-                    label: "QR Code",
-                    onPressed: () {},
-                    backgroundColor: AppColor.white,
-                    labelStyle: AppTextStyles.bodyMedium,
-                    icon: Icon(
-                      Icons.qr_code_2,
-                      color: AppColor.primary,
-                      size: 18,
-                    ),
-                    borderColor: AppColor.grey.withValues(alpha: 0.7),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: AppElevatedButton(
+                  label: "QR Code",
+                  onPressed: () {},
+                  backgroundColor: AppColor.white,
+                  labelStyle: AppTextStyles.bodyMedium,
+                  icon: Icon(
+                    Icons.qr_code_2,
+                    color: AppColor.primary,
+                    size: 18,
                   ),
+                  borderColor: AppColor.grey.withValues(alpha: 0.7),
                 ),
-              ],
-            ),
-          ),
+              ),
+            ],
+          ).paddingOnly(top: 12),
         ],
       ),
     );

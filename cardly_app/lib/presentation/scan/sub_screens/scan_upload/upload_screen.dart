@@ -1,6 +1,5 @@
+import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
-import 'package:cardly_app/presentation/home/view/home_screen.dart';
-import 'package:cardly_app/presentation/scan/scan_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +10,8 @@ import 'package:cardly_app/presentation/scan/widgets/error_view.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_upload/widgets/uploading_view.dart';
 
 class UploadScreen extends StatelessWidget {
+  static const routerName = "scan-upload";
+
   const UploadScreen({super.key});
 
   @override
@@ -27,7 +28,7 @@ class UploadScreen extends StatelessWidget {
             current.status == ScanStatus.success &&
             previous.status != current.status,
         listener: (context, state) {
-          context.go("/scan/upload-success", extra: cubit);
+          context.goToScanUploadSuccess(cubit);
         },
 
         child: Scaffold(

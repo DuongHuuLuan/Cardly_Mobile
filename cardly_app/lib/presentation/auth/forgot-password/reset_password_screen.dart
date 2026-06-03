@@ -1,5 +1,6 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
@@ -7,19 +8,13 @@ import 'package:cardly_app/core/widgets/app_password_text_form_field.dart';
 import 'package:cardly_app/core/widgets/password_strength_widget.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
-import 'package:cardly_app/presentation/auth/forgot-password/forgot_password_screen.dart';
-import 'package:cardly_app/presentation/auth/view/login_screen.dart';
-import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-extension ResetPasswordNavigation on BuildContext {
-  void goToResetPassword([String? email]) =>
-      go('/reset-password', extra: email);
-}
-
 class ResetPasswordScreen extends StatefulWidget {
+  static const routerName = "/reset-password";
+
   const ResetPasswordScreen({super.key});
   @override
   State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
@@ -28,6 +23,7 @@ class ResetPasswordScreen extends StatefulWidget {
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   late final AuthCubit _authCubit;
   late String _email;
+  late String _otp;
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
@@ -42,7 +38,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _email = GoRouterState.of(context).extra as String;
+    final args = GoRouterState.of(context).extra as Map<String, String>;
+    _email = args['email']!;
+    _otp = args['otp']!;
   }
 
   @override
@@ -59,7 +57,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       ).showSnackBar(const SnackBar(content: Text("Passwords do not match")));
       return;
     }
-    _authCubit.resetPassword(_email, _passwordController.text);
+    _authCubit.resetPassword(_email, _otp, _passwordController.text);
   }
 
   @override

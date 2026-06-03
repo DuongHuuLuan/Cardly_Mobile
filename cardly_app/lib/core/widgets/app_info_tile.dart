@@ -54,7 +54,7 @@ class AppInfoTile extends StatelessWidget {
             ),
           ),
           Icon(
-            trailingIcon ?? Icons.chevron_right,
+            trailingIcon,
             size: trailingIconSize ?? 20,
             color: trailingIconColor ?? AppColor.grey,
           ),

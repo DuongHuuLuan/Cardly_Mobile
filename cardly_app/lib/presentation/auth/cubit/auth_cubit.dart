@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:cardly_app/data/datasources/local/auth_local_data_source.dart';
 import 'package:cardly_app/domain/Entities/user_entity.dart';
 import 'package:cardly_app/domain/usecase/auth/forgot-password/forgot_password_usecase.dart';
+import 'package:cardly_app/domain/usecase/auth/forgot-password/resend_otp_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/forgot-password/reset_password_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/forgot-password/verify_otp_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/get_current_user_usecase.dart';
+import 'package:cardly_app/domain/usecase/auth/get_profile_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/login_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/logout_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/register_usecase.dart';
@@ -15,23 +17,27 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class AuthCubit extends Cubit<AuthState> {
   final AuthLocalDataSource localStorage;
   final LoginUsecase loginUsecase;
+  final GetProfileUsecase getProfileUsecase;
   final RegisterUsecase registerUsecase;
   final LogoutUsecase logoutUsecase;
   final GetCurrentUserUsecase getCurrentUserUsecase;
   final ForgotPasswordUsecase forgotPasswordUsecase;
   final VerifyOtpUsecase verifyOtpUsecase;
+  final ResendOtpUsecase resendOtpUsecase;
   final ResetPasswordUsecase resetPasswordUsecase;
 
   Timer? _lockoutTimer;
 
   AuthCubit({
     required this.loginUsecase,
+    required this.getProfileUsecase,
     required this.localStorage,
     required this.registerUsecase,
     required this.logoutUsecase,
     required this.getCurrentUserUsecase,
     required this.forgotPasswordUsecase,
     required this.verifyOtpUsecase,
+    required this.resendOtpUsecase,
     required this.resetPasswordUsecase,
   }) : super(const AuthState());
 
@@ -63,6 +69,7 @@ class AuthCubit extends Cubit<AuthState> {
         status: AuthStatus.loading,
         emailError: null,
         passwordError: null,
+        errorMessage: null,
         failedAttempts: state.lockoutSeconds > 0
             ? state.failedAttempts
             : state.failedAttempts,
@@ -86,6 +93,7 @@ class AuthCubit extends Cubit<AuthState> {
             passwordError: failure.message == "Incorrect Password"
                 ? failure.message
                 : null,
+            errorMessage: failure.message,
             failedAttempts: lockout > 0 ? 5 : newFailed,
             lockoutSeconds: lockout,
           ),
@@ -94,17 +102,29 @@ class AuthCubit extends Cubit<AuthState> {
           _startLockoutTimer();
         }
       },
-      (user) async {
+      (tokens) async {
         _lockoutTimer?.cancel();
-        await localStorage.saveToken(user.accessToken!);
-        await localStorage.saveUser(user);
-        emit(
-          state.copyWith(
-            status: AuthStatus.authenticated,
-            user: user,
-            failedAttempts: 0,
-            lockoutSeconds: 0,
+        await localStorage.saveToken(tokens.accessToken);
+        await localStorage.saveRefreshToken(tokens.refreshToken);
+        final profileResult = await getProfileUsecase();
+        profileResult.fold(
+          (failure) => emit(
+            state.copyWith(
+              status: AuthStatus.failed,
+              errorMessage: failure.message,
+            ),
           ),
+          (user) async {
+            await localStorage.saveUser(user);
+            emit(
+              state.copyWith(
+                status: AuthStatus.authenticated,
+                user: user,
+                failedAttempts: 0,
+                lockoutSeconds: 0,
+              ),
+            );
+          },
         );
       },
     );
@@ -146,13 +166,19 @@ class AuthCubit extends Cubit<AuthState> {
           ),
         );
       },
-      (user) => emit(
-        state.copyWith(
-          status: AuthStatus.registrationSuccess,
-          successMessage: "Check your email to confirm your account.",
-        ),
-      ),
+      (_) async {
+        emit(
+          state.copyWith(
+            status: AuthStatus.registrationSuccess,
+            email: user.email,
+          ),
+        );
+      },
     );
+  }
+
+  Future<void> resendRegisterOtp(UserEntity user) async {
+    await register(user);
   }
 
   Future<void> getUser() async {
@@ -204,7 +230,7 @@ class AuthCubit extends Cubit<AuthState> {
     );
   }
 
-  Future<void> verifyOtp(String email, String otp) async {
+  Future<void> verifyOtp(String email, String otp, {String? password}) async {
     emit(state.copyWith(status: AuthStatus.verifyOtpLoading));
     final result = await verifyOtpUsecase(email, otp);
     result.fold(
@@ -214,13 +240,69 @@ class AuthCubit extends Cubit<AuthState> {
           errorMessage: failure.message,
         ),
       ),
-      (_) => emit(state.copyWith(status: AuthStatus.verifyOtpSuccess)),
+      (_) async {
+        if (password != null) {
+          final loginResult = await loginUsecase(email, password);
+          loginResult.fold(
+            (failure) => emit(
+              state.copyWith(
+                status: AuthStatus.failed,
+                errorMessage: failure.message,
+              ),
+            ),
+            (tokens) async {
+              await localStorage.saveToken(tokens.accessToken);
+              await localStorage.saveRefreshToken(tokens.refreshToken);
+              final profileResult = await getProfileUsecase();
+              profileResult.fold(
+                (failure) => emit(
+                  state.copyWith(
+                    status: AuthStatus.failed,
+                    errorMessage: failure.message,
+                  ),
+                ),
+                (user) async {
+                  await localStorage.saveUser(user);
+                  emit(
+                    state.copyWith(
+                      status: AuthStatus.authenticated,
+                      user: user,
+                      failedAttempts: 0,
+                      lockoutSeconds: 0,
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        } else {
+          emit(state.copyWith(status: AuthStatus.verifyOtpSuccess));
+        }
+      },
     );
   }
 
-  Future<void> resetPassword(String email, String newPassword) async {
+  Future<void> resendOtp(String email) async {
+    emit(state.copyWith(status: AuthStatus.resendOtpLoading));
+    final result = await resendOtpUsecase(email);
+
+    result.fold((failure) {
+      emit(
+        state.copyWith(
+          status: AuthStatus.resendOtpFailure,
+          errorMessage: failure.message,
+        ),
+      );
+    }, (_) => emit(state.copyWith(status: AuthStatus.resendOtpSuccess)));
+  }
+
+  Future<void> resetPassword(
+    String email,
+    String newPassword,
+    String otp,
+  ) async {
     emit(state.copyWith(status: AuthStatus.resetPasswordLoading));
-    final result = await resetPasswordUsecase(email, newPassword);
+    final result = await resetPasswordUsecase(email, newPassword, otp);
     result.fold(
       (failure) => emit(
         state.copyWith(

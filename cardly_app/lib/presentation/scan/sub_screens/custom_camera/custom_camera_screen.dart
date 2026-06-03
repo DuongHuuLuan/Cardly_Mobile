@@ -2,8 +2,9 @@ import 'dart:async';
 import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/utils/navigation_exp.dart';
+import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
-import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_state.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/custom_camera/widgets/camera_overlay.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,8 @@ import 'package:image/image.dart' as img;
 import 'package:permission_handler/permission_handler.dart';
 
 class CustomCameraScreen extends StatefulWidget {
+  static const routerName = "scan-custom-camera";
+
   const CustomCameraScreen({super.key});
   @override
   State<CustomCameraScreen> createState() => _CustomCameraScreenState();
@@ -130,7 +133,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
     await cubit.pickFromGallery();
     if (!mounted) return;
     if (cubit.state.imagePaths.isNotEmpty) {
-      context.go('/scan/preview', extra: cubit);
+      context.goToScanPreview(cubit);
     }
   }
 
@@ -230,7 +233,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
       }
 
       cubit.confirmEdit(path);
-      context.go('/scan/edit', extra: cubit);
+      context.goToScanEdit(cubit);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -328,61 +331,46 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
               bottom: 60,
               left: 0,
               right: 0,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      onPressed: _toggleFlash,
-                      icon: Icon(
-                        _flashIcon(_flashMode),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: _toggleFlash,
+                    icon: Icon(
+                      _flashIcon(_flashMode),
+                      color: AppColor.white,
+                      size: 30,
+                    ),
+                    tooltip: 'Flash',
+                  ),
+                  GestureDetector(
+                    onTap: _takePicture,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.2,
+                      height: MediaQuery.of(context).size.height * 0.1,
+                      decoration: const BoxDecoration(
                         color: AppColor.white,
-                        size: 30,
+                        shape: BoxShape.circle,
                       ),
-                      tooltip: 'Flash',
-                    ),
-                    GestureDetector(
-                      onTap: _takePicture,
-                      child: Container(
-                        width: MediaQuery.of(context).size.width * 0.2,
-                        height: MediaQuery.of(context).size.height * 0.1,
-                        decoration: const BoxDecoration(
-                          color: AppColor.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.camera_alt,
-                          color: AppColor.black,
-                          size: 42,
-                        ),
+                      child: Icon(
+                        Icons.camera_alt,
+                        color: AppColor.black,
+                        size: 42,
                       ),
                     ),
-                    // IconButton(
-                    //   icon: Icon(
-                    //     _isLandscape ? Icons.sync_alt : Icons.sync,
-                    //     color: AppColor.white,
-                    //     size: 28,
-                    //   ),
-                    //   tooltip: _isLandscape
-                    //       ? 'Switch to portrait'
-                    //       : 'Switch to landscape',
-                    //   onPressed: () =>
-                    //       setState(() => _isLandscape = !_isLandscape),
-                    // ),
-                    IconButton(
-                      onPressed: _onPickFromGallery,
-                      icon: const Icon(
-                        Icons.photo_library,
-                        color: AppColor.white,
-                        size: 28,
-                      ),
-                      tooltip: 'Choose from gallery',
+                  ),
+                  IconButton(
+                    onPressed: _onPickFromGallery,
+                    icon: const Icon(
+                      Icons.photo_library,
+                      color: AppColor.white,
+                      size: 28,
                     ),
-                  ],
-                ),
-              ),
+                    tooltip: 'Choose from gallery',
+                  ),
+                ],
+              ).paddingHorizontal(20),
             ),
           ],
         ),

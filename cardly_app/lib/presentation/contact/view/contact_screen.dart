@@ -1,23 +1,19 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/utils/navigation_exp.dart';
+import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_bottom_nav.dart';
 import 'package:cardly_app/core/widgets/app_contact_card.dart';
 import 'package:cardly_app/domain/Entities/business_card_entity.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_state.dart';
 import 'package:cardly_app/presentation/contact/view/widgets/contact_appbar_screen.dart';
-import 'package:cardly_app/presentation/scan/scan_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-
-import 'contact_detail/contact_detail_screen.dart';
-
-extension ContactNavigation on BuildContext {
-  void goToContact() => push('/contact');
-}
 
 class ContactScreen extends StatefulWidget {
+  static const routerName = "/contact";
+
   const ContactScreen({super.key});
 
   @override
@@ -116,15 +112,12 @@ class _SectionHeader extends StatelessWidget {
   const _SectionHeader({required this.letter});
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 12, bottom: 8, left: 4),
-      child: Text(
-        letter,
-        style: AppTextStyles.bodyMedium.copyWith(
-          fontWeight: FontWeight.bold,
-          color: AppColor.greyDark,
-        ),
+    return Text(
+      letter,
+      style: AppTextStyles.bodyMedium.copyWith(
+        fontWeight: FontWeight.bold,
+        color: AppColor.greyDark,
       ),
-    );
+    ).paddingOnly(top: 12, bottom: 8, left: 4);
   }
 }

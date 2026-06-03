@@ -1,12 +1,12 @@
-import 'package:cardly_app/presentation/home/view/home_screen.dart';
-import 'package:cardly_app/presentation/onboarding/views/onboarding_screen.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SplashScreen extends StatefulWidget {
+  static const routerName = "/splash";
   const SplashScreen({super.key});
 
   @override
