@@ -7,6 +7,7 @@ enum ScanStatus {
   validating,
   validationFailed,
   uploading,
+  processing,
   success,
   failure,
 }

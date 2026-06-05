@@ -13,7 +13,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image/image.dart' as img;
-import 'package:permission_handler/permission_handler.dart';
 
 class CustomCameraScreen extends StatefulWidget {
   static const routerName = "scan-custom-camera";
@@ -40,80 +39,49 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
   }
 
   Future<void> _initCamera() async {
-    if (_controller != null) {
-      await _controller!.dispose();
-      _controller = null;
-      if (mounted) {
-        setState(() {
-          _isReady = false;
-        });
-      }
-    }
     try {
-      final status = await Permission.camera.request();
+      final controller = await cubit.getCameraController();
 
-      if (status.isGranted) {
-        final cameras = await availableCameras();
-        if (cameras.isEmpty) {
-          if (mounted) {
-            cubit.reset();
-            context.goToHome();
-          }
-          return;
-        }
-        final controller = CameraController(
-          cameras.first,
-          ResolutionPreset.high,
-          enableAudio: false,
-        );
-        await controller.initialize();
-        if (!mounted) {
-          await controller.dispose();
-          return;
-        }
-
-        setState(() {
-          _controller = controller;
-          _isReady = true;
-        });
-        return;
-      }
-
-      if (mounted) {
-        cubit.reset();
-        if (status.isPermanentlyDenied) {
-          await showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) => AppAlertDialog(
-              title: "Camera Permission Required",
-              message:
-                  "Please enable camera permission in Settings to use this feature.",
-              buttonLabel: "Go To Settings",
-              cancelLabel: "Back To Home",
-              icon: Icons.camera_alt_outlined,
-              color: AppColor.primary,
-              onCancel: () {
-                Navigator.pop(context);
-                context.goToHome();
-              },
-              onConfirm: () {
-                openAppSettings();
-                Navigator.pop(context);
-                context.goToHome();
-              },
-            ),
-          );
-        } else {
-          context.goToHome();
-        }
-      }
+      if (!mounted) return;
+      setState(() {
+        _controller = controller;
+        _isReady = true;
+      });
     } catch (e) {
-      if (mounted) {
-        cubit.reset();
-        context.goToHome();
-      }
+      if (mounted) _showCameraUnavailableDialog();
     }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
+      setState(() => _isReady = false);
+      cubit.releaseCamera();
+    } else if (state == AppLifecycleState.resumed) {
+      _initCamera();
+    }
+  }
+
+  void _showCameraUnavailableDialog() {
+    cubit.reset();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AppAlertDialog(
+        title: "Camera Unavailable",
+        message: "Unable to access the camera. Please try again.",
+        buttonLabel: "OK",
+        icon: Icons.videocam_off_outlined,
+        color: AppColor.error,
+        onConfirm: () {
+          Navigator.pop(context);
+          context.goToHome();
+        },
+      ),
+    );
   }
 
   Future<void> _toggleFlash() async {
@@ -244,24 +212,10 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    final CameraController? cameraController = _controller;
-
-    if (_controller == null || !_controller!.value.isInitialized) return;
-
-    if (state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.paused) {
-      setState(() => _isReady = false);
-      cameraController?.dispose();
-    } else if (state == AppLifecycleState.resumed) {
-      _initCamera();
-    }
-  }
-
-  @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _controller?.dispose();
+    cubit.releaseCamera();
+    _controller = null;
     super.dispose();
   }
 
@@ -304,7 +258,10 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
               top: 48,
               left: 16,
               child: IconButton(
-                onPressed: () => context.goToHome(),
+                onPressed: () {
+                  cubit.releaseCamera();
+                  context.pop();
+                },
                 icon: const Icon(Icons.close, color: AppColor.white, size: 30),
               ),
             ),

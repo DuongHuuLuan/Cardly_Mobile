@@ -1,6 +1,7 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
+import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/domain/Entities/business_card_entity.dart';
 import 'package:cardly_app/domain/Entities/scanned_document.dart';
@@ -65,18 +66,6 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     super.dispose();
   }
 
-  BusinessCardEntity get _updatedCard => _card.copyWith(
-    fullName: _nameCtrl.text,
-    jobTitle: _titleCtrl.text,
-    company: _companyCtrl.text,
-    phone: _phoneCtrl.text,
-    email: _emailCtrl.text,
-    website: _websiteCtrl.text,
-    linkedIn: _linkedinCtrl.text,
-    address: _addressCtrl.text,
-    notes: _notesCtrl.text,
-  );
-
   Future<void> _onEnrich() async {
     _contactCubit.enrich();
     await Future.delayed(const Duration(seconds: 2));
@@ -99,7 +88,18 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
   }
 
   void _onSave() {
-    final card = _updatedCard;
+    final card = BusinessCardEntity(
+      id: null,
+      fullName: _nameCtrl.text.trim(),
+      jobTitle: _titleCtrl.text.trim(),
+      company: _companyCtrl.text.trim(),
+      phone: _phoneCtrl.text.trim(),
+      email: _emailCtrl.text.trim(),
+      website: _websiteCtrl.text.trim(),
+      linkedIn: _linkedinCtrl.text.trim(),
+      address: _addressCtrl.text.trim(),
+      notes: _notesCtrl.text.trim(),
+    );
     _contactCubit.save(card);
   }
 
@@ -110,10 +110,19 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
           previous.status == ContactStatus.saving &&
           current.status == ContactStatus.loaded,
       listener: (context, state) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Contact Saved!"),
-            backgroundColor: AppColor.success,
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => AppAlertDialog(
+            icon: Icons.check_circle,
+            title: " Save Contact Successfully",
+            message: "You have successfully saved the contact.",
+            color: AppColor.success,
+            buttonLabel: "Go To Home",
+            onConfirm: () {
+              Navigator.pop(context);
+              context.goToHome();
+            },
           ),
         );
       },
