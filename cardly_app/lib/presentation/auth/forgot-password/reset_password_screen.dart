@@ -23,7 +23,7 @@ class ResetPasswordScreen extends StatefulWidget {
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   late final AuthCubit _authCubit;
   late String _email;
-  late String _otp;
+  late String _resetToken;
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
@@ -40,7 +40,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     super.didChangeDependencies();
     final args = GoRouterState.of(context).extra as Map<String, String>;
     _email = args['email']!;
-    _otp = args['otp']!;
+    _resetToken = args['resetToken']!;
   }
 
   @override
@@ -57,7 +57,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       ).showSnackBar(const SnackBar(content: Text("Passwords do not match")));
       return;
     }
-    _authCubit.resetPassword(_email, _otp, _passwordController.text);
+    _authCubit.resetPassword(_resetToken, _passwordController.text);
   }
 
   @override

@@ -1,10 +1,15 @@
 import 'dart:convert';
+import 'package:cardly_app/data/mappers/ocr_mapper.dart';
 import 'package:cardly_app/data/mappers/scanned_document_mapper.dart';
+import 'package:cardly_app/data/models/ocr_response_model.dart';
 import 'package:cardly_app/data/models/scan_response_model.dart';
 import 'package:cardly_app/data/services/card_service.dart';
 import 'package:cardly_app/core/error/exceptions.dart';
 import 'package:cardly_app/domain/Entities/scanned_document.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+
+import '../../models/upload_response_model.dart';
 
 class CardRemoteDataSource {
   final CardService _cardService;
@@ -12,51 +17,71 @@ class CardRemoteDataSource {
 
   CardRemoteDataSource(this._cardService, {this.userMock = true});
 
-  static const String _mockBusinessCardJson = '''
-{
-  "id": "bc_1",
-  "images": [],
-  "data": {
-    "full_name": "Nguyễn Văn Anh",
-    "job_title": "CEO & Founder",
-    "company": "TechVina Solutions",
-    "phone": "+84 912 345 678",
-    "email": "anh.nguyen@techvina.com",
-    "website": "https://techvina.com",
-    "linkedin": "https://linkedin.com/in/anhnguyen",
-    "address": "123 Nguyễn Huệ, Q.1, TP.HCM",
-    "brief": "Founder of TechVina, an AI startup focusing on Vietnamese NLP.",
-    "keywords": ["AI", "NLP", "startup", "Vietnamese tech"],
-    "highlights": ["Raised \$2M Series A in 2025", "Team of 50+ engineers"],
-    "created_at": "2026-05-26T10:00:00.000Z"
+  static const String _mockUploadJson = '''
+  {
+    "processing_id": "PRC-20260604-MOCK01",
+    "files": [
+      {
+        "original_filename": "card.jpg",
+        "file_url": "https://storage.googleapis.com/cardly-images-bucket/mock/card.jpg"
+      }
+    ],
+    "status": "completed",
+    "uploaded_at": "2026-06-04T00:36:07+0000"
   }
-}
-''';
+  ''';
+
+  static const String _mockOcrJson = '''
+  {
+    "name": "Le Thi Lam Tuyen",
+    "phones": ["+84888494588"],
+    "email": "tuyenltl2@fe.edu.vn",
+    "company": "FPT University Can Tho Campus",
+    "position": "Head of Corporate Relations Department",
+    "address": "600 Nguyen Van Cu St. An Binh Ward, Ninh Kieu Dist. Cantho",
+    "website": "https://cantho.fpt.edu.vn",
+    "social_profiles": [],
+    "detected_languages": ["vi", "en"],
+    "confidence_score": 0.9537,
+    "field_scores": []
+  }
+  ''';
 
   Future<List<ScannedDocument>> scanCard(List<String> imagePaths) async {
     if (userMock) {
-      final map = jsonDecode(_mockBusinessCardJson) as Map<String, dynamic>;
-      final model = ScanResponseModel.fromJson(map);
-      return [ScannedDocumentMapper.fromResponse(model)];
+      await Future.delayed(const Duration(seconds: 1));
+      final uploadMap = jsonDecode(_mockUploadJson) as Map<String, dynamic>;
+      final upload = UploadResponseModel.fromJson(uploadMap);
+      final ocrMap = jsonDecode(_mockOcrJson) as Map<String, dynamic>;
+      final ocr = OcrResponseModel.fromJson(ocrMap);
+      return [OcrMapper.fromResponse(upload: upload, ocr: ocr)];
     }
 
     try {
-      final files = await MultipartFile.fromFile(
-        imagePaths[0],
-        filename: imagePaths[0].split(RegExp(r'[/\\]')).last,
+      final files = await Future.wait(
+        imagePaths.map(
+          (p) => MultipartFile.fromFile(
+            p,
+            filename: p.split(RegExp(r'[/\\]')).last,
+          ),
+        ),
       );
-      MultipartFile? file2;
-      if (imagePaths.length > 1) {
-        file2 = await MultipartFile.fromFile(
-          imagePaths[1],
-          filename: imagePaths[1].split(RegExp(r'[/\\]')).last,
-        );
-      }
+      final uploadRes = await _cardService.uploadCard(
+        files.first,
+        files.length > 1 ? files[1] : null,
+      );
+      final uploadData = uploadRes.data;
 
-      final response = await _cardService.scanCard(files, file2);
-      return [ScannedDocumentMapper.fromResponse(response.data.data!)];
+      // Poll OCR với logging
+      final ocrData = await _pollOcr(uploadData.processingId);
+      return [OcrMapper.fromResponse(upload: uploadData, ocr: ocrData)];
     } on DioException catch (e) {
-      throw ServerException(e.message ?? "Network error");
+      String msg = e.message ?? "Network error";
+      if (e.response?.data is Map) {
+        final error = (e.response!.data as Map)['error'] as Map?;
+        if (error?['message'] != null) msg = error!['message'] as String;
+      }
+      throw ServerException(msg);
     } on FormatException catch (e) {
       throw ServerException('Invalid response: ${e.message}');
     } catch (e) {
@@ -64,20 +89,62 @@ class CardRemoteDataSource {
     }
   }
 
+  Future<OcrResponseModel> _pollOcr(String processingId) async {
+    await Future.delayed(const Duration(seconds: 5));
+    const maxRetries = 60;
+    for (int i = 0; i < maxRetries; i++) {
+      try {
+        final ocrRes = await _cardService.getOcr(processingId);
+        final ocrData = ocrRes.data;
+        if (ocrData.confidenceScore != null) {
+          return ocrData;
+        }
+      } on DioException catch (e) {
+        if (e.response?.statusCode == 404 ||
+            e.response?.statusCode == 409 ||
+            e.response?.statusCode == 425) {
+          // continue
+        } else {
+          rethrow;
+        }
+      } catch (e) {}
+      await Future.delayed(const Duration(seconds: 2));
+    }
+    throw const ServerException("OCR processing timeout after 180s");
+  }
+
   Future<ScannedDocument> updateCard(
     String id,
     Map<String, dynamic> data,
   ) async {
     if (userMock) {
-      final map = jsonDecode(_mockBusinessCardJson) as Map<String, dynamic>;
-      map['data'] = data;
-      final model = ScanResponseModel.fromJson(map);
-      return ScannedDocumentMapper.fromResponse(model);
+      final map = jsonDecode(_mockOcrJson) as Map<String, dynamic>;
+      final ocr = OcrResponseModel.fromJson(map);
+      return OcrMapper.fromResponse(
+        upload: UploadResponseModel(
+          processingId: id,
+          files: const [],
+          status: "completed",
+          uploadedAt: DateTime.now().toIso8601String(),
+        ),
+        ocr: ocr,
+      );
     }
 
     try {
       final response = await _cardService.updateCard(id, data);
-      return ScannedDocumentMapper.fromResponse(response.data.data!);
+      final result = response.response.data;
+      if (result == null) throw const ServerException("Update failed");
+
+      return OcrMapper.fromResponse(
+        upload: UploadResponseModel(
+          processingId: id,
+          files: const [],
+          status: "completed",
+          uploadedAt: DateTime.now().toIso8601String(),
+        ),
+        ocr: result,
+      );
     } on DioException catch (e) {
       throw ServerException(e.message ?? "Network error");
     }

@@ -15,39 +15,12 @@ class CardRepositoryImpl implements CardRepository {
     required this.localDataSource,
   });
 
-  // @override
-  // Future<Either<Failure, List<ScannedDocument>>> scanCard(
-  //   List<String> imagePaths,
-  // ) async {
-  //   try {
-  //     final docs = await remoteDataSource.scanCard(imagePaths);
-  //     return Right(docs);
-  //   } on ServerException catch (e) {
-  //     return Left(ServerFailure(e.message));
-  //   }
-  // }
-  //
-  // @override
-  // Future<Either<Failure, ScannedDocument>> updateCard(
-  //   String id,
-  //   Map<String, dynamic> data,
-  // ) async {
-  //   try {
-  //     final doc = await remoteDataSource.updateCard(id, data);
-  //     return Right(doc);
-  //   } on ServerException catch (e) {
-  //     return Left(ServerFailure(e.message));
-  //   }
-  // }
   @override
   Future<Either<Failure, List<ScannedDocument>>> scanCard(
     List<String> imagePaths,
   ) async {
     try {
       final results = await remoteDataSource.scanCard(imagePaths);
-      for (final doc in results) {
-        await localDataSource.saveScannedDocument(doc);
-      }
       return Right(results);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.toString()));

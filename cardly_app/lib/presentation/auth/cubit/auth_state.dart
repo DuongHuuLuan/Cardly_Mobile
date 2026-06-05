@@ -18,6 +18,10 @@ enum AuthStatus {
   verifyOtpSuccess,
   verifyOtpFailure,
 
+  verifyResetOtpLoading,
+  verifyResetOtpSuccess,
+  verifyResetOtpFailure,
+
   resendOtpLoading,
   resendOtpSuccess,
   resendOtpFailure,
@@ -38,6 +42,7 @@ class AuthState extends Equatable {
   final String? email;
   final int failedAttempts;
   final int lockoutSeconds;
+  final String? resetToken;
 
   const AuthState({
     this.status = AuthStatus.initial,
@@ -50,6 +55,7 @@ class AuthState extends Equatable {
     this.email,
     this.failedAttempts = 0,
     this.lockoutSeconds = 0,
+    this.resetToken,
   });
 
   AuthState copyWith({
@@ -63,6 +69,7 @@ class AuthState extends Equatable {
     Object? email = _nullValue,
     int? failedAttempts,
     int? lockoutSeconds,
+    Object? resetToken = _nullValue,
   }) => AuthState(
     status: status ?? this.status,
     user: user ?? this.user,
@@ -78,6 +85,9 @@ class AuthState extends Equatable {
     email: identical(email, _nullValue) ? this.email : email as String?,
     failedAttempts: failedAttempts ?? this.failedAttempts,
     lockoutSeconds: lockoutSeconds ?? this.lockoutSeconds,
+    resetToken: identical(resetToken, _nullValue)
+        ? this.resetToken
+        : resetToken as String?,
   );
 
   @override
@@ -92,5 +102,6 @@ class AuthState extends Equatable {
     email,
     failedAttempts,
     lockoutSeconds,
+    resetToken,
   ];
 }

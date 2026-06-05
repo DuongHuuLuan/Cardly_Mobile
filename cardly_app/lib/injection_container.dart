@@ -22,6 +22,7 @@ import 'package:cardly_app/domain/usecase/auth/forgot-password/forgot_password_u
 import 'package:cardly_app/domain/usecase/auth/forgot-password/resend_otp_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/forgot-password/reset_password_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/forgot-password/verify_otp_usecase.dart';
+import 'package:cardly_app/domain/usecase/auth/forgot-password/verify_reset_otp_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/get_current_user_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/get_onboardin_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/get_profile_usecase.dart';
@@ -53,7 +54,7 @@ Future<void> init() async {
       BaseOptions(
         baseUrl: AppConstant.baseUrl,
         connectTimeout: Duration(seconds: 30),
-        receiveTimeout: Duration(seconds: 30),
+        receiveTimeout: Duration(seconds: 120),
       ),
     );
     dio.interceptors.add(
@@ -96,10 +97,11 @@ Future<void> init() async {
                 // Refresh thất bại → clear + redirect login
                 await prefs.remove("access_token");
                 await prefs.remove("refresh_token");
+                await prefs.setBool('session_expired', true);
               }
             }
           }
-          handler.next(error);
+          handler.reject(error);
         },
       ),
     );
@@ -137,10 +139,10 @@ Future<void> init() async {
     () => AuthRemoteDataSource(getIt<AuthService>(), userMock: false),
   );
   getIt.registerLazySingleton<CardRemoteDataSource>(
-    () => CardRemoteDataSource(getIt<CardService>(), userMock: true),
+    () => CardRemoteDataSource(getIt<CardService>(), userMock: false),
   );
   getIt.registerLazySingleton<ContactRemoteDataSource>(
-    () => ContactRemoteDataSource(getIt<ContactService>(), userMock: true),
+    () => ContactRemoteDataSource(getIt<ContactService>(), userMock: false),
   );
 
   // Repositories
@@ -214,6 +216,9 @@ Future<void> init() async {
   getIt.registerLazySingleton<GetProfileUsecase>(
     () => GetProfileUsecase(repository: getIt<AuthRepository>()),
   );
+  getIt.registerLazySingleton<VerifyResetOtpUsecase>(
+    () => VerifyResetOtpUsecase(repository: getIt<AuthRepository>()),
+  );
 
   // Cubit
   getIt.registerFactory(() => OnboardingCubit(getIt()));
@@ -230,6 +235,7 @@ Future<void> init() async {
       verifyOtpUsecase: getIt<VerifyOtpUsecase>(),
       resendOtpUsecase: getIt<ResendOtpUsecase>(),
       resetPasswordUsecase: getIt<ResetPasswordUsecase>(),
+      verifyResetOtpUsecase: getIt<VerifyResetOtpUsecase>(),
     ),
   );
   getIt.registerFactory(

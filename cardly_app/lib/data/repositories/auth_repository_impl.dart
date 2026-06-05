@@ -8,6 +8,7 @@ import 'package:cardly_app/domain/Entities/forgot-password/verify_otp_result.dar
 import 'package:cardly_app/domain/Entities/user_entity.dart';
 import 'package:cardly_app/domain/entities/auth_tokens.dart';
 import 'package:cardly_app/domain/entities/forgot-password/resend_otp_result.dart';
+import 'package:cardly_app/domain/entities/forgot-password/verify_reset_otp_result.dart';
 import 'package:cardly_app/domain/repositories/auth_repository.dart';
 import 'package:dartz/dartz.dart';
 
@@ -130,6 +131,19 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, VerifyResetOtpResult>> verifyResetOtp(
+    String email,
+    String otp,
+  ) async {
+    try {
+      final result = await remoteDataSource.verifyResetOtp(email, otp);
+      return Right(result);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
   Future<Either<Failure, ResendOtpResult>> resendOtp(String email) async {
     try {
       final result = await remoteDataSource.resenOtp(email);
@@ -141,15 +155,13 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, ResetPasswordResult>> resetPassword(
-    String email,
-    String otp,
+    String resetToken,
     String newPassword,
   ) async {
     try {
       final result = await remoteDataSource.resetPassword(
-        email,
+        resetToken,
         newPassword,
-        otp,
       );
       return Right(result);
     } on ServerException catch (e) {

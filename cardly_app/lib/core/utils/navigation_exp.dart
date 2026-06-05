@@ -39,13 +39,14 @@ extension AppNavigation on BuildContext {
       'user': user,
     },
   );
+
   void goToOtpVerificationForgotPassword(String email) => push(
     OtpVerificationScreen.routerName,
     extra: <String, dynamic>{'email': email, 'isRegistration': false},
   );
-  void goToResetPassword(String email, String otp) => push(
+  void goToResetPassword(String email, String resetToken) => push(
     ResetPasswordScreen.routerName,
-    extra: <String, String>{"email": email, "otp": otp},
+    extra: <String, String>{"email": email, "resetToken": resetToken},
   );
 
   void goToOnboarding() => push(OnboardingScreen.routerName);

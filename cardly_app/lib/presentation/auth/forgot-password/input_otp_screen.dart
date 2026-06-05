@@ -108,9 +108,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         listener: (context, state) {
           if (state.status == AuthStatus.authenticated) {
             context.goToHome();
-          } else if (state.status == AuthStatus.verifyOtpSuccess &&
+          } else if (state.status == AuthStatus.verifyResetOtpSuccess &&
               !_isRegistration) {
-            context.goToResetPassword(_email, _otp);
+            context.goToResetPassword(_email, state.resetToken!);
           } else if (state.status == AuthStatus.verifyOtpFailure) {
             showDialog(
               context: context,
@@ -133,10 +133,22 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                 onConfirm: () => Navigator.pop(context),
               ),
             );
+          } else if (state.status == AuthStatus.verifyResetOtpFailure) {
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (ctx) => AppAlertDialog(
+                title: "Incorrect OTP code",
+                message: state.errorMessage,
+                onConfirm: () => Navigator.pop(ctx),
+              ),
+            );
           }
         },
         builder: (context, state) {
-          final isLoading = state.status == AuthStatus.verifyOtpLoading;
+          final isLoading =
+              state.status == AuthStatus.verifyOtpLoading ||
+              state.status == AuthStatus.verifyResetOtpLoading;
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20.0),
             child: Column(
@@ -188,11 +200,17 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                 AppElevatedButton(
                   label: "Confirm",
                   onPressed: _otp.length == 6
-                      ? () => _authCubit.verifyOtp(
-                          _email,
-                          _otp,
-                          password: _registrationUser?.password,
-                        )
+                      ? () {
+                          if (_isRegistration) {
+                            _authCubit.verifyOtp(
+                              _email,
+                              _otp,
+                              password: _registrationUser?.password,
+                            );
+                          } else {
+                            _authCubit.verifyResetOtp(_email, _otp);
+                          }
+                        }
                       : null,
                   labelStyle: AppTextStyles.bodyLarge.copyWith(
                     color: AppColor.white,
