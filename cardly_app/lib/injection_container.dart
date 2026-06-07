@@ -1,4 +1,5 @@
 import 'package:cardly_app/core/constants/app_constant.dart';
+import 'package:cardly_app/core/network/auth_interceptor.dart';
 import 'package:cardly_app/data/datasources/local/auth_local_data_source.dart';
 import 'package:cardly_app/data/datasources/local/card_local_data_source.dart';
 import 'package:cardly_app/data/datasources/local/contact_local_data_source.dart';
@@ -7,16 +8,20 @@ import 'package:cardly_app/data/datasources/mock/onboarding_mock_data_source.dar
 import 'package:cardly_app/data/datasources/remote/auth_remote_data_source.dart';
 import 'package:cardly_app/data/datasources/remote/card_remote_data_source.dart';
 import 'package:cardly_app/data/datasources/remote/contact_remote_data_source.dart';
+import 'package:cardly_app/data/datasources/remote/enrichment_remote_data_source.dart';
 import 'package:cardly_app/data/repositories/auth_repository_impl.dart';
 import 'package:cardly_app/data/repositories/card_repository_impl.dart';
 import 'package:cardly_app/data/repositories/contact_repository_impl.dart';
+import 'package:cardly_app/data/repositories/enrichment_repository_impl.dart';
 import 'package:cardly_app/data/repositories/onboarding_repository_impl.dart';
 import 'package:cardly_app/data/services/auth_service.dart';
 import 'package:cardly_app/data/services/card_service.dart';
 import 'package:cardly_app/data/services/contact_service.dart';
+import 'package:cardly_app/data/services/enrichment_service.dart';
 import 'package:cardly_app/domain/repositories/auth_repository.dart';
 import 'package:cardly_app/domain/repositories/card_repository.dart';
 import 'package:cardly_app/domain/repositories/contact_repository.dart';
+import 'package:cardly_app/domain/repositories/enrichment_repository.dart';
 import 'package:cardly_app/domain/repositories/onboarding_repository.dart';
 import 'package:cardly_app/domain/usecase/auth/forgot-password/forgot_password_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/forgot-password/resend_otp_usecase.dart';
@@ -34,8 +39,10 @@ import 'package:cardly_app/domain/usecase/card/update_card_usecase.dart';
 import 'package:cardly_app/domain/usecase/contact/delete_contact_usecase.dart';
 import 'package:cardly_app/domain/usecase/contact/get_contacts_usecase.dart';
 import 'package:cardly_app/domain/usecase/contact/save_contact_usecase.dart';
+import 'package:cardly_app/domain/usecase/enrichment/enrichment_usecase.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
+import 'package:cardly_app/presentation/enrichment/cubit/enrichment_cubit.dart';
 import 'package:cardly_app/presentation/home/cubit/home_cubit.dart';
 import 'package:cardly_app/presentation/onboarding/cubit/onboarding_cubit.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
@@ -61,50 +68,7 @@ Future<void> init() async {
       LogInterceptor(requestBody: true, responseBody: true, error: true),
     );
 
-    dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) async {
-          final prefs = getIt<SharedPreferences>();
-          final token = prefs.getString("access_token");
-          if (token != null) {
-            options.headers["Authorization"] = "Bearer $token";
-          }
-          handler.next(options);
-        },
-        onError: (error, handler) async {
-          if (error.response?.statusCode == 401) {
-            final prefs = getIt<SharedPreferences>();
-            final refreshToken = prefs.getString("refresh_token");
-            if (refreshToken != null) {
-              try {
-                // Gọi refresh endpoint
-                final dio = getIt<Dio>();
-                final res = await dio.post(
-                  '/api/v1/auth/refresh',
-                  data: {"refresh_token": refreshToken},
-                );
-                final newToken = res.data['access_token'] as String;
-                final newRefresh = res.data['refresh_token'] as String;
-                await prefs.setString("access_token", newToken);
-                await prefs.setString("refresh_token", newRefresh);
-                // Retry request với token mới
-                error.requestOptions.headers["Authorization"] =
-                    "Bearer $newToken";
-                final retryResponse = await dio.fetch(error.requestOptions);
-                handler.resolve(retryResponse);
-                return;
-              } catch (_) {
-                // Refresh thất bại → clear + redirect login
-                await prefs.remove("access_token");
-                await prefs.remove("refresh_token");
-                await prefs.setBool('session_expired', true);
-              }
-            }
-          }
-          handler.reject(error);
-        },
-      ),
-    );
+    dio.interceptors.add(AuthInterceptor());
     return dio;
   });
 
@@ -114,11 +78,14 @@ Future<void> init() async {
   getIt.registerLazySingleton<ContactService>(
     () => ContactService(getIt<Dio>()),
   );
+  getIt.registerLazySingleton<EnrichmentService>(
+    () => EnrichmentService(getIt<Dio>()),
+  );
 
-  //  Data base
+  // Local Data base
   getIt.registerLazySingleton<DatabaseHelper>(() => DatabaseHelper.instance);
 
-  // Data Source
+  // Mock Data Source
   getIt.registerLazySingleton<OnboardingMockDataSource>(
     () => OnboardingMockDataSource(),
   );
@@ -144,6 +111,10 @@ Future<void> init() async {
   getIt.registerLazySingleton<ContactRemoteDataSource>(
     () => ContactRemoteDataSource(getIt<ContactService>(), userMock: false),
   );
+  getIt.registerLazySingleton<EnrichmentRemoteDataSource>(
+    () =>
+        EnrichmentRemoteDataSource(getIt<EnrichmentService>(), userMock: false),
+  );
 
   // Repositories
   getIt.registerLazySingleton<OnboardingRepository>(
@@ -167,6 +138,12 @@ Future<void> init() async {
     () => ContactRepositoryImpl(
       remoteDataSource: getIt<ContactRemoteDataSource>(),
       localDataSource: getIt<ContactLocalDataSource>(),
+      authLocalDataSource: getIt<AuthLocalDataSource>(),
+    ),
+  );
+  getIt.registerLazySingleton<EnrichmentRepository>(
+    () => EnrichmentRepositoryImpl(
+      remoteDataSource: getIt<EnrichmentRemoteDataSource>(),
     ),
   );
 
@@ -219,6 +196,10 @@ Future<void> init() async {
   getIt.registerLazySingleton<VerifyResetOtpUsecase>(
     () => VerifyResetOtpUsecase(repository: getIt<AuthRepository>()),
   );
+  // Use Case enrichment
+  getIt.registerLazySingleton<EnrichmentUsecase>(
+    () => EnrichmentUsecase(repository: getIt<EnrichmentRepository>()),
+  );
 
   // Cubit
   getIt.registerFactory(() => OnboardingCubit(getIt()));
@@ -250,6 +231,10 @@ Future<void> init() async {
       getContacts: getIt<GetContactsUsecase>(),
       saveContact: getIt<SaveContactUsecase>(),
       deleteContact: getIt<DeleteContactUsecase>(),
+      enrichment: getIt<EnrichmentUsecase>(),
     ),
+  );
+  getIt.registerFactory(
+    () => EnrichmentCubit(enrichmentUsecase: getIt<EnrichmentUsecase>()),
   );
 }

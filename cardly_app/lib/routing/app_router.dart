@@ -6,6 +6,8 @@ import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
 import 'package:cardly_app/presentation/contact/view/contact_add/contact_add_screen.dart';
 import 'package:cardly_app/presentation/contact/view/contact_screen.dart';
 import 'package:cardly_app/presentation/digital_card/digital_card_screen.dart';
+import 'package:cardly_app/presentation/enrichment/cubit/enrichment_cubit.dart';
+import 'package:cardly_app/presentation/enrichment/enrichment_screen.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/forgot-password/forgot_password_screen.dart';
 import 'package:cardly_app/presentation/auth/forgot-password/input_otp_screen.dart';
@@ -239,6 +241,22 @@ class AppRouter {
           create: (context) => getIt<AuthCubit>()..getUser(),
           child: const DigitalCardScreen(),
         ),
+      ),
+      GoRoute(
+        path: EnrichmentScreen.routerName,
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return MultiBlocProvider(
+            providers: [
+              BlocProvider(create: (_) => getIt<EnrichmentCubit>()),
+              BlocProvider.value(value: extra['contactCubit'] as ContactCubit),
+            ],
+            child: EnrichmentScreen(
+              card: extra['card'] as BusinessCardEntity,
+              enrichmentData: extra['data'] as Map<String, dynamic>,
+            ),
+          );
+        },
       ),
     ],
   );

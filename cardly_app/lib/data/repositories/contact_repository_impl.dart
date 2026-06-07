@@ -1,5 +1,6 @@
 import 'package:cardly_app/core/error/exceptions.dart';
 import 'package:cardly_app/core/error/failures.dart';
+import 'package:cardly_app/data/datasources/local/auth_local_data_source.dart';
 import 'package:cardly_app/data/datasources/local/contact_local_data_source.dart';
 import 'package:cardly_app/data/datasources/remote/contact_remote_data_source.dart';
 import 'package:cardly_app/domain/Entities/business_card_entity.dart';
@@ -9,25 +10,23 @@ import 'package:dartz/dartz.dart';
 class ContactRepositoryImpl implements ContactRepository {
   final ContactRemoteDataSource remoteDataSource;
   final ContactLocalDataSource localDataSource;
+  final AuthLocalDataSource authLocalDataSource;
 
   ContactRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
+    required this.authLocalDataSource,
   });
 
-  // @override
-  // Future<Either<Failure, List<BusinessCardEntity>>> getContacts() async {
-  //   try {
-  //     final contacts = await remoteDataSource.getContacts();
-  //     return Right(contacts);
-  //   } on ServerException catch (e) {
-  //     return Left(ServerFailure(e.message));
-  //   }
-  // }
+  Future<String?> get _userId async =>
+      (await authLocalDataSource.getUser())?.id;
+
   @override
   Future<Either<Failure, List<BusinessCardEntity>>> getContacts() async {
     try {
-      final local = await localDataSource.getContacts();
+      final userId = await _userId;
+      if (userId == null) return Left(CacheFailure('User not logged in'));
+      final local = await localDataSource.getContacts(userId);
       try {
         final remote = await remoteDataSource.getContacts();
         await localDataSource.cacheContacts(remote);
@@ -40,24 +39,14 @@ class ContactRepositoryImpl implements ContactRepository {
     }
   }
 
-  // @override
-  // Future<Either<Failure, BusinessCardEntity>> saveContact(
-  //   BusinessCardEntity contact,
-  // ) async {
-  //   try {
-  //     final saved = await remoteDataSource.saveContact(contact);
-  //     return Right(saved);
-  //   } on ServerException catch (e) {
-  //     return Left(ServerFailure(e.message));
-  //   }
-  // }
-
   @override
   Future<Either<Failure, BusinessCardEntity>> saveContact(
     BusinessCardEntity contact,
   ) async {
     try {
-      final local = await localDataSource.saveContact(contact);
+      final userId = await _userId;
+      if (userId == null) return Left(CacheFailure('User not logged in'));
+      final local = await localDataSource.saveContact(contact, userId);
       try {
         final remote = await remoteDataSource.saveContact(contact);
         return Right(remote);
@@ -69,16 +58,6 @@ class ContactRepositoryImpl implements ContactRepository {
     }
   }
 
-  //   @override
-  //   Future<Either<Failure, void>> deleteContact(String id) async {
-  //     try {
-  //       await remoteDataSource.deleteContact(id);
-  //       return const Right(null);
-  //     } on ServerException catch (e) {
-  //       return Left(ServerFailure(e.message));
-  //     }
-  //   }
-  // }
   @override
   Future<Either<Failure, void>> deleteContact(String id) async {
     try {

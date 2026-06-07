@@ -1,7 +1,6 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
-import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/domain/Entities/business_card_entity.dart';
 import 'package:cardly_app/domain/Entities/scanned_document.dart';
@@ -66,25 +65,49 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     super.dispose();
   }
 
+  String? _enrichedBrief;
+  List<String>? _enrichedKeywords;
+  List<String>? _enrichedHighlights;
+
   Future<void> _onEnrich() async {
-    _contactCubit.enrich();
-    await Future.delayed(const Duration(seconds: 2));
+    final data = {
+      "name": _nameCtrl.text.trim(),
+      "phones": _phoneCtrl.text.trim().isNotEmpty
+          ? [_phoneCtrl.text.trim()]
+          : [],
+      "email": _emailCtrl.text.trim(),
+      "company": _companyCtrl.text.trim(),
+      "position": _titleCtrl.text.trim(),
+      "address": _addressCtrl.text.trim(),
+      "website": _websiteCtrl.text.trim(),
+      "social_profiles": _linkedinCtrl.text.trim().isNotEmpty
+          ? [_linkedinCtrl.text.trim()]
+          : [],
+      "detected_languages": ["en"],
+    };
 
-    if (_titleCtrl.text.isEmpty) _titleCtrl.text = "Sales Director";
-    if (_companyCtrl.text.isEmpty) _companyCtrl.text = "ABC Corporation";
-    if (_emailCtrl.text.isEmpty) _emailCtrl.text = "d.pham@abccorp.vn";
-    if (_websiteCtrl.text.isEmpty) _websiteCtrl.text = "https://abccorp.vn";
-    if (_linkedinCtrl.text.isEmpty) {
-      _linkedinCtrl.text = "https://linkedin.com/in/phamvand";
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Information enriched successfully!"),
-        backgroundColor: AppColor.success,
-      ),
+    final updatedCard = await context.goToEnrichment<BusinessCardEntity>(
+      _card,
+      data,
+      _contactCubit,
     );
-    _contactCubit.enrichComplete();
+
+    if (updatedCard != null && mounted) {
+      _nameCtrl.text = updatedCard.fullName ?? '';
+      _titleCtrl.text = updatedCard.jobTitle ?? '';
+      _companyCtrl.text = updatedCard.company ?? '';
+      _phoneCtrl.text = updatedCard.phone ?? '';
+      _emailCtrl.text = updatedCard.email ?? '';
+      _websiteCtrl.text = updatedCard.website ?? '';
+      _linkedinCtrl.text = updatedCard.linkedIn ?? '';
+      _addressCtrl.text = updatedCard.address ?? '';
+      _notesCtrl.text = updatedCard.notes ?? '';
+
+      _enrichedBrief = updatedCard.brief;
+      _enrichedKeywords = updatedCard.keywords;
+      _enrichedHighlights = updatedCard.highlights;
+      _onSave();
+    }
   }
 
   void _onSave() {
@@ -99,6 +122,9 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
       linkedIn: _linkedinCtrl.text.trim(),
       address: _addressCtrl.text.trim(),
       notes: _notesCtrl.text.trim(),
+      brief: _enrichedBrief,
+      keywords: _enrichedKeywords,
+      highlights: _enrichedHighlights,
     );
     _contactCubit.save(card);
   }
@@ -110,21 +136,12 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
           previous.status == ContactStatus.saving &&
           current.status == ContactStatus.loaded,
       listener: (context, state) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => AppAlertDialog(
-            icon: Icons.check_circle,
-            title: " Save Contact Successfully",
-            message: "You have successfully saved the contact.",
-            color: AppColor.success,
-            buttonLabel: "Go To Home",
-            onConfirm: () {
-              Navigator.pop(context);
-              context.goToHome();
-            },
-          ),
-        );
+        final saved = state.contacts.isNotEmpty ? state.contacts.first : null;
+        if (saved != null) {
+          context.goToContactDetail(saved);
+        } else {
+          context.goToHome();
+        }
       },
       builder: (context, state) {
         final isSaving = state.status == ContactStatus.saving;

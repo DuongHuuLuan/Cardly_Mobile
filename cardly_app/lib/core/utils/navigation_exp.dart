@@ -6,11 +6,13 @@ import 'package:cardly_app/presentation/auth/forgot-password/input_otp_screen.da
 import 'package:cardly_app/presentation/auth/forgot-password/reset_password_screen.dart';
 import 'package:cardly_app/presentation/auth/view/login_screen.dart';
 import 'package:cardly_app/presentation/auth/view/register_screen.dart';
+import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
 import 'package:cardly_app/presentation/contact/view/contact_add/contact_add_screen.dart';
 import 'package:cardly_app/presentation/contact/view/contact_detail/contact_detail_screen.dart';
 
 import 'package:cardly_app/presentation/contact/view/contact_screen.dart';
 import 'package:cardly_app/presentation/digital_card/digital_card_screen.dart';
+import 'package:cardly_app/presentation/enrichment/enrichment_screen.dart';
 import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:cardly_app/presentation/onboarding/views/onboarding_screen.dart';
 import 'package:cardly_app/presentation/profile/edit-profile/edit_profile_screen.dart';
@@ -78,4 +80,17 @@ extension AppNavigation on BuildContext {
       push(ContactDetailScreen.routerName, extra: c);
 
   void goToDigitalCard() => push(DigitalCardScreen.routerName);
+
+  Future<T?> goToEnrichment<T>(
+    BusinessCardEntity card,
+    Map<String, dynamic> data,
+    ContactCubit contactCubit,
+  ) => push<T>(
+    EnrichmentScreen.routerName,
+    extra: <String, dynamic>{
+      'card': card,
+      'data': data,
+      'contactCubit': contactCubit,
+    },
+  );
 }

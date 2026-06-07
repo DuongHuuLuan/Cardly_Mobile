@@ -5,6 +5,7 @@ import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_state.dart';
 import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_detail_actions.dart';
 import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_detail_header.dart';
+import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_detail_enrichment_section.dart';
 import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_detail_image_gallery.dart';
 import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_detail_info_section.dart';
 import 'package:flutter/material.dart';
@@ -162,6 +163,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                     titleCtrl: _titleCtrl,
                     companyCtrl: _companyCtrl,
                   ),
+
                   ContactDetailInfoSection(
                     contact: _contact,
                     isEditing: _isEditing,
@@ -172,6 +174,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                     addressCtrl: _addressCtrl,
                     notesCtrl: _notesCtrl,
                   ),
+                  ContactDetailEnrichmentSection(contact: _contact),
                 ],
               ),
             ),
@@ -180,8 +183,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
               isSaving: isSaving,
               isDeleting: isDeleting,
               onSave: _save,
-              onDelete: () =>
-                  context.read<ContactCubit>().delete(_contact.id!),
+              onDelete: () => context.read<ContactCubit>().delete(_contact.id!),
             ),
           );
         },

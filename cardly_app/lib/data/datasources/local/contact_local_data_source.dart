@@ -7,8 +7,11 @@ import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class ContactLocalDataSource {
-  Future<List<BusinessCardEntity>> getContacts();
-  Future<BusinessCardEntity> saveContact(BusinessCardEntity contact);
+  Future<List<BusinessCardEntity>> getContacts(String userId);
+  Future<BusinessCardEntity> saveContact(
+    BusinessCardEntity contact,
+    String userId,
+  );
   Future<void> deleteContact(String id);
   Future<void> cacheContacts(List<BusinessCardEntity> contacts);
 }
@@ -19,10 +22,15 @@ class ContactLocalDataSourceImpl implements ContactLocalDataSource {
   ContactLocalDataSourceImpl(this.dbHelper);
 
   @override
-  Future<List<BusinessCardEntity>> getContacts() async {
+  Future<List<BusinessCardEntity>> getContacts(String userId) async {
     try {
       final db = await dbHelper.database;
-      final rows = await db.query('business_cards', orderBy: 'created_at DESC');
+      final rows = await db.query(
+        'business_cards',
+        where: 'user_id = ?',
+        whereArgs: [userId],
+        orderBy: 'created_at DESC',
+      );
       return rows.map(_rowToEntity).toList();
     } catch (e) {
       throw CacheException(e.toString());
@@ -30,22 +38,33 @@ class ContactLocalDataSourceImpl implements ContactLocalDataSource {
   }
 
   @override
-  Future<BusinessCardEntity> saveContact(BusinessCardEntity contact) async {
+  Future<BusinessCardEntity> saveContact(
+    BusinessCardEntity contact,
+    String userId,
+  ) async {
     try {
       final db = await dbHelper.database;
       final id = contact.id ?? const Uuid().v4();
       final now = DateTime.now().toIso8601String();
-
-      final entity = contact.copyWith(id: id);
-      final row = _entityToRow(entity, now);
-
-      await db.insert(
-        'business_cards',
-        row,
-        conflictAlgorithm: ConflictAlgorithm.replace,
+      final row = _entityToRow(
+        contact.copyWith(
+          id: id,
+          userId: userId,
+          createdAt: contact.createdAt ?? DateTime.tryParse(now),
+        ),
+        now,
       );
+      await db.insert('business_cards', {
+        ...row,
+        'created_at': now,
+        'updated_at': now,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
 
-      return entity;
+      return contact.copyWith(
+        id: id,
+        userId: userId,
+        createdAt: DateTime.tryParse(now),
+      );
     } catch (e) {
       throw CacheException(e.toString());
     }
@@ -84,6 +103,7 @@ class ContactLocalDataSourceImpl implements ContactLocalDataSource {
   BusinessCardEntity _rowToEntity(Map<String, dynamic> row) {
     return BusinessCardEntity(
       id: row['id'] as String,
+      userId: row['user_id'] as String?,
       fullName: row['full_name'] as String?,
       jobTitle: row['job_title'] as String?,
       company: row['company'] as String?,
@@ -116,6 +136,7 @@ class ContactLocalDataSourceImpl implements ContactLocalDataSource {
   Map<String, dynamic> _entityToRow(BusinessCardEntity e, String now) {
     return {
       'id': e.id,
+      'user_id': e.userId,
       'full_name': e.fullName,
       'job_title': e.jobTitle,
       'company': e.company,

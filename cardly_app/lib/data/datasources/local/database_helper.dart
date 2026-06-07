@@ -16,7 +16,7 @@ class DatabaseHelper {
     final path = join(await getDatabasesPath(), "cardly.db");
     return openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: (db) async {
@@ -29,6 +29,7 @@ class DatabaseHelper {
     await db.execute('''
     CREATE TABLE business_cards (
         id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
         full_name TEXT,
         job_title TEXT,
         company TEXT,
@@ -61,5 +62,11 @@ class DatabaseHelper {
     ''');
   }
 
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {}
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute(
+        'ALTER TABLE business_cards ADD COLUMN user_id TEXT DEFAULT ""',
+      );
+    }
+  }
 }

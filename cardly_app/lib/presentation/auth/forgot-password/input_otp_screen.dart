@@ -107,6 +107,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         listenWhen: (previous, current) => previous.status != current.status,
         listener: (context, state) {
           if (state.status == AuthStatus.authenticated) {
+            _timer?.cancel();
             context.goToHome();
           } else if (state.status == AuthStatus.verifyResetOtpSuccess &&
               !_isRegistration) {

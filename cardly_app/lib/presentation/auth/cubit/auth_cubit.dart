@@ -181,7 +181,7 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> resendRegisterOtp(UserEntity user) async {
-    await register(user);
+    await resendOtp(user.email);
   }
 
   Future<void> getUser() async {
