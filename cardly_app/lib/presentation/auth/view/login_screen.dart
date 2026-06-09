@@ -2,6 +2,7 @@ import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
+import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
 import 'package:cardly_app/core/widgets/submit_button.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
@@ -96,6 +97,15 @@ class _LoginPageState extends State<LoginPage> {
       body: BlocConsumer<AuthCubit, AuthState>(
         listenWhen: (previous, current) => previous.status != current.status,
         listener: (context, state) {
+          if (state.status == AuthStatus.loading) {
+            context.showLoading("Signing in...");
+          }
+
+          if (state.status == AuthStatus.authenticated ||
+              state.status == AuthStatus.failed) {
+            context.hideLoading();
+          }
+
           if (state.status == AuthStatus.authenticated) {
             context.goToHome();
           } else if (state.status == AuthStatus.failed &&
@@ -181,7 +191,6 @@ class _LoginPageState extends State<LoginPage> {
                       },
                       label: "Login",
                       canSubmit: state.lockoutSeconds == 0,
-                      isLoading: state.status == AuthStatus.loading,
                     ),
                     if (state.lockoutSeconds > 0)
                       Text(

@@ -16,7 +16,7 @@ class RecentContactsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<ContactCubit>().state;
-    final contacts = state.contacts;
+    final contacts = state.contacts.take(3).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,10 +43,7 @@ class RecentContactsSection extends StatelessWidget {
           ],
         ).paddingHorizontal(20),
         const SizedBox(height: 12),
-
-        if (state.status == ContactStatus.loading)
-          Center(child: CircularProgressIndicator().paddingVertical(24))
-        else if (contacts.isEmpty)
+        if (contacts.isEmpty)
           Center(
             child: Text(
               "No contacts yet",

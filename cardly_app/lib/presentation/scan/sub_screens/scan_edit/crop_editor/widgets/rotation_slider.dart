@@ -21,8 +21,8 @@ class RotationSlider extends StatelessWidget {
           Expanded(
             child: Slider(
               value: value,
-              min: -45,
-              max: 45,
+              min: -90,
+              max: 90,
               divisions: 180,
               label: '${value.round()}\u00B0',
               onChanged: onChanged,

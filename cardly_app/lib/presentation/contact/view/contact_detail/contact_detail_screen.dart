@@ -1,11 +1,12 @@
 import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
+import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
 import 'package:cardly_app/domain/Entities/business_card_entity.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_state.dart';
 import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_detail_actions.dart';
-import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_detail_header.dart';
 import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_detail_enrichment_section.dart';
+import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_detail_header.dart';
 import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_detail_image_gallery.dart';
 import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_detail_info_section.dart';
 import 'package:flutter/material.dart';
@@ -61,6 +62,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
 
   void _initControllers() {
     final c = _contact;
+
     _nameCtrl = TextEditingController(text: c.fullName ?? '');
     _titleCtrl = TextEditingController(text: c.jobTitle ?? '');
     _companyCtrl = TextEditingController(text: c.company ?? '');
@@ -72,16 +74,29 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
     _notesCtrl = TextEditingController(text: c.notes ?? '');
   }
 
+  void _resetControllers() {
+    _nameCtrl.text = _contact.fullName ?? '';
+    _titleCtrl.text = _contact.jobTitle ?? '';
+    _companyCtrl.text = _contact.company ?? '';
+    _phoneCtrl.text = _contact.phone ?? '';
+    _emailCtrl.text = _contact.email ?? '';
+    _websiteCtrl.text = _contact.website ?? '';
+    _linkedinCtrl.text = _contact.linkedIn ?? '';
+    _addressCtrl.text = _contact.address ?? '';
+    _notesCtrl.text = _contact.notes ?? '';
+  }
+
   void _toggleEdit() {
     if (_isEditing) {
-      _initControllers();
+      _resetControllers();
     }
+
     setState(() {
       _isEditing = !_isEditing;
     });
   }
 
-  void _save() {
+  Future<void> _save() async {
     final updated = _contact.copyWith(
       fullName: _nameCtrl.text.trim(),
       jobTitle: _titleCtrl.text.trim(),
@@ -93,27 +108,39 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
       address: _addressCtrl.text.trim(),
       notes: _notesCtrl.text.trim(),
     );
-    context.read<ContactCubit>().save(updated);
-    setState(() {
-      _contact = updated;
-      _isEditing = false;
-    });
+
+    final saved = await context.read<ContactCubit>().save(updated);
+
+    if (!mounted) return;
+
+    if (saved != null) {
+      setState(() {
+        _contact = saved;
+        _isEditing = false;
+      });
+    }
+  }
+
+  Future<void> _delete() async {
+    await context.read<ContactCubit>().delete(_contact);
+  }
+
+  void _handleBack() {
+    if (context.canPop()) {
+      context.pop();
+      return;
+    }
+
+    context.goToHome();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isSaving =
-        context.watch<ContactCubit>().state.status == ContactStatus.saving;
     return Scaffold(
       appBar: AppAppBar(
         title: _isEditing ? "Edit Contact" : "Contact Detail",
         showBorder: true,
-        onLeadingPressed: () {
-          if (context.canPop()) {
-            context.pop(context);
-          }
-          context.goToHome();
-        },
+        onLeadingPressed: _handleBack,
         actions: [
           IconButton(
             onPressed: _toggleEdit,
@@ -123,14 +150,32 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
           ),
         ],
       ),
+
       body: BlocConsumer<ContactCubit, ContactState>(
+        listenWhen: (previous, current) {
+          return previous.status != current.status ||
+              previous.errorMessage != current.errorMessage;
+        },
         listener: (context, state) {
+          if (state.status == ContactStatus.saving) {
+            context.showLoading("Saving contact...");
+          }
+
+          if (state.status == ContactStatus.deleting) {
+            context.showLoading("Deleting contact...");
+          }
+
+          if (state.status == ContactStatus.loaded ||
+              state.status == ContactStatus.failure) {
+            context.hideLoading();
+          }
+
           if (state.status == ContactStatus.loaded &&
-              !state.contacts.any(
-                (element) => element.id == widget.contact.id,
-              )) {
+              !state.contacts.any((element) => element.id == _contact.id)) {
             context.goToContact();
-          } else if (state.status == ContactStatus.failure &&
+          }
+
+          if (state.status == ContactStatus.failure &&
               state.errorMessage != null) {
             showDialog(
               context: context,
@@ -148,43 +193,46 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
           }
         },
         builder: (context, state) {
-          final isDeleting = state.status == ContactStatus.deleting;
+          return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              children: <Widget>[
+                ContactDetailImageGallery(images: _contact.images),
 
-          return Scaffold(
-            body: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Column(
-                children: <Widget>[
-                  ContactDetailImageGallery(images: _contact.images),
-                  ContactDetailHeader(
-                    contact: _contact,
-                    isEditing: _isEditing,
-                    nameCtrl: _nameCtrl,
-                    titleCtrl: _titleCtrl,
-                    companyCtrl: _companyCtrl,
-                  ),
+                ContactDetailHeader(
+                  contact: _contact,
+                  isEditing: _isEditing,
+                  nameCtrl: _nameCtrl,
+                  titleCtrl: _titleCtrl,
+                  companyCtrl: _companyCtrl,
+                ),
 
-                  ContactDetailInfoSection(
-                    contact: _contact,
-                    isEditing: _isEditing,
-                    phoneCtrl: _phoneCtrl,
-                    emailCtrl: _emailCtrl,
-                    websiteCtrl: _websiteCtrl,
-                    linkedinCtrl: _linkedinCtrl,
-                    addressCtrl: _addressCtrl,
-                    notesCtrl: _notesCtrl,
-                  ),
-                  ContactDetailEnrichmentSection(contact: _contact),
-                ],
-              ),
+                ContactDetailInfoSection(
+                  contact: _contact,
+                  isEditing: _isEditing,
+                  phoneCtrl: _phoneCtrl,
+                  emailCtrl: _emailCtrl,
+                  websiteCtrl: _websiteCtrl,
+                  linkedinCtrl: _linkedinCtrl,
+                  addressCtrl: _addressCtrl,
+                  notesCtrl: _notesCtrl,
+                ),
+
+                ContactDetailEnrichmentSection(contact: _contact),
+              ],
             ),
-            bottomNavigationBar: ContactDetailActions(
-              isEditing: _isEditing,
-              isSaving: isSaving,
-              isDeleting: isDeleting,
-              onSave: _save,
-              onDelete: () => context.read<ContactCubit>().delete(_contact.id!),
-            ),
+          );
+        },
+      ),
+
+      bottomNavigationBar: BlocBuilder<ContactCubit, ContactState>(
+        builder: (context, state) {
+          return ContactDetailActions(
+            isEditing: _isEditing,
+            isSaving: state.status == ContactStatus.saving,
+            isDeleting: state.status == ContactStatus.deleting,
+            onSave: _save,
+            onDelete: _delete,
           );
         },
       ),

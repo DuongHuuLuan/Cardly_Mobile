@@ -1,4 +1,5 @@
 import 'package:cardly_app/core/constants/app_constant.dart';
+import 'package:cardly_app/core/cubit/app_loading_cubit.dart';
 import 'package:cardly_app/core/network/auth_interceptor.dart';
 import 'package:cardly_app/data/datasources/local/auth_local_data_source.dart';
 import 'package:cardly_app/data/datasources/local/card_local_data_source.dart';
@@ -39,6 +40,7 @@ import 'package:cardly_app/domain/usecase/card/update_card_usecase.dart';
 import 'package:cardly_app/domain/usecase/contact/delete_contact_usecase.dart';
 import 'package:cardly_app/domain/usecase/contact/get_contacts_usecase.dart';
 import 'package:cardly_app/domain/usecase/contact/save_contact_usecase.dart';
+import 'package:cardly_app/domain/usecase/contact/sync_contacts_usecase.dart';
 import 'package:cardly_app/domain/usecase/enrichment/enrichment_usecase.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
@@ -200,6 +202,9 @@ Future<void> init() async {
   getIt.registerLazySingleton<EnrichmentUsecase>(
     () => EnrichmentUsecase(repository: getIt<EnrichmentRepository>()),
   );
+  getIt.registerLazySingleton<SyncContactsUsecase>(
+    () => SyncContactsUsecase(repository: getIt<ContactRepository>()),
+  );
 
   // Cubit
   getIt.registerFactory(() => OnboardingCubit(getIt()));
@@ -232,9 +237,12 @@ Future<void> init() async {
       saveContact: getIt<SaveContactUsecase>(),
       deleteContact: getIt<DeleteContactUsecase>(),
       enrichment: getIt<EnrichmentUsecase>(),
+      syncContacts: getIt<SyncContactsUsecase>(),
+      contactRepository: getIt<ContactRepository>(),
     ),
   );
   getIt.registerFactory(
     () => EnrichmentCubit(enrichmentUsecase: getIt<EnrichmentUsecase>()),
   );
+  getIt.registerFactory(() => AppLoadingCubit());
 }

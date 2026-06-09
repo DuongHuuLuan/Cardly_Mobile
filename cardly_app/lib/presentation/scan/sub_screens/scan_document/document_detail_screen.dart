@@ -2,6 +2,7 @@ import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
+import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
 import 'package:cardly_app/domain/Entities/business_card_entity.dart';
 import 'package:cardly_app/domain/Entities/scanned_document.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
@@ -86,8 +87,29 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
       "detected_languages": ["en"],
     };
 
+    final updatedCardBeforeEnrich = BusinessCardEntity(
+      id: _card.id,
+      processingId: _card.processingId ?? _card.id,
+      fullName: _nameCtrl.text.trim(),
+      jobTitle: _titleCtrl.text.trim(),
+      company: _companyCtrl.text.trim(),
+      phone: _phoneCtrl.text.trim(),
+      email: _emailCtrl.text.trim(),
+      website: _websiteCtrl.text.trim(),
+      linkedIn: _linkedinCtrl.text.trim(),
+      address: _addressCtrl.text.trim(),
+      notes: _notesCtrl.text.trim(),
+      eventName: _card.eventName,
+      location: _card.location,
+      createdAt: _card.createdAt,
+      images: _card.images,
+      brief: _enrichedBrief,
+      keywords: _enrichedKeywords,
+      highlights: _enrichedHighlights,
+    );
+
     final updatedCard = await context.goToEnrichment<BusinessCardEntity>(
-      _card,
+      updatedCardBeforeEnrich,
       data,
       _contactCubit,
     );
@@ -106,13 +128,13 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
       _enrichedBrief = updatedCard.brief;
       _enrichedKeywords = updatedCard.keywords;
       _enrichedHighlights = updatedCard.highlights;
-      _onSave();
     }
   }
 
-  void _onSave() {
+  Future<void> _onSave() async {
     final card = BusinessCardEntity(
-      id: null,
+      id: _card.id,
+      processingId: _card.processingId ?? _card.id,
       fullName: _nameCtrl.text.trim(),
       jobTitle: _titleCtrl.text.trim(),
       company: _companyCtrl.text.trim(),
@@ -126,25 +148,35 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
       keywords: _enrichedKeywords,
       highlights: _enrichedHighlights,
     );
-    _contactCubit.save(card);
+    final saved = await _contactCubit.save(card);
+
+    if (!mounted) return;
+
+    if (saved != null) {
+      context.goToContactDetail(saved);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<ContactCubit, ContactState>(
-      listenWhen: (previous, current) =>
-          previous.status == ContactStatus.saving &&
-          current.status == ContactStatus.loaded,
+      listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
-        final saved = state.contacts.isNotEmpty ? state.contacts.first : null;
-        if (saved != null) {
-          context.goToContactDetail(saved);
-        } else {
-          context.goToHome();
+        if (state.status == ContactStatus.saving) {
+          context.showLoading("Saving...");
+        }
+
+        if (state.status == ContactStatus.loaded ||
+            state.status == ContactStatus.failure) {
+          context.hideLoading();
+        }
+        if (state.status == ContactStatus.failure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.errorMessage ?? "Save failed")),
+          );
         }
       },
       builder: (context, state) {
-        final isSaving = state.status == ContactStatus.saving;
         final isEnriching = state.status == ContactStatus.enriching;
 
         return Scaffold(
@@ -247,7 +279,6 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                   onEnrich: _onEnrich,
                   onSave: _onSave,
                   isEnriching: isEnriching,
-                  isSaving: isSaving,
                 ),
                 const SizedBox(height: 32),
               ],

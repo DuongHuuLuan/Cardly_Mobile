@@ -4,6 +4,7 @@ import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
+import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
 import 'package:cardly_app/core/widgets/submit_button.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
@@ -43,7 +44,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         onLeadingPressed: () => context.goToLogin(),
       ),
       body: BlocConsumer<AuthCubit, AuthState>(
+        listenWhen: (previous, current) => previous.status != current.status,
         listener: (context, state) {
+          if (state.status == AuthStatus.forgotPasswordLoading) {
+            context.showLoading("Sending email...");
+          }
+          if (state.status == AuthStatus.failed ||
+              state.status == AuthStatus.forgotPasswordSuccess ||
+              state.status == AuthStatus.forgotPasswordFailure) {
+            context.hideLoading();
+          }
           if (state.status == AuthStatus.forgotPasswordSuccess) {
             context.goToOtpVerificationForgotPassword(
               emailController.text.trim(),
@@ -81,7 +91,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 _authCubit.forgotPassword(email);
               },
               label: "Send OTP",
-              isLoading: state.status == AuthStatus.forgotPasswordLoading,
             ),
           ],
         ).paddingAll(16),

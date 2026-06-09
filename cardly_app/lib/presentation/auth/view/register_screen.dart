@@ -1,6 +1,7 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
+import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
 import 'package:cardly_app/core/widgets/password_strength_widget.dart';
 import 'package:cardly_app/core/widgets/submit_button.dart';
 import 'package:cardly_app/domain/Entities/user_entity.dart';
@@ -81,7 +82,16 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocConsumer<AuthCubit, AuthState>(
+        listenWhen: (previous, current) => previous.status != current.status,
         listener: (context, state) {
+          if (state.status == AuthStatus.loading) {
+            context.showLoading("Creating account...");
+          }
+          if (state.status == AuthStatus.authenticated ||
+              state.status == AuthStatus.registrationSuccess ||
+              state.status == AuthStatus.failed) {
+            context.hideLoading();
+          }
           if (state.status == AuthStatus.failed) {
             final message =
                 state.emailError ??
@@ -117,7 +127,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 padding: const EdgeInsets.all(25),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
-                  // crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 40),
 
@@ -165,7 +174,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       onPressed: () => _register(),
                       label: "Register",
                       canSubmit: _passwordValid,
-                      isLoading: state.status == AuthStatus.loading,
                     ),
 
                     const SizedBox(height: 40),

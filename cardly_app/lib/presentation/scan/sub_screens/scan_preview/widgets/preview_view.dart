@@ -31,7 +31,7 @@ class PreviewView extends StatelessWidget {
           Text('Review your cards', style: AppTextStyles.heading2),
           const SizedBox(height: 8),
           Text(
-            '${imagePaths.length} card${imagePaths.length > 1 ? 's' : ''} selected',
+            '${imagePaths.length}/2 card${imagePaths.length > 1 ? 's' : ''} selected',
             style: AppTextStyles.bodySmall.copyWith(
               color: AppColor.greyDark,
               fontWeight: FontWeight.w500,
@@ -90,7 +90,7 @@ class PreviewView extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: () => _showAddOptions(context),
                 icon: const Icon(Icons.add),
-                label: const Text('Add another card'),
+                label: const Text('Add card'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColor.primary,
                   side: const BorderSide(color: AppColor.primary),
@@ -118,28 +118,27 @@ class PreviewView extends StatelessWidget {
       context: context,
       builder: (_) => SafeArea(
         child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text('Take a photo'),
-                onTap: () {
-                  Navigator.pop(context);
-                  onCamera();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Choose from gallery'),
-                onTap: () {
-                  Navigator.pop(context);
-                  onGallery();
-                },
-              ),
-            ],
-          )
-            .paddingVertical(16),
-        ),
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take a photo'),
+              onTap: () {
+                Navigator.pop(context);
+                onCamera();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from gallery'),
+              onTap: () {
+                Navigator.pop(context);
+                onGallery();
+              },
+            ),
+          ],
+        ).paddingVertical(16),
+      ),
     );
   }
 
