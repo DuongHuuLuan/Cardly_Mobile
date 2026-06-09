@@ -40,6 +40,10 @@ class ContactMapper {
       'brief': contact.brief,
       'keywords': contact.keywords,
       'highlights': contact.highlights,
+
+      'processing_id': contact.processingId,
+      'sync_status': contact.syncStatus.value,
+      'uploaded_at': contact.uploadedAt?.toIso8601String(),
     };
   }
 

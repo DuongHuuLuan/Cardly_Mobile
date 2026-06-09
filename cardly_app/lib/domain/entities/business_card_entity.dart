@@ -1,3 +1,4 @@
+import 'package:cardly_app/core/enums/sync_status.dart';
 import 'package:equatable/equatable.dart';
 
 class BusinessCardEntity extends Equatable {
@@ -22,6 +23,10 @@ class BusinessCardEntity extends Equatable {
   final List<String>? highlights;
   final List<String>? images;
 
+  final String? processingId;
+  final SyncStatus syncStatus;
+  final DateTime? uploadedAt;
+
   const BusinessCardEntity({
     this.id,
     this.userId,
@@ -43,6 +48,10 @@ class BusinessCardEntity extends Equatable {
     this.keywords,
     this.highlights,
     this.images,
+
+    this.processingId,
+    this.syncStatus = SyncStatus.synced,
+    this.uploadedAt,
   });
 
   BusinessCardEntity copyWith({
@@ -66,6 +75,10 @@ class BusinessCardEntity extends Equatable {
     List<String>? keywords,
     List<String>? highlights,
     List<String>? images,
+
+    String? processingId,
+    SyncStatus? syncStatus,
+    DateTime? uploadedAt,
   }) {
     return BusinessCardEntity(
       id: id ?? this.id,
@@ -88,6 +101,10 @@ class BusinessCardEntity extends Equatable {
       keywords: keywords ?? this.keywords,
       highlights: highlights ?? this.highlights,
       images: images ?? this.images,
+
+      processingId: processingId ?? this.processingId,
+      syncStatus: syncStatus ?? this.syncStatus,
+      uploadedAt: uploadedAt ?? this.uploadedAt,
     );
   }
 
@@ -113,5 +130,9 @@ class BusinessCardEntity extends Equatable {
     keywords,
     highlights,
     images,
+
+    processingId,
+    syncStatus,
+    uploadedAt,
   ];
 }

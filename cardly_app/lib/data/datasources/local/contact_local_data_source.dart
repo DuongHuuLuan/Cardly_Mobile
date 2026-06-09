@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cardly_app/core/enums/sync_status.dart';
 import 'package:cardly_app/core/error/exceptions.dart';
 import 'package:cardly_app/data/datasources/local/database_helper.dart';
 import 'package:cardly_app/domain/Entities/business_card_entity.dart';
@@ -8,12 +9,29 @@ import 'package:uuid/uuid.dart';
 
 abstract class ContactLocalDataSource {
   Future<List<BusinessCardEntity>> getContacts(String userId);
+
   Future<BusinessCardEntity> saveContact(
     BusinessCardEntity contact,
     String userId,
   );
   Future<void> deleteContact(String id);
   Future<void> cacheContacts(List<BusinessCardEntity> contacts);
+  Future<void> updateProcessingId(String id, String processingId);
+
+  Future<PaginatedResult> getContactsPaginated(
+    String userId, {
+    required int offset,
+    required int limit,
+  });
+  Future<List<BusinessCardEntity>> getPendingSync(String userId);
+  Future<void> updateSyncStatus(String id, SyncStatus status);
+  Future<BusinessCardEntity?> findByProcessingId(String processingId);
+}
+
+class PaginatedResult {
+  final List<BusinessCardEntity> items;
+  final bool hasMore;
+  const PaginatedResult({required this.items, required this.hasMore});
 }
 
 class ContactLocalDataSourceImpl implements ContactLocalDataSource {
@@ -71,6 +89,24 @@ class ContactLocalDataSourceImpl implements ContactLocalDataSource {
   }
 
   @override
+  Future<void> updateProcessingId(String id, String processingId) async {
+    try {
+      final db = await dbHelper.database;
+      await db.update(
+        'business_cards',
+        {
+          'processing_id': processingId,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      throw CacheException(e.toString());
+    }
+  }
+
+  @override
   Future<void> deleteContact(String id) async {
     try {
       final db = await dbHelper.database;
@@ -95,6 +131,87 @@ class ContactLocalDataSourceImpl implements ContactLocalDataSource {
         );
       }
       await batch.commit(noResult: true);
+    } catch (e) {
+      throw CacheException(e.toString());
+    }
+  }
+
+  @override
+  Future<PaginatedResult> getContactsPaginated(
+    String userId, {
+    required int offset,
+    required int limit,
+  }) async {
+    try {
+      final db = await dbHelper.database;
+      final rows = await db.query(
+        'business_cards',
+        where: 'user_id = ? AND sync_status != ?',
+        whereArgs: [userId, 'pending_delete'],
+        orderBy: 'updated_at DESC',
+        limit: limit,
+        offset: offset,
+      );
+      final totalRows = await db.query(
+        'business_cards',
+        where: 'user_id = ? AND sync_status != ?',
+        whereArgs: [userId, 'pending_delete'],
+      );
+
+      final items = rows.map(_rowToEntity).toList();
+      final hasMore = (offset + limit) < totalRows.length;
+
+      return PaginatedResult(items: items, hasMore: hasMore);
+    } catch (e) {
+      throw CacheException(e.toString());
+    }
+  }
+
+  @override
+  Future<List<BusinessCardEntity>> getPendingSync(String userId) async {
+    try {
+      final db = await dbHelper.database;
+      final rows = await db.query(
+        'business_cards',
+        where: 'user_id = ? AND sync_status != ?',
+        whereArgs: [userId, 'synced'],
+      );
+      return rows.map(_rowToEntity).toList();
+    } catch (e) {
+      throw CacheException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> updateSyncStatus(String id, SyncStatus status) async {
+    try {
+      final db = await dbHelper.database;
+      await db.update(
+        'business_cards',
+        {
+          'sync_status': status.value,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      throw CacheException(e.toString());
+    }
+  }
+
+  @override
+  Future<BusinessCardEntity?> findByProcessingId(String processingId) async {
+    try {
+      final db = await dbHelper.database;
+      final rows = await db.query(
+        'business_cards',
+        where: 'processing_id = ?',
+        whereArgs: [processingId],
+        limit: 1,
+      );
+      if (rows.isEmpty) return null;
+      return _rowToEntity(rows.first);
     } catch (e) {
       throw CacheException(e.toString());
     }
@@ -130,6 +247,14 @@ class ContactLocalDataSourceImpl implements ContactLocalDataSource {
       createdAt: row['created_at'] != null
           ? DateTime.tryParse(row['created_at'] as String)
           : null,
+
+      processingId: row['processing_id'] as String?,
+      syncStatus: SyncStatus.fromValue(
+        row['sync_status'] as String? ?? 'synced',
+      ),
+      uploadedAt: row['uploaded_at'] != null
+          ? DateTime.tryParse(row['uploaded_at'] as String)
+          : null,
     );
   }
 
@@ -156,6 +281,10 @@ class ContactLocalDataSourceImpl implements ContactLocalDataSource {
       'images': e.images != null ? jsonEncode(e.images) : null,
       'created_at': e.createdAt?.toIso8601String() ?? now,
       'updated_at': now,
+
+      'processing_id': e.processingId,
+      'sync_status': e.syncStatus.value,
+      'uploaded_at': e.uploadedAt?.toIso8601String(),
     };
   }
 }

@@ -4,12 +4,15 @@ import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_bottom_nav.dart';
 import 'package:cardly_app/core/widgets/app_contact_card.dart';
+import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
 import 'package:cardly_app/domain/Entities/business_card_entity.dart';
+import 'package:cardly_app/presentation/auth/view/session_expired_screen.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_state.dart';
 import 'package:cardly_app/presentation/contact/view/widgets/contact_appbar_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class ContactScreen extends StatefulWidget {
   static const routerName = "/contact";
@@ -21,6 +24,28 @@ class ContactScreen extends StatefulWidget {
 }
 
 class _ContactScreenState extends State<ContactScreen> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      context.read<ContactCubit>().loadMore();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,11 +58,41 @@ class _ContactScreenState extends State<ContactScreen> {
           ),
 
           Expanded(
-            child: BlocBuilder<ContactCubit, ContactState>(
-              builder: (context, state) {
+            child: BlocConsumer<ContactCubit, ContactState>(
+              listenWhen: (previous, current) {
+                return previous.status != current.status;
+              },
+              listener: (context, state) {
                 if (state.status == ContactStatus.loading) {
-                  return const Center(child: CircularProgressIndicator());
+                  context.showLoading("Synchronizing...");
                 }
+
+                if (state.status == ContactStatus.loaded ||
+                    state.status == ContactStatus.failure) {
+                  context.hideLoading();
+                }
+
+                if (state.status == ContactStatus.failure &&
+                    state.errorMessage == "The login session has expired.") {
+                  context.go(SessionExpiredScreen.routerName);
+                }
+              },
+              builder: (context, state) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!context.mounted) return;
+
+                  if (state.status == ContactStatus.loading) {
+                    context.showLoading("Synchronizing...");
+                  } else {
+                    context.hideLoading();
+                  }
+                });
+
+                if (state.status == ContactStatus.loading &&
+                    state.contacts.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+
                 if (state.contacts.isEmpty) {
                   return Center(
                     child: Text(
@@ -48,21 +103,35 @@ class _ContactScreenState extends State<ContactScreen> {
                     ),
                   );
                 }
+
                 final grouped = _groupContacts(state.contacts);
 
-                return ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: grouped.entries.expand((entry) {
-                    return [
-                      _SectionHeader(letter: entry.key),
-                      ...entry.value.map(
-                        (contact) => AppContactCard(
-                          contact: contact,
-                          onTap: () => context.goToContactDetail(contact),
+                return RefreshIndicator(
+                  onRefresh: () =>
+                      context.read<ContactCubit>().loadContacts(refresh: true),
+                  child: ListView(
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    children: [
+                      ...grouped.entries.expand((entry) {
+                        return [
+                          _SectionHeader(letter: entry.key),
+                          ...entry.value.map(
+                            (contact) => AppContactCard(
+                              contact: contact,
+                              onTap: () => context.goToContactDetail(contact),
+                            ),
+                          ),
+                        ];
+                      }),
+                      if (state.isLoadingMore)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(child: CircularProgressIndicator()),
                         ),
-                      ),
-                    ];
-                  }).toList(),
+                    ],
+                  ),
                 );
               },
             ),
