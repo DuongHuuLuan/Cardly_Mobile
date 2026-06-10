@@ -6,6 +6,7 @@ import 'package:cardly_app/domain/usecase/auth/forgot-password/forgot_password_u
 import 'package:cardly_app/domain/usecase/auth/forgot-password/resend_otp_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/forgot-password/reset_password_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/forgot-password/verify_otp_usecase.dart';
+import 'package:cardly_app/domain/usecase/auth/forgot-password/verify_reset_otp_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/get_current_user_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/get_profile_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/login_usecase.dart';
@@ -25,6 +26,7 @@ class AuthCubit extends Cubit<AuthState> {
   final VerifyOtpUsecase verifyOtpUsecase;
   final ResendOtpUsecase resendOtpUsecase;
   final ResetPasswordUsecase resetPasswordUsecase;
+  final VerifyResetOtpUsecase verifyResetOtpUsecase;
 
   Timer? _lockoutTimer;
 
@@ -39,6 +41,7 @@ class AuthCubit extends Cubit<AuthState> {
     required this.verifyOtpUsecase,
     required this.resendOtpUsecase,
     required this.resetPasswordUsecase,
+    required this.verifyResetOtpUsecase,
   }) : super(const AuthState());
 
   @override
@@ -178,7 +181,7 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> resendRegisterOtp(UserEntity user) async {
-    await register(user);
+    await resendOtp(user.email);
   }
 
   Future<void> getUser() async {
@@ -282,6 +285,30 @@ class AuthCubit extends Cubit<AuthState> {
     );
   }
 
+  Future<void> verifyResetOtp(String email, String otp) async {
+    emit(state.copyWith(status: AuthStatus.verifyResetOtpLoading));
+    final result = await verifyResetOtpUsecase(email, otp);
+
+    result.fold(
+      (failure) {
+        emit(
+          state.copyWith(
+            status: AuthStatus.verifyResetOtpFailure,
+            errorMessage: failure.message,
+          ),
+        );
+      },
+      (data) {
+        emit(
+          state.copyWith(
+            status: AuthStatus.verifyResetOtpSuccess,
+            resetToken: data.reset_token,
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> resendOtp(String email) async {
     emit(state.copyWith(status: AuthStatus.resendOtpLoading));
     final result = await resendOtpUsecase(email);
@@ -296,13 +323,9 @@ class AuthCubit extends Cubit<AuthState> {
     }, (_) => emit(state.copyWith(status: AuthStatus.resendOtpSuccess)));
   }
 
-  Future<void> resetPassword(
-    String email,
-    String newPassword,
-    String otp,
-  ) async {
+  Future<void> resetPassword(String resetToken, String newPassword) async {
     emit(state.copyWith(status: AuthStatus.resetPasswordLoading));
-    final result = await resetPasswordUsecase(email, newPassword, otp);
+    final result = await resetPasswordUsecase(resetToken, newPassword);
     result.fold(
       (failure) => emit(
         state.copyWith(

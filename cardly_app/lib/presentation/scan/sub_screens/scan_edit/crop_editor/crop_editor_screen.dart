@@ -1,21 +1,27 @@
 import 'package:cardly_app/core/theme/app_color.dart';
-import 'package:cardly_app/core/utils/navigation_exp.dart';
+import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/utils/widget_pop_scope.dart';
+import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
+import 'package:path_provider/path_provider.dart';
 import 'crop_editor_controller.dart';
 import 'widgets/image_viewport.dart';
 import 'widgets/rotation_slider.dart';
-import 'widgets/aspect_ratio_bar.dart';
 import 'widgets/mode_toggle_bar.dart';
 import 'widgets/tool_belt.dart';
 import 'widgets/bottom_actions.dart';
 
 class CropEditorScreen extends StatefulWidget {
   final String imagePath;
+  final ValueChanged<String>? onConfirmed;
+  final VoidCallback? onCanceled;
 
-  const CropEditorScreen({super.key, required this.imagePath});
+  const CropEditorScreen({
+    super.key,
+    required this.imagePath,
+    this.onConfirmed,
+    this.onCanceled,
+  });
 
   @override
   State<CropEditorScreen> createState() => _CropEditorScreenState();
@@ -23,6 +29,7 @@ class CropEditorScreen extends StatefulWidget {
 
 class _CropEditorScreenState extends State<CropEditorScreen> {
   late final CropEditorController _controller;
+  bool _isProcessing = false;
 
   @override
   void initState() {
@@ -44,45 +51,51 @@ class _CropEditorScreenState extends State<CropEditorScreen> {
   }
 
   Future<void> _onConfirm() async {
-    final cubit = context.read<ScanCubit>();
-    if (cubit.state.isProcessing) return;
-    cubit.setProcessing(true);
+    if (_isProcessing) return;
+    _isProcessing = true;
+    if (mounted) setState(() {});
+
     try {
-      final outputPath = await _controller.processImage();
+      final dir = await getTemporaryDirectory();
+      final outPath =
+          '${dir.path}/edit_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final resultPath = await _controller.processImage(outputPath: outPath);
+
       if (!mounted) return;
-      final cubit = context.read<ScanCubit>();
-      cubit.confirmEdit(outputPath);
-      context.goToScanReview(cubit);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Processing failed: $e')));
+      if (widget.onConfirmed != null) {
+        widget.onConfirmed!(resultPath);
+      } else {
+        Navigator.pop(context, resultPath);
       }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Processing failed: $e')));
     } finally {
-      if (mounted) cubit.setProcessing(false);
+      if (mounted) {
+        _isProcessing = false;
+        setState(() {});
+      }
     }
   }
 
   void _onCancel() {
-    context.pop();
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    final isProcessing = context.watch<ScanCubit>().state.isProcessing;
-
     return Scaffold(
       backgroundColor: AppColor.black87,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColor.white),
-          onPressed: _onCancel,
-        ),
-        title: Text('Edit Image', style: TextStyle(color: AppColor.white)),
-        centerTitle: true,
+      appBar: AppAppBar(
+        title: "Edit Image",
+        titleStyle: AppTextStyles.heading3.copyWith(color: AppColor.white),
         backgroundColor: AppColor.black87,
-        elevation: 0,
+        leadingType: AppBarLeading.close,
+        onLeadingPressed: _onCancel,
+        centerTitle: true,
+        iconLeadingColor: AppColor.white,
       ),
       body: Column(
         children: [
@@ -102,17 +115,13 @@ class _CropEditorScreenState extends State<CropEditorScreen> {
             onRedo: _controller.redo,
             onReset: _controller.reset,
           ),
-          AspectRatioBar(
-            selected: _controller.selectedRatio,
-            onChanged: _controller.setAspectRatio,
-          ),
           BottomActions(
             onCancel: _onCancel,
             onConfirm: _onConfirm,
-            isLoading: isProcessing,
+            isLoading: _isProcessing,
           ),
         ],
       ),
-    );
+    ).canPop(false);
   }
 }

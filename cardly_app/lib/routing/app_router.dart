@@ -1,10 +1,13 @@
 import 'package:cardly_app/domain/Entities/business_card_entity.dart';
 import 'package:cardly_app/domain/Entities/scanned_document.dart';
 import 'package:cardly_app/injection_container.dart';
+import 'package:cardly_app/presentation/auth/view/session_expired_screen.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
 import 'package:cardly_app/presentation/contact/view/contact_add/contact_add_screen.dart';
 import 'package:cardly_app/presentation/contact/view/contact_screen.dart';
 import 'package:cardly_app/presentation/digital_card/digital_card_screen.dart';
+import 'package:cardly_app/presentation/enrichment/cubit/enrichment_cubit.dart';
+import 'package:cardly_app/presentation/enrichment/enrichment_screen.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/forgot-password/forgot_password_screen.dart';
 import 'package:cardly_app/presentation/auth/forgot-password/input_otp_screen.dart';
@@ -29,10 +32,22 @@ import 'package:cardly_app/presentation/scan/sub_screens/scan_upload/upload_succ
 import 'package:cardly_app/presentation/splash/splash_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: SplashScreen.routerName,
+    redirect: (context, state) {
+      final prefs = getIt<SharedPreferences>();
+      final expired = prefs.getBool('session_expired') ?? false;
+      if (expired) {
+        prefs.setBool('session_expired', false);
+        final isExpiredRoute =
+            state.matchedLocation == SessionExpiredScreen.routerName;
+        return isExpiredRoute ? null : SessionExpiredScreen.routerName;
+      }
+      return null;
+    },
     routes: [
       GoRoute(
         path: SplashScreen.routerName,
@@ -41,6 +56,12 @@ class AppRouter {
           child: const SplashScreen(),
         ),
       ),
+
+      GoRoute(
+        path: SessionExpiredScreen.routerName,
+        builder: (context, state) => const SessionExpiredScreen(),
+      ),
+
       GoRoute(
         path: OnboardingScreen.routerName,
         builder: (context, state) => BlocProvider(
@@ -220,6 +241,22 @@ class AppRouter {
           create: (context) => getIt<AuthCubit>()..getUser(),
           child: const DigitalCardScreen(),
         ),
+      ),
+      GoRoute(
+        path: EnrichmentScreen.routerName,
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return MultiBlocProvider(
+            providers: [
+              BlocProvider(create: (_) => getIt<EnrichmentCubit>()),
+              BlocProvider.value(value: extra['contactCubit'] as ContactCubit),
+            ],
+            child: EnrichmentScreen(
+              card: extra['card'] as BusinessCardEntity,
+              enrichmentData: extra['data'] as Map<String, dynamic>,
+            ),
+          );
+        },
       ),
     ],
   );

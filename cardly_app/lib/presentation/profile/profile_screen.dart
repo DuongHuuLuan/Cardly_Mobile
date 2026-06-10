@@ -1,6 +1,7 @@
 import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_bottom_nav.dart';
+import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
 import 'package:cardly_app/presentation/profile/widgets/profile_content.dart';
@@ -18,14 +19,21 @@ class ProfileScreen extends StatelessWidget {
         onLeadingPressed: () => context.goToHome(),
       ),
       body: BlocConsumer<AuthCubit, AuthState>(
+        listenWhen: (previous, current) => previous.status != current.status,
         listener: (context, state) {
+          if (state.status == AuthStatus.loading) {
+            context.showLoading("Logging out...");
+          }
+          if (state.status == AuthStatus.unauthenticated ||
+              state.status == AuthStatus.failed) {
+            context.hideLoading();
+          }
           if (state.status == AuthStatus.unauthenticated) {
             context.goToLogin();
           }
         },
         builder: (context, state) => ProfileContent(
           user: state.user,
-          isLoading: state.status == AuthStatus.loading,
           onEdit: () {
             context.goToEditProfile();
           },

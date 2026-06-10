@@ -5,6 +5,7 @@ import 'package:cardly_app/domain/Entities/user_entity.dart';
 import 'package:cardly_app/core/error/failures.dart';
 import 'package:cardly_app/domain/entities/auth_tokens.dart';
 import 'package:cardly_app/domain/entities/forgot-password/resend_otp_result.dart';
+import 'package:cardly_app/domain/entities/forgot-password/verify_reset_otp_result.dart';
 import 'package:dartz/dartz.dart';
 
 abstract class AuthRepository {
@@ -18,10 +19,13 @@ abstract class AuthRepository {
   //forgot-password
   Future<Either<Failure, ForgotPasswordResult>> forgotPassword(String email);
   Future<Either<Failure, VerifyOtpResult>> verifyOtp(String email, String otp);
-  Future<Either<Failure, ResendOtpResult>> resendOtp(String email);
-  Future<Either<Failure, ResetPasswordResult>> resetPassword(
+  Future<Either<Failure, VerifyResetOtpResult>> verifyResetOtp(
     String email,
     String otp,
+  );
+  Future<Either<Failure, ResendOtpResult>> resendOtp(String email);
+  Future<Either<Failure, ResetPasswordResult>> resetPassword(
+    String resetToken,
     String newPassword,
   );
 }

@@ -1,0 +1,72 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="cardlyGradient" x1="60" y1="430" x2="420" y2="60" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#0A7CFF"/>
+            <stop offset="0.48" stop-color="#0AAFEA"/>
+            <stop offset="1" stop-color="#20D6C4"/>
+        </linearGradient>
+    </defs>
+
+    <!-- Left A shape -->
+    <path
+        d="M17 444
+       L143 122
+       C159 82 177 42 222 42
+       C265 42 281 79 295 115
+       L353 267
+       C357 279 349 292 336 292
+       L282 292
+       L238 174
+       L126 444
+       Z"
+        fill="url(#cardlyGradient)"
+    />
+
+    <!-- Right circular O shape -->
+    <path
+        d="M356 145
+       C452 145 510 214 510 304
+       C510 394 444 463 354 463
+       C263 463 201 395 201 305
+       C201 216 267 145 356 145
+       Z
+       M356 224
+       C310 224 276 257 276 304
+       C276 351 310 385 356 385
+       C402 385 436 351 436 304
+       C436 257 402 224 356 224
+       Z"
+        fill="url(#cardlyGradient)"
+        fill-rule="evenodd"
+    />
+
+    <!-- White wave cut -->
+    <path
+        d="M70 364
+       C117 296 156 278 212 261
+       C270 244 301 206 346 168
+       C361 156 382 164 386 183
+       C392 207 363 222 344 236
+       C302 267 274 291 219 307
+       C164 323 130 351 99 398
+       C84 421 54 412 47 389
+       C44 380 50 373 70 364
+       Z"
+        fill="#FFFFFF"
+    />
+
+    <!-- Foreground wave -->
+    <path
+        d="M15 444
+       C45 393 70 345 104 314
+       C145 276 184 261 227 248
+       C278 233 308 193 348 162
+       C367 148 394 157 398 181
+       C401 199 386 211 369 220
+       C326 244 296 278 245 294
+       C194 309 155 326 123 371
+       C105 396 89 428 58 444
+       Z"
+        fill="url(#cardlyGradient)"
+    />
+</svg>

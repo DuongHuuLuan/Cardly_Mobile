@@ -4,6 +4,7 @@ import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
+import 'package:cardly_app/presentation/scan/sub_screens/scan_edit/crop_editor/crop_editor_screen.dart';
 import 'package:flutter/material.dart';
 
 class PreviewView extends StatelessWidget {
@@ -13,6 +14,7 @@ class PreviewView extends StatelessWidget {
   final VoidCallback onConfirm;
   final void Function(int) onRemove;
   final bool canAddMore;
+  final void Function(int index, String newPath) onReplaceImage;
   const PreviewView({
     super.key,
     required this.imagePaths,
@@ -21,6 +23,7 @@ class PreviewView extends StatelessWidget {
     required this.onConfirm,
     required this.onRemove,
     required this.canAddMore,
+    required this.onReplaceImage,
   });
   @override
   Widget build(BuildContext context) {
@@ -31,7 +34,7 @@ class PreviewView extends StatelessWidget {
           Text('Review your cards', style: AppTextStyles.heading2),
           const SizedBox(height: 8),
           Text(
-            '${imagePaths.length} card${imagePaths.length > 1 ? 's' : ''} selected',
+            '${imagePaths.length}/2 card${imagePaths.length > 1 ? 's' : ''} selected',
             style: AppTextStyles.bodySmall.copyWith(
               color: AppColor.greyDark,
               fontWeight: FontWeight.w500,
@@ -90,7 +93,7 @@ class PreviewView extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: () => _showAddOptions(context),
                 icon: const Icon(Icons.add),
-                label: const Text('Add another card'),
+                label: const Text('Add card'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColor.primary,
                   side: const BorderSide(color: AppColor.primary),
@@ -118,28 +121,27 @@ class PreviewView extends StatelessWidget {
       context: context,
       builder: (_) => SafeArea(
         child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-              ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text('Take a photo'),
-                onTap: () {
-                  Navigator.pop(context);
-                  onCamera();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Choose from gallery'),
-                onTap: () {
-                  Navigator.pop(context);
-                  onGallery();
-                },
-              ),
-            ],
-          )
-            .paddingVertical(16),
-        ),
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take a photo'),
+              onTap: () {
+                Navigator.pop(context);
+                onCamera();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from gallery'),
+              onTap: () {
+                Navigator.pop(context);
+                onGallery();
+              },
+            ),
+          ],
+        ).paddingVertical(16),
+      ),
     );
   }
 
@@ -150,6 +152,7 @@ class PreviewView extends StatelessWidget {
         builder: (_) => _ImagePreviewPage(
           imagePaths: imagePaths,
           initialIndex: initialIndex,
+          onReplaceImage: onReplaceImage,
         ),
       ),
     );
@@ -159,9 +162,11 @@ class PreviewView extends StatelessWidget {
 class _ImagePreviewPage extends StatefulWidget {
   final List<String> imagePaths;
   final int initialIndex;
+  final void Function(int index, String newPath) onReplaceImage;
   const _ImagePreviewPage({
     required this.imagePaths,
     required this.initialIndex,
+    required this.onReplaceImage,
   });
 
   @override
@@ -170,12 +175,14 @@ class _ImagePreviewPage extends StatefulWidget {
 
 class _ImagePreviewPageState extends State<_ImagePreviewPage> {
   late final PageController _pageController;
+  late List<String> _imagePaths;
   late int _currentIndex;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    _imagePaths = List<String>.from(widget.imagePaths);
     _pageController = PageController(initialPage: _currentIndex);
   }
 
@@ -185,23 +192,58 @@ class _ImagePreviewPageState extends State<_ImagePreviewPage> {
     super.dispose();
   }
 
+  Future<void> _openEditor() async {
+    final editedPath = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CropEditorScreen(
+          imagePath: _imagePaths[_currentIndex],
+          onConfirmed: (newPath) => Navigator.pop(context, newPath),
+          onCanceled: () => Navigator.pop(context),
+        ),
+      ),
+    );
+
+    if (!mounted || editedPath == null) return;
+
+    final oldPath = _imagePaths[_currentIndex];
+    widget.onReplaceImage(_currentIndex, editedPath);
+    File(oldPath).deleteSync();
+
+    setState(() {
+      _imagePaths[_currentIndex] = editedPath;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.black,
       appBar: AppAppBar(
-        title: 'Preview (${_currentIndex + 1}/${widget.imagePaths.length})',
+        title: 'Preview (${_currentIndex + 1}/${_imagePaths.length})',
         leadingType: AppBarLeading.close,
         backgroundColor: AppColor.black,
         iconLeadingColor: AppColor.white,
         titleStyle: const TextStyle(color: AppColor.white),
+        actions: [
+          IconButton(
+            onPressed: _openEditor,
+            icon: Icon(Icons.edit),
+            color: AppColor.white,
+          ),
+        ],
       ),
       body: PageView.builder(
         controller: _pageController,
-        itemCount: widget.imagePaths.length,
+        itemCount: _imagePaths.length,
         onPageChanged: (i) => setState(() => _currentIndex = i),
         itemBuilder: (ctx, i) => InteractiveViewer(
-          child: Center(child: Image.file(File(widget.imagePaths[i]))),
+          child: Center(
+            child: Image.file(
+              File(_imagePaths[i]),
+              key: ValueKey(_imagePaths[i]),
+            ),
+          ),
         ),
       ),
     );

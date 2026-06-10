@@ -218,20 +218,20 @@ class CropEditorController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String> processImage() async {
+  Future<String> processImage({String? outputPath}) async {
     if (_imagePath == null) throw Exception('No image loaded');
 
-    final outputPath = _imagePath!;
+    final outPath = outputPath ?? _imagePath!;
 
     await ImageProcessor.process(
       inputPath: _imagePath!,
-      outputPath: outputPath,
+      outputPath: outPath,
       rotationDegrees: _rotationDegrees,
       cropRect: _cropRect,
       usePerspective: _mode == CropEditorMode.perspective,
       quadCorners: _quadCorners,
     );
 
-    return outputPath;
+    return outPath;
   }
 }

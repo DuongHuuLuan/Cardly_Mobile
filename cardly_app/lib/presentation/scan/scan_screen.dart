@@ -45,7 +45,7 @@ class _ScanScreenState extends State<ScanScreen> {
           if (state.imageSource == ImageSourceType.camera) {
             context.goToScanCamera(cubit);
           } else {
-            context.goToScanPreview(cubit);
+            context.goToScanReview(cubit);
           }
         },
         child: BlocBuilder<ScanCubit, ScanState>(

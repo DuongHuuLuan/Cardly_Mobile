@@ -1,155 +1,240 @@
-import 'package:cardly_app/core/theme/app_color.dart';
-import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
-import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
-import 'package:cardly_app/core/widgets/app_avatar.dart';
-import 'package:cardly_app/core/widgets/app_elevated_button.dart';
-import 'package:cardly_app/core/widgets/app_info_tile.dart';
+import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
 import 'package:cardly_app/domain/Entities/business_card_entity.dart';
-import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_icon_button.dart';
+import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
+import 'package:cardly_app/presentation/contact/cubit/contact_state.dart';
+import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_detail_actions.dart';
+import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_detail_enrichment_section.dart';
+import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_detail_header.dart';
+import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_detail_image_gallery.dart';
+import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_detail_info_section.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-class ContactDetailScreen extends StatelessWidget {
+class ContactDetailScreen extends StatefulWidget {
   static const routerName = "/contact-detail";
 
   final BusinessCardEntity contact;
-  final VoidCallback? onDelete;
-  final bool isLoading;
 
-  const ContactDetailScreen({
-    super.key,
-    required this.contact,
-    this.onDelete,
-    this.isLoading = false,
-  });
+  const ContactDetailScreen({super.key, required this.contact});
+
+  @override
+  State<ContactDetailScreen> createState() => _ContactDetailScreenState();
+}
+
+class _ContactDetailScreenState extends State<ContactDetailScreen> {
+  bool _isEditing = false;
+
+  late BusinessCardEntity _contact;
+
+  late TextEditingController _nameCtrl;
+  late TextEditingController _titleCtrl;
+  late TextEditingController _companyCtrl;
+  late TextEditingController _phoneCtrl;
+  late TextEditingController _emailCtrl;
+  late TextEditingController _websiteCtrl;
+  late TextEditingController _linkedinCtrl;
+  late TextEditingController _addressCtrl;
+  late TextEditingController _notesCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _contact = widget.contact;
+    _initControllers();
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _titleCtrl.dispose();
+    _companyCtrl.dispose();
+    _phoneCtrl.dispose();
+    _emailCtrl.dispose();
+    _websiteCtrl.dispose();
+    _linkedinCtrl.dispose();
+    _addressCtrl.dispose();
+    _notesCtrl.dispose();
+    super.dispose();
+  }
+
+  void _initControllers() {
+    final c = _contact;
+
+    _nameCtrl = TextEditingController(text: c.fullName ?? '');
+    _titleCtrl = TextEditingController(text: c.jobTitle ?? '');
+    _companyCtrl = TextEditingController(text: c.company ?? '');
+    _phoneCtrl = TextEditingController(text: c.phone ?? '');
+    _emailCtrl = TextEditingController(text: c.email ?? '');
+    _websiteCtrl = TextEditingController(text: c.website ?? '');
+    _linkedinCtrl = TextEditingController(text: c.linkedIn ?? '');
+    _addressCtrl = TextEditingController(text: c.address ?? '');
+    _notesCtrl = TextEditingController(text: c.notes ?? '');
+  }
+
+  void _resetControllers() {
+    _nameCtrl.text = _contact.fullName ?? '';
+    _titleCtrl.text = _contact.jobTitle ?? '';
+    _companyCtrl.text = _contact.company ?? '';
+    _phoneCtrl.text = _contact.phone ?? '';
+    _emailCtrl.text = _contact.email ?? '';
+    _websiteCtrl.text = _contact.website ?? '';
+    _linkedinCtrl.text = _contact.linkedIn ?? '';
+    _addressCtrl.text = _contact.address ?? '';
+    _notesCtrl.text = _contact.notes ?? '';
+  }
+
+  void _toggleEdit() {
+    if (_isEditing) {
+      _resetControllers();
+    }
+
+    setState(() {
+      _isEditing = !_isEditing;
+    });
+  }
+
+  Future<void> _save() async {
+    final updated = _contact.copyWith(
+      fullName: _nameCtrl.text.trim(),
+      jobTitle: _titleCtrl.text.trim(),
+      company: _companyCtrl.text.trim(),
+      phone: _phoneCtrl.text.trim(),
+      email: _emailCtrl.text.trim(),
+      website: _websiteCtrl.text.trim(),
+      linkedIn: _linkedinCtrl.text.trim(),
+      address: _addressCtrl.text.trim(),
+      notes: _notesCtrl.text.trim(),
+    );
+
+    final saved = await context.read<ContactCubit>().save(updated);
+
+    if (!mounted) return;
+
+    if (saved != null) {
+      setState(() {
+        _contact = saved;
+        _isEditing = false;
+      });
+    }
+  }
+
+  Future<void> _delete() async {
+    await context.read<ContactCubit>().delete(_contact);
+  }
+
+  void _handleBack() {
+    if (context.canPop()) {
+      context.pop();
+      return;
+    }
+
+    context.goToHome();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppAppBar(
-        title: "Contact Detail",
+        title: _isEditing ? "Edit Contact" : "Contact Detail",
         showBorder: true,
-        onLeadingPressed: () {
-          if (context.canPop()) {
-            context.pop(context);
+        onLeadingPressed: _handleBack,
+        actions: [
+          IconButton(
+            onPressed: _toggleEdit,
+            icon: _isEditing
+                ? const Icon(Icons.close, size: 26)
+                : const Icon(Icons.edit_outlined),
+          ),
+        ],
+      ),
+
+      body: BlocConsumer<ContactCubit, ContactState>(
+        listenWhen: (previous, current) {
+          return previous.status != current.status ||
+              previous.errorMessage != current.errorMessage;
+        },
+        listener: (context, state) {
+          if (state.status == ContactStatus.saving) {
+            context.showLoading("Saving contact...");
           }
-          context.goToHome();
+
+          if (state.status == ContactStatus.deleting) {
+            context.showLoading("Deleting contact...");
+          }
+
+          if (state.status == ContactStatus.loaded ||
+              state.status == ContactStatus.failure) {
+            context.hideLoading();
+          }
+
+          if (state.status == ContactStatus.loaded &&
+              !state.contacts.any((element) => element.id == _contact.id)) {
+            context.goToContact();
+          }
+
+          if (state.status == ContactStatus.failure &&
+              state.errorMessage != null) {
+            showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text("Error"),
+                content: Text(state.errorMessage!),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text("OK"),
+                  ),
+                ],
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              children: <Widget>[
+                ContactDetailImageGallery(images: _contact.images),
+
+                ContactDetailHeader(
+                  contact: _contact,
+                  isEditing: _isEditing,
+                  nameCtrl: _nameCtrl,
+                  titleCtrl: _titleCtrl,
+                  companyCtrl: _companyCtrl,
+                ),
+
+                ContactDetailInfoSection(
+                  contact: _contact,
+                  isEditing: _isEditing,
+                  phoneCtrl: _phoneCtrl,
+                  emailCtrl: _emailCtrl,
+                  websiteCtrl: _websiteCtrl,
+                  linkedinCtrl: _linkedinCtrl,
+                  addressCtrl: _addressCtrl,
+                  notesCtrl: _notesCtrl,
+                ),
+
+                ContactDetailEnrichmentSection(contact: _contact),
+              ],
+            ),
+          );
         },
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(top: 20, bottom: 20),
-        child: Column(
-          children: [
-            AppAvatar(name: contact.fullName ?? "", radius: 40),
-            const SizedBox(height: 12),
-            Text(contact.fullName ?? 'Unknown', style: AppTextStyles.heading2),
-            if (contact.jobTitle != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                contact.jobTitle!,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColor.greyDark,
-                ),
-              ),
-            ],
-            if (contact.company != null) ...[
-              const SizedBox(height: 2),
-              Text(
-                contact.company!,
-                style: AppTextStyles.bodySmall.copyWith(color: AppColor.grey),
-              ),
-            ],
-            const SizedBox(height: 16),
-            ContactIconButton(),
-            const SizedBox(height: 16),
 
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColor.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColor.black.withValues(alpha: 0.03),
-                    blurRadius: 10,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  AppInfoTile(
-                    icon: Icons.phone_outlined,
-                    label: "Phone",
-                    value: contact.phone,
-                  ),
-                  const Divider(
-                    height: 20,
-                    thickness: 1,
-                    color: AppColor.greyLight,
-                  ),
-                  AppInfoTile(
-                    icon: Icons.email_outlined,
-                    label: "Email",
-                    value: contact.email,
-                  ),
-                  const Divider(
-                    height: 20,
-                    thickness: 1,
-                    color: AppColor.greyLight,
-                  ),
-                  AppInfoTile(
-                    icon: Icons.language_outlined,
-                    label: "Website",
-                    value: contact.website,
-                  ),
-                  const Divider(
-                    height: 20,
-                    thickness: 1,
-                    color: AppColor.greyLight,
-                  ),
-                  AppInfoTile(
-                    icon: Icons.link_outlined,
-                    label: "LinkedIn",
-                    value: contact.linkedIn,
-                  ),
-                  const Divider(
-                    height: 20,
-                    thickness: 1,
-                    color: AppColor.greyLight,
-                  ),
-                  AppInfoTile(
-                    icon: Icons.location_on_outlined,
-                    label: "Address",
-                    value: contact.address,
-                  ),
-                  const Divider(
-                    height: 20,
-                    thickness: 1,
-                    color: AppColor.greyLight,
-                  ),
-                  AppInfoTile(
-                    icon: Icons.notes_outlined,
-                    label: "Notes",
-                    value: contact.notes,
-                  ),
-                ],
-              ),
-            ),
-            AppElevatedButton(
-              label: "Delete contact",
-              onPressed: onDelete,
-              backgroundColor: AppColor.background,
-              borderColor: AppColor.error.withValues(alpha: 0.5),
-              labelColor: AppColor.error,
-              iconAfterText: false,
-              icon: Icon(Icons.delete_outline, color: AppColor.error, size: 24),
-              isLoading: isLoading,
-            ).paddingAll(20),
-          ],
-        ),
+      bottomNavigationBar: BlocBuilder<ContactCubit, ContactState>(
+        builder: (context, state) {
+          return ContactDetailActions(
+            isEditing: _isEditing,
+            isSaving: state.status == ContactStatus.saving,
+            isDeleting: state.status == ContactStatus.deleting,
+            onSave: _save,
+            onDelete: _delete,
+          );
+        },
       ),
     );
   }

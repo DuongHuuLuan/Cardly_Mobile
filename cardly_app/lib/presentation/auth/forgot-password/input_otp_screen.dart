@@ -6,6 +6,7 @@ import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
+import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
 import 'package:cardly_app/domain/Entities/user_entity.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
@@ -97,113 +98,147 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppAppBar(
-        onLeadingPressed: () {
-          context.pop();
-        },
-      ),
-      body: BlocConsumer<AuthCubit, AuthState>(
-        listenWhen: (previous, current) => previous.status != current.status,
-        listener: (context, state) {
-          if (state.status == AuthStatus.authenticated) {
-            context.goToHome();
-          } else if (state.status == AuthStatus.verifyOtpSuccess &&
-              !_isRegistration) {
-            context.goToResetPassword(_email, _otp);
-          } else if (state.status == AuthStatus.verifyOtpFailure) {
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (ctx) => AppAlertDialog(
-                title: "Incorrect OTP code",
-                onConfirm: () => Navigator.pop(ctx),
-              ),
-            );
-          } else if (state.status == AuthStatus.failed &&
-              state.errorMessage != null) {
-            showDialog(
-              context: context,
-              builder: (_) => AppAlertDialog(
-                icon: Icons.error_outline,
-                color: AppColor.error,
-                title: "Login Failed",
-                message: state.errorMessage,
-                buttonLabel: "OK",
-                onConfirm: () => Navigator.pop(context),
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          final isLoading = state.status == AuthStatus.verifyOtpLoading;
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  "Enter OTP Code",
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+    return BlocListener<AuthCubit, AuthState>(
+      listenWhen: (previous, current) => previous.status != current.status,
+      listener: (context, state) {
+        if (state.status == AuthStatus.verifyOtpLoading ||
+            state.status == AuthStatus.verifyResetOtpLoading ||
+            state.status == AuthStatus.resendOtpLoading) {
+          context.showLoading("Verifying OTP...");
+        }
+        if (state.status == AuthStatus.verifyOtpSuccess ||
+            state.status == AuthStatus.verifyOtpFailure ||
+            state.status == AuthStatus.verifyResetOtpSuccess ||
+            state.status == AuthStatus.verifyResetOtpFailure ||
+            state.status == AuthStatus.resendOtpSuccess ||
+            state.status == AuthStatus.resendOtpFailure ||
+            state.status == AuthStatus.authenticated) {
+          context.hideLoading();
+        }
+      },
+      child: Scaffold(
+        appBar: AppAppBar(
+          onLeadingPressed: () {
+            context.pop();
+          },
+        ),
+        body: BlocConsumer<AuthCubit, AuthState>(
+          listenWhen: (previous, current) => previous.status != current.status,
+          listener: (context, state) {
+            if (state.status == AuthStatus.authenticated) {
+              _timer?.cancel();
+              context.goToHome();
+            } else if (state.status == AuthStatus.verifyResetOtpSuccess &&
+                !_isRegistration) {
+              context.goToResetPassword(_email, state.resetToken!);
+            } else if (state.status == AuthStatus.verifyOtpFailure) {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (ctx) => AppAlertDialog(
+                  title: "Incorrect OTP code",
+                  onConfirm: () => Navigator.pop(ctx),
+                ),
+              );
+            } else if (state.status == AuthStatus.failed &&
+                state.errorMessage != null) {
+              showDialog(
+                context: context,
+                builder: (_) => AppAlertDialog(
+                  icon: Icons.error_outline,
+                  color: AppColor.error,
+                  title: "Login Failed",
+                  message: state.errorMessage,
+                  buttonLabel: "OK",
+                  onConfirm: () => Navigator.pop(context),
+                ),
+              );
+            } else if (state.status == AuthStatus.verifyResetOtpFailure) {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (ctx) => AppAlertDialog(
+                  title: "Incorrect OTP code",
+                  message: state.errorMessage,
+                  onConfirm: () => Navigator.pop(ctx),
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    "Enter OTP Code",
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  "OTP code has been sent to your email",
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColor.greyDark,
-                    fontWeight: FontWeight.w300,
+                  const SizedBox(height: 8),
+                  Text(
+                    "OTP code has been sent to your email",
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColor.greyDark,
+                      fontWeight: FontWeight.w300,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 40),
-                OtpInputField(
-                  key: _otpFieldKey,
-                  length: 6,
-                  onCompleted: (otp) => setState(() => _otp = otp),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 40),
+                  OtpInputField(
+                    key: _otpFieldKey,
+                    length: 6,
+                    onCompleted: (otp) => setState(() => _otp = otp),
+                  ),
+                  const SizedBox(height: 20),
 
-                Center(
-                  child: _remainingSeconds > 0
-                      ? Text(
-                          "Resend code ${_remainingSeconds ~/ 60}:${(_remainingSeconds % 60).toString().padLeft(2, '0')}",
-                          style: const TextStyle(color: AppColor.greyDark),
-                        )
-                      : GestureDetector(
-                          onTap: () {
-                            _resendOtp();
-                            _startTimer();
-                          },
-                          child: const Text(
-                            "Re-send OTP",
-                            style: TextStyle(
-                              color: AppColor.primary,
-                              fontWeight: FontWeight.bold,
+                  Center(
+                    child: _remainingSeconds > 0
+                        ? Text(
+                            "Resend code ${_remainingSeconds ~/ 60}:${(_remainingSeconds % 60).toString().padLeft(2, '0')}",
+                            style: const TextStyle(color: AppColor.greyDark),
+                          )
+                        : GestureDetector(
+                            onTap: () {
+                              _resendOtp();
+                              _startTimer();
+                            },
+                            child: const Text(
+                              "Re-send OTP",
+                              style: TextStyle(
+                                color: AppColor.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
-                ),
-                const SizedBox(height: 40),
-                AppElevatedButton(
-                  label: "Confirm",
-                  onPressed: _otp.length == 6
-                      ? () => _authCubit.verifyOtp(
-                          _email,
-                          _otp,
-                          password: _registrationUser?.password,
-                        )
-                      : null,
-                  labelStyle: AppTextStyles.bodyLarge.copyWith(
-                    color: AppColor.white,
                   ),
-                  isLoading: isLoading,
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
-          );
-        },
+                  const SizedBox(height: 40),
+                  AppElevatedButton(
+                    label: "Confirm",
+                    onPressed: _otp.length == 6
+                        ? () {
+                            if (_isRegistration) {
+                              _authCubit.verifyOtp(
+                                _email,
+                                _otp,
+                                password: _registrationUser?.password,
+                              );
+                            } else {
+                              _authCubit.verifyResetOtp(_email, _otp);
+                            }
+                          }
+                        : null,
+                    labelStyle: AppTextStyles.bodyLarge.copyWith(
+                      color: AppColor.white,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

@@ -7,10 +7,9 @@ class ResetPasswordUsecase {
   final AuthRepository repository;
   ResetPasswordUsecase({required this.repository});
   Future<Either<Failure, ResetPasswordResult>> call(
-    String email,
-    String otp,
+    String resetToken,
     String newPassword,
   ) async {
-    return await repository.resetPassword(email, newPassword, otp);
+    return await repository.resetPassword(resetToken, newPassword);
   }
 }

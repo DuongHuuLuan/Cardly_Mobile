@@ -49,21 +49,16 @@ class _ContactAddScreenState extends State<ContactAddScreen> {
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColor.error,
                   ),
-                ).paddingOnly(bottom: 12),
-
-              AppElevatedButton(
-                label: "Save contact",
-                labelStyle: AppTextStyles.bodyLarge.copyWith(
-                  color: AppColor.white,
-                ),
-                onPressed: _onSave,
-                isLoading: state.status == ContactStatus.saving,
-              ).paddingOnly(bottom: 20),
-
-              const SizedBox(height: 32),
+                ).paddingOnly(bottom: 20),
             ],
           ),
-        ),
+        ).paddingOnly(bottom: 20),
+        bottomNavigationBar: AppElevatedButton(
+          label: "Save contact",
+          labelStyle: AppTextStyles.bodyLarge.copyWith(color: AppColor.white),
+          onPressed: _onSave,
+          isLoading: state.status == ContactStatus.saving,
+        ).paddingOnly(bottom: 20, left: 20, right: 20),
       ),
     );
   }

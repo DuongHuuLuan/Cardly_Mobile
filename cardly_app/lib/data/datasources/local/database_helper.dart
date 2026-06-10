@@ -16,7 +16,7 @@ class DatabaseHelper {
     final path = join(await getDatabasesPath(), "cardly.db");
     return openDatabase(
       path,
-      version: 1,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: (db) async {
@@ -29,6 +29,10 @@ class DatabaseHelper {
     await db.execute('''
     CREATE TABLE business_cards (
         id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        processing_id TEXT,
+        sync_status TEXT NOT NULL DEFAULT 'synced',
+        uploaded_at TEXT,
         full_name TEXT,
         job_title TEXT,
         company TEXT,
@@ -61,5 +65,25 @@ class DatabaseHelper {
     ''');
   }
 
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {}
+  @override
+  int get version => 3;
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute(
+        'ALTER TABLE business_cards ADD COLUMN user_id TEXT DEFAULT ""',
+      );
+    }
+    if (oldVersion < 3) {
+      await db.execute(
+        'ALTER TABLE business_cards ADD COLUMN processing_id TEXT',
+      );
+      await db.execute(
+        "ALTER TABLE business_cards ADD COLUMN sync_status TEXT NOT NULL DEFAULT 'synced'",
+      );
+      await db.execute(
+        'ALTER TABLE business_cards ADD COLUMN uploaded_at TEXT',
+      );
+    }
+  }
 }

@@ -4,6 +4,7 @@ import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
+import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
 import 'package:cardly_app/core/widgets/app_password_text_form_field.dart';
 import 'package:cardly_app/core/widgets/password_strength_widget.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
@@ -23,7 +24,7 @@ class ResetPasswordScreen extends StatefulWidget {
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   late final AuthCubit _authCubit;
   late String _email;
-  late String _otp;
+  late String _resetToken;
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
@@ -40,7 +41,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     super.didChangeDependencies();
     final args = GoRouterState.of(context).extra as Map<String, String>;
     _email = args['email']!;
-    _otp = args['otp']!;
+    _resetToken = args['resetToken']!;
   }
 
   @override
@@ -57,95 +58,106 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       ).showSnackBar(const SnackBar(content: Text("Passwords do not match")));
       return;
     }
-    _authCubit.resetPassword(_email, _otp, _passwordController.text);
+    _authCubit.resetPassword(_resetToken, _passwordController.text);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppAppBar(onLeadingPressed: () => context.goToForgotPassword()),
-      body: BlocConsumer<AuthCubit, AuthState>(
-        listener: (context, state) {
-          if (state.status == AuthStatus.resetPasswordFailure &&
-              state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage!),
-                backgroundColor: AppColor.error,
-              ),
-            );
-          }
-          if (state.status == AuthStatus.resetPasswordSuccess) {
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (_) => AppAlertDialog(
-                icon: Icons.check_circle,
-                color: AppColor.success,
-                title: "Reset Password Successfully",
-                message: "Your password has been updated successfully",
-                buttonLabel: "Go to Login",
-                onConfirm: () {
-                  Navigator.pop(context);
-                  context.goToLogin();
-                },
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          final isLoading = state.status == AuthStatus.resetPasswordLoading;
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  "Enter New Password",
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+    return BlocListener<AuthCubit, AuthState>(
+      listenWhen: (previous, current) => previous.status != current.status,
+      listener: (context, state) {
+        if (state.status == AuthStatus.resetPasswordLoading) {
+          context.showLoading("Resetting password...");
+        }
+        if (state.status == AuthStatus.resetPasswordSuccess ||
+            state.status == AuthStatus.resetPasswordFailure) {
+          context.hideLoading();
+        }
+      },
+      child: Scaffold(
+        appBar: AppAppBar(onLeadingPressed: () => context.goToForgotPassword()),
+        body: BlocConsumer<AuthCubit, AuthState>(
+          listener: (context, state) {
+            if (state.status == AuthStatus.resetPasswordFailure &&
+                state.errorMessage != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.errorMessage!),
+                  backgroundColor: AppColor.error,
+                ),
+              );
+            }
+            if (state.status == AuthStatus.resetPasswordSuccess) {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (_) => AppAlertDialog(
+                  icon: Icons.check_circle,
+                  color: AppColor.success,
+                  title: "Reset Password Successfully",
+                  message: "Your password has been updated successfully",
+                  buttonLabel: "Go to Login",
+                  onConfirm: () {
+                    Navigator.pop(context);
+                    context.goToLogin();
+                  },
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    "Enter New Password",
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  "Please enter your new password",
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColor.greyDark,
-                    fontWeight: FontWeight.w300,
+                  const SizedBox(height: 20),
+                  Text(
+                    "Please enter your new password",
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColor.greyDark,
+                      fontWeight: FontWeight.w300,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 50),
-                AppPasswordTextFormField(
-                  controller: _passwordController,
-                  labelText: "Password",
-                  hintText: "Enter password",
-                ),
+                  const SizedBox(height: 50),
+                  AppPasswordTextFormField(
+                    controller: _passwordController,
+                    labelText: "Password",
+                    hintText: "Enter password",
+                  ),
 
-                const SizedBox(height: 20),
-                AppPasswordTextFormField(
-                  controller: _confirmPasswordController,
-                  labelText: "Confirm Password",
-                  hintText: "Confirm password",
-                ),
-                const SizedBox(height: 8),
-                PasswordStrengthWidget(
-                  passwordController: _passwordController,
-                  onStrengthChanged: (v) => setState(() => _passwordValid = v),
-                ),
-                const SizedBox(height: 40),
-                AppElevatedButton(
-                  label: "Save",
-                  onPressed: _passwordValid ? _save : null,
-                  labelStyle: AppTextStyles.bodyLarge.copyWith(
-                    color: AppColor.white,
+                  const SizedBox(height: 20),
+                  AppPasswordTextFormField(
+                    controller: _confirmPasswordController,
+                    labelText: "Confirm Password",
+                    hintText: "Confirm password",
                   ),
-                  isLoading: isLoading,
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
-          );
-        },
+                  const SizedBox(height: 8),
+                  PasswordStrengthWidget(
+                    passwordController: _passwordController,
+                    onStrengthChanged: (v) =>
+                        setState(() => _passwordValid = v),
+                  ),
+                  const SizedBox(height: 40),
+                  AppElevatedButton(
+                    label: "Save",
+                    onPressed: _passwordValid ? _save : null,
+                    labelStyle: AppTextStyles.bodyLarge.copyWith(
+                      color: AppColor.white,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

@@ -60,6 +60,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
                 child: Center(
                   child: Image.file(
                     File(imagePaths[index]),
+                    key: ValueKey(imagePaths[index]),
                     fit: BoxFit.contain,
                     width: double.infinity,
                   ),

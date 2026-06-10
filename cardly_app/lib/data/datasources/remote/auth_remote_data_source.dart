@@ -7,6 +7,7 @@ import 'package:cardly_app/domain/Entities/forgot-password/reset_password_result
 import 'package:cardly_app/domain/Entities/forgot-password/verify_otp_result.dart';
 import 'package:cardly_app/domain/Entities/user_entity.dart';
 import 'package:cardly_app/domain/entities/forgot-password/resend_otp_result.dart';
+import 'package:cardly_app/domain/entities/forgot-password/verify_reset_otp_result.dart';
 import 'package:dio/dio.dart';
 
 class AuthRemoteDataSource {
@@ -99,7 +100,7 @@ class AuthRemoteDataSource {
     if (data is Map<String, dynamic>) {
       final error = data['error'] as Map<String, dynamic>?;
       if (error != null) {
-        return error['message'] as String? ?? 'An unexpected error occurred';
+        return error['msg'] as String? ?? 'An unexpected error occurred';
       }
     }
     return 'An unexpected error occurred';
@@ -151,10 +152,20 @@ class AuthRemoteDataSource {
         "otp": otp,
       });
       return ForgotPasswordMapper.toVerifyOtpResult(response.data);
-      // return VerifyOtpResult(
-      //   message: response.data.message,
-      //   success: response.data.success,
-      // );
+    } on DioException catch (e) {
+      throw ServerException(_extractErrorMessage(e));
+    } catch (e) {
+      throw ServerException('An unexpected error occurred');
+    }
+  }
+
+  Future<VerifyResetOtpResult> verifyResetOtp(String email, String otp) async {
+    try {
+      final response = await _authService.verifyResetOtp({
+        "email": email,
+        "otp": otp,
+      });
+      return ForgotPasswordMapper.toVerifyResetOtpResult(response.data);
     } on DioException catch (e) {
       throw ServerException(_extractErrorMessage(e));
     } catch (e) {
@@ -167,30 +178,18 @@ class AuthRemoteDataSource {
       final response = await _authService.resendOtp({"email": email});
 
       return ForgotPasswordMapper.toResendOtpResult(response.data);
-      // return ResendOtpResult(message: response.data.message, success: true);
     } catch (e) {
       throw ServerException(e.toString());
     }
   }
 
   Future<ResetPasswordResult> resetPassword(
-    String email,
-    String otp,
+    String resetToken,
     String newPassword,
   ) async {
-    if (userMock) {
-      if (email == "test@gmail.com") {
-        return ResetPasswordResult(
-          message: "Password reset successfully",
-          success: true,
-        );
-      }
-      throw ServerException("Reset password failed");
-    }
     try {
-      final response = await _authService.resetPasswordByEmail({
-        "email": email,
-        "otp": otp,
+      final response = await _authService.resetPassword({
+        "reset_token": resetToken,
         "new_password": newPassword,
       });
       return ForgotPasswordMapper.toResetPasswordResult(response.data);

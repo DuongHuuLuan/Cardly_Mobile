@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:camera/camera.dart';
 import 'package:cardly_app/domain/Entities/scanned_document.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cardly_app/domain/usecase/card/scan_card_usecase.dart';
@@ -11,9 +12,55 @@ class ScanCubit extends Cubit<ScanState> {
   final ScanCardUsecase scanCardUsecase;
   final ImagePicker _picker = ImagePicker();
 
+  CameraController? cameraController;
+
   ScanCubit({required this.scanCardUsecase}) : super(const ScanState());
 
   static const int _maxImages = 2;
+
+  Future<CameraController> getCameraController() async {
+    if (cameraController != null && cameraController!.value.isInitialized) {
+      return cameraController!;
+    }
+
+    await cameraController?.dispose();
+    cameraController = null;
+
+    const maxRetries = 5;
+    for (int i = 0; i < maxRetries; i++) {
+      try {
+        final cameras = await availableCameras();
+
+        if (cameras.isNotEmpty) {
+          final controller = CameraController(
+            cameras.first,
+            ResolutionPreset.high,
+            enableAudio: false,
+          );
+          await controller.initialize();
+          cameraController = controller;
+          return controller;
+        }
+      } catch (_) {
+        if (i == maxRetries - 1) rethrow;
+      }
+
+      if (i < maxRetries - 1) {
+        await Future.delayed(const Duration(seconds: 1));
+      }
+    }
+
+    throw Exception("Camera unavailable after $maxRetries retries");
+  }
+
+  void releaseCamera() {
+    try {
+      cameraController?.dispose();
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+    cameraController = null;
+  }
 
   Future<void> pickFromCamera() async {
     emit(state.copyWith(status: ScanStatus.initial));
@@ -159,7 +206,7 @@ class ScanCubit extends Cubit<ScanState> {
     if (!validate()) return;
     emit(state.copyWith(status: ScanStatus.uploading, uploadProgress: 0.0));
     try {
-      await _simulateProgress();
+      emit(state.copyWith(uploadProgress: 0.3));
       final result = await scanCardUsecase(state.imagePaths);
       result.fold(
         (failure) => emit(
@@ -183,8 +230,18 @@ class ScanCubit extends Cubit<ScanState> {
     }
   }
 
-  void setProcessing(bool value) {
-    emit(state.copyWith(isProcessing: value));
+  // void setProcessing(bool value) {
+  //   emit(state.copyWith(isProcessing: value));
+  // }
+
+  void replaceImage(int index, String newPath) {
+    final images = List<String>.from(state.imagePaths);
+
+    if (index < 0 || index >= images.length) return;
+
+    images[index] = newPath;
+
+    emit(state.copyWith(imagePaths: images));
   }
 
   void updateDocument(int index, ScannedDocument updatedDoc) {
@@ -193,18 +250,17 @@ class ScanCubit extends Cubit<ScanState> {
     emit(state.copyWith(scannedDocuments: docs));
   }
 
-  Future<void> _simulateProgress() async {
-    for (int i = 1; i <= 10; i++) {
-      await Future.delayed(const Duration(milliseconds: 200));
-      if (!isClosed) emit(state.copyWith(uploadProgress: i / 10));
-    }
-  }
-
   Future<String> _saveToTemp(XFile file) async {
     final dir = await getTemporaryDirectory();
     final path = '${dir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
     await File(path).writeAsBytes(await file.readAsBytes());
     return path;
+  }
+
+  @override
+  Future<void> close() {
+    releaseCamera();
+    return super.close();
   }
 
   void reset() => emit(const ScanState());

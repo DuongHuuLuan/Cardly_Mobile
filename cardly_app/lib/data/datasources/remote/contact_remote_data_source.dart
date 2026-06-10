@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:cardly_app/core/error/exceptions.dart';
 import 'package:cardly_app/data/mappers/contact_mapper.dart';
+import 'package:cardly_app/data/models/contact/contact_detail_response.dart';
+import 'package:cardly_app/data/models/contact/contact_list_response.dart';
 import 'package:cardly_app/data/services/contact_service.dart';
 import 'package:cardly_app/domain/Entities/business_card_entity.dart';
 import 'package:dio/dio.dart';
@@ -12,44 +14,37 @@ class ContactRemoteDataSource {
   ContactRemoteDataSource(this._contactService, {this.userMock = true});
 
   static const String _mockContactListJson = '''
-[
-  {
-    "id": "contact_1",
-    "full_name": "Nguyễn Văn Anh",
-    "job_title": "CEO & Founder",
-    "company": "TechVina Solutions",
-    "phone": "+84 912 345 678",
-    "email": "anh.nguyen@techvina.com",
-    "website": "https://techvina.com",
-    "linkedin": "https://linkedin.com/in/anhnguyen",
-    "address": "123 Nguyễn Huệ, Q.1, TP.HCM",
-    "created_at": "2026-05-26T10:00:00.000Z"
-  },
-  {
-    "id": "contact_2",
-    "full_name": "Trần Thị Bích",
-    "job_title": "CTO",
-    "company": "DataStream Vietnam",
-    "phone": "+84 987 654 321",
-    "email": "bich.tran@datastream.vn",
-    "website": "https://datastream.vn",
-    "linkedin": "https://linkedin.com/in/bichtran",
-    "address": "456 Lê Lợi, Q.1, TP.HCM",
-    "created_at": "2026-05-25T14:30:00.000Z"
-  }
-]
+{
+  "items": [
+    {
+      "processing_id": "proc_1",
+      "status": "completed",
+      "uploaded_at": "2026-05-26T10:00:00.000Z",
+      "file_urls": []
+    },
+    {
+      "processing_id": "proc_2",
+      "status": "completed",
+      "uploaded_at": "2026-05-25T14:30:00.000Z",
+      "file_urls": []
+    }
+  ],
+  "total": "2",
+  "skip": "0",
+  "limit": "20"
+}
 ''';
 
-  Future<List<BusinessCardEntity>> getContacts() async {
+  Future<ContactListResponse> getContacts(int skip, int limit) async {
     if (userMock) {
-      final list = (jsonDecode(_mockContactListJson) as List<dynamic>)
-          .cast<Map<String, dynamic>>();
-      return ContactMapper.formJsonList(list);
+      return ContactListResponse.fromJson(
+        jsonDecode(_mockContactListJson) as Map<String, dynamic>,
+      );
     }
 
     try {
-      final response = await _contactService.getContacts();
-      return ContactMapper.formJsonList(response.data.data!);
+      final response = await _contactService.getContacts(skip, limit);
+      return response.data;
     } on DioException catch (e) {
       throw ServerException(e.message ?? "Network error");
     } on FormatException catch (e) {
@@ -84,15 +79,45 @@ class ContactRemoteDataSource {
     }
   }
 
-  Future<void> deleteContact(String id) async {
+  Future<void> deleteContact(String processingId) async {
+    try {
+      await _contactService.deleteContact(processingId);
+    } on DioException catch (e) {
+      throw ServerException(e.message ?? "Network error");
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  Future<ContactDetailResponse> getContactDetail(String processingId) async {
+    try {
+      final response = await _contactService.getContactDetail(processingId);
+      return response.data;
+    } on DioException catch (e) {
+      throw ServerException(e.message ?? "Network error");
+    } on FormatException catch (e) {
+      throw ServerException('Invalid response: ${e.message}');
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  Future<BusinessCardEntity> updateContact(BusinessCardEntity contact) async {
     if (userMock) {
-      return;
+      return contact;
     }
 
     try {
-      await _contactService.deleteContact(id);
+      final response = await _contactService.saveContact(
+        ContactMapper.toJson(contact),
+      );
+      final data = response.data.data;
+      if (data == null) throw ServerException("Empty response");
+      return ContactMapper.fromJson(data);
     } on DioException catch (e) {
       throw ServerException(e.message ?? "Network error");
+    } on FormatException catch (e) {
+      throw ServerException('Invalid response: ${e.message}');
     } catch (e) {
       throw ServerException(e.toString());
     }

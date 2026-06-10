@@ -33,14 +33,18 @@ class ReviewScreen extends StatelessWidget {
         ),
         BlocListener<ScanCubit, ScanState>(
           listenWhen: (prev, current) => current.status == ScanStatus.uploading,
-          listener: (context, state) =>
-              context.goToScanUpload(cubit),
+          listener: (context, state) => context.goToScanUpload(cubit),
         ),
       ],
       child: BlocBuilder<ScanCubit, ScanState>(
         builder: (context, state) {
           return Scaffold(
-            appBar: const AppAppBar(title: 'Review'),
+            appBar: AppAppBar(
+              title: 'Review',
+              centerTitle: true,
+              leadingType: AppBarLeading.close,
+              onLeadingPressed: () => context.goToHome(),
+            ),
             body: PreviewView(
               imagePaths: state.imagePaths,
               onCamera: () => context.goToScanCamera(cubit),
@@ -48,6 +52,9 @@ class ReviewScreen extends StatelessWidget {
               onConfirm: () => cubit.uploadAndScan(),
               onRemove: cubit.removeImage,
               canAddMore: state.imagePaths.length < 2,
+              onReplaceImage: (index, newPath) {
+                context.read<ScanCubit>().replaceImage(index, newPath);
+              },
             ),
           );
         },

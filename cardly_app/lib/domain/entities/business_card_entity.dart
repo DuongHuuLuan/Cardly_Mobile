@@ -1,7 +1,9 @@
+import 'package:cardly_app/core/enums/sync_status.dart';
 import 'package:equatable/equatable.dart';
 
 class BusinessCardEntity extends Equatable {
   final String? id;
+  final String? userId;
   final String? fullName;
   final String? jobTitle;
   final String? company;
@@ -21,8 +23,13 @@ class BusinessCardEntity extends Equatable {
   final List<String>? highlights;
   final List<String>? images;
 
+  final String? processingId;
+  final SyncStatus syncStatus;
+  final DateTime? uploadedAt;
+
   const BusinessCardEntity({
     this.id,
+    this.userId,
     this.fullName,
     this.jobTitle,
     this.company,
@@ -41,10 +48,15 @@ class BusinessCardEntity extends Equatable {
     this.keywords,
     this.highlights,
     this.images,
+
+    this.processingId,
+    this.syncStatus = SyncStatus.synced,
+    this.uploadedAt,
   });
 
   BusinessCardEntity copyWith({
     String? id,
+    String? userId,
     String? fullName,
     String? jobTitle,
     String? company,
@@ -63,9 +75,14 @@ class BusinessCardEntity extends Equatable {
     List<String>? keywords,
     List<String>? highlights,
     List<String>? images,
+
+    String? processingId,
+    SyncStatus? syncStatus,
+    DateTime? uploadedAt,
   }) {
     return BusinessCardEntity(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       fullName: fullName ?? this.fullName,
       jobTitle: jobTitle ?? this.jobTitle,
       company: company ?? this.company,
@@ -84,12 +101,17 @@ class BusinessCardEntity extends Equatable {
       keywords: keywords ?? this.keywords,
       highlights: highlights ?? this.highlights,
       images: images ?? this.images,
+
+      processingId: processingId ?? this.processingId,
+      syncStatus: syncStatus ?? this.syncStatus,
+      uploadedAt: uploadedAt ?? this.uploadedAt,
     );
   }
 
   @override
   List<Object?> get props => [
     id,
+    userId,
     fullName,
     jobTitle,
     company,
@@ -108,5 +130,9 @@ class BusinessCardEntity extends Equatable {
     keywords,
     highlights,
     images,
+
+    processingId,
+    syncStatus,
+    uploadedAt,
   ];
 }
