@@ -221,12 +221,27 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
     _autoCheckTimer?.cancel();
     _readyTimer?.cancel();
 
+    final beforeCount = cubit.state.imagePaths.length;
+
     await cubit.pickFromGallery();
     if (!mounted) return;
-    if (cubit.state.imagePaths.isNotEmpty) {
+    if (cubit.state.imagePaths.isNotEmpty &&
+        cubit.state.imagePaths.length > beforeCount) {
       // context.goToScanPreview(cubit);
-      context.goToScanReview(cubit);
+      final result = await context.goToScanReview<bool>(cubit);
+      if (!mounted) return;
+      if (result != true) {
+        while (cubit.state.imagePaths.length > beforeCount) {
+          cubit.removeImage(cubit.state.imagePaths.length - 1);
+        }
+
+        _resumeCameraAfterBack();
+      }
+
+      return;
     }
+
+    _resumeCameraAfterBack();
   }
 
   IconData _flashIcon(FlashMode mode) {
