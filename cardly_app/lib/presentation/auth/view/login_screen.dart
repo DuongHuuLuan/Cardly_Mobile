@@ -191,7 +191,6 @@ class _LoginPageState extends State<LoginPage> {
                       },
                       label: "Login",
                       canSubmit: state.lockoutSeconds == 0,
-                      isLoading: state.status == AuthStatus.loading,
                     ),
                     if (state.lockoutSeconds > 0)
                       Text(
