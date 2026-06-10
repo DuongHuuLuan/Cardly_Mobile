@@ -12,6 +12,7 @@ import 'package:cardly_app/presentation/home/view/widgets/home_header.dart';
 import 'package:cardly_app/presentation/home/view/widgets/recent_contacts_section.dart';
 import 'package:cardly_app/presentation/home/view/widgets/scan_action_button.dart';
 import 'package:cardly_app/presentation/home/view/widgets/stats_overview.dart';
+import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -25,20 +26,29 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late final ContactCubit contactCubit;
+  late final AuthCubit authCubit;
   @override
   void initState() {
     super.initState();
+    contactCubit = context.read<ContactCubit>();
+    authCubit = context.read<AuthCubit>();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
-      final contactState = context.read<ContactCubit>().state;
+      final contactState = contactCubit.state;
 
       if (contactState.contacts.isEmpty &&
           contactState.status != ContactStatus.loading) {
-        context.read<ContactCubit>().loadContacts();
+        contactCubit.loadContacts();
       }
     });
+  }
+
+  Future<void> _onRefresh() async {
+    await contactCubit.loadContacts();
+    await authCubit.getUser();
   }
 
   @override
@@ -84,46 +94,49 @@ class _HomePageState extends State<HomePage> {
               final company = user?.company ?? "Your Company";
 
               return SafeArea(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 16),
+                child: RefreshIndicator(
+                  onRefresh: _onRefresh,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 16),
 
-                      HomeHeader(
-                        userName: userName,
-                        onSettings: () => context.goToProfile(),
-                      ).paddingOnly(left: 20, right: 20),
+                        HomeHeader(
+                          userName: userName,
+                          onSettings: () => context.goToProfile(),
+                        ).paddingOnly(left: 20, right: 20),
 
-                      const SizedBox(height: 28),
+                        const SizedBox(height: 28),
 
-                      DigitalCardPreview(
-                        name: userName,
-                        position: position,
-                        company: company,
-                        onViewDetail: () {
-                          context.goToDigitalCard();
-                        },
-                      ).paddingHorizontal(20),
+                        DigitalCardPreview(
+                          name: userName,
+                          position: position,
+                          company: company,
+                          onViewDetail: () {
+                            context.goToDigitalCard();
+                          },
+                        ).paddingHorizontal(20),
 
-                      const SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
-                      ScanActionButton(
-                        onTap: () => context.goToScan(),
-                      ).paddingHorizontal(20),
+                        ScanActionButton(
+                          onTap: () => context.goToScan(),
+                        ).paddingHorizontal(20),
 
-                      const SizedBox(height: 28),
+                        const SizedBox(height: 28),
 
-                      RecentContactsSection(
-                        onViewAll: () => context.goToContact(),
-                      ),
+                        RecentContactsSection(
+                          onViewAll: () => context.goToContact(),
+                        ),
 
-                      const SizedBox(height: 28),
+                        const SizedBox(height: 28),
 
-                      const StatsOverview(),
+                        const StatsOverview(),
 
-                      const SizedBox(height: 80),
-                    ],
+                        const SizedBox(height: 80),
+                      ],
+                    ),
                   ),
                 ),
               );

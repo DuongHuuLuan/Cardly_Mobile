@@ -137,6 +137,7 @@
 
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
+import 'package:cardly_app/core/utils/widget_pop_scope.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
@@ -154,84 +155,83 @@ class UploadScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<ScanCubit>();
 
-    return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (didPop, _) {
+    return BlocConsumer<ScanCubit, ScanState>(
+      listenWhen: (previous, current) {
+        return previous.status != current.status;
+      },
+      listener: (context, state) {
+        if (state.status == ScanStatus.success) {
+          context.hideLoading();
+          context.goToScanUploadSuccess(cubit);
+        }
+
+        if (state.status == ScanStatus.failure) {
+          context.hideLoading();
+
+          final msg = _userFriendlyMessage(
+            state.errorMessage ?? "An error occurred",
+          );
+
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => AppAlertDialog(
+              title: "Upload Failed",
+              message: msg,
+              buttonLabel: "OK",
+              icon: Icons.error_outline,
+              color: AppColor.error,
+              onConfirm: () {
+                Navigator.pop(ctx);
+                cubit.reset();
+                context.goToScan();
+              },
+            ),
+          );
+        }
+      },
+      builder: (context, state) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!context.mounted) return;
+
+          if (state.status == ScanStatus.uploading) {
+            context.showLoading("Uploading...");
+          } else {
+            context.hideLoading();
+          }
+        });
+
+        return Scaffold(
+          appBar: AppAppBar(
+            elevation: 0,
+            title: "Uploading",
+            onLeadingPressed: () {
+              context.hideLoading();
+              cubit.reset();
+              context.goToScan();
+            },
+            actions: [
+              IconButton(
+                icon: const Icon(
+                  Icons.help_outline,
+                  color: AppColor.grey,
+                  size: 22,
+                ),
+                onPressed: () {},
+              ),
+            ],
+          ),
+          body: const SizedBox.shrink(),
+        );
+      },
+    ).canPop(
+      true,
+      onPop: (didPop, result) {
         if (didPop) {
           context.hideLoading();
           cubit.reset();
         }
       },
-      child: BlocConsumer<ScanCubit, ScanState>(
-        listenWhen: (previous, current) {
-          return previous.status != current.status;
-        },
-        listener: (context, state) {
-          if (state.status == ScanStatus.success) {
-            context.hideLoading();
-            context.goToScanUploadSuccess(cubit);
-          }
-
-          if (state.status == ScanStatus.failure) {
-            context.hideLoading();
-
-            final msg = _userFriendlyMessage(
-              state.errorMessage ?? "An error occurred",
-            );
-
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (ctx) => AppAlertDialog(
-                title: "Upload Failed",
-                message: msg,
-                buttonLabel: "OK",
-                icon: Icons.error_outline,
-                color: AppColor.error,
-                onConfirm: () {
-                  Navigator.pop(ctx);
-                  cubit.reset();
-                  context.goToScan();
-                },
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!context.mounted) return;
-
-            if (state.status == ScanStatus.uploading) {
-              context.showLoading("Uploading...");
-            } else {
-              context.hideLoading();
-            }
-          });
-
-          return Scaffold(
-            appBar: AppAppBar(
-              elevation: 0,
-              title: "Uploading",
-              onLeadingPressed: () {
-                context.hideLoading();
-                cubit.reset();
-                context.goToScan();
-              },
-              actions: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.help_outline,
-                    color: AppColor.grey,
-                    size: 22,
-                  ),
-                  onPressed: () {},
-                ),
-              ],
-            ),
-            body: const SizedBox.shrink(),
-          );
-        },
-      ),
     );
   }
 

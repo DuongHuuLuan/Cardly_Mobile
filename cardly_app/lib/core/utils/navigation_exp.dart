@@ -60,8 +60,8 @@ extension AppNavigation on BuildContext {
       push('/scan/${CustomCameraScreen.routerName}', extra: cubit);
   void goToScanPreview(ScanCubit cubit) =>
       push('/scan/${PreviewScreen.routerName}', extra: cubit);
-  void goToScanEdit(ScanCubit cubit) =>
-      push('/scan/${EditScreen.routerName}', extra: cubit);
+  Future<T?> goToScanEdit<T>(ScanCubit cubit) =>
+      push<T>('/scan/${EditScreen.routerName}', extra: cubit);
   void goToScanReview(ScanCubit cubit) =>
       push('/scan/${ReviewScreen.routerName}', extra: cubit);
   void goToScanUpload(ScanCubit cubit) =>

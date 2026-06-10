@@ -1,10 +1,21 @@
 import 'package:cardly_app/core/theme/app_color.dart';
-import 'package:cardly_app/core/utils/navigation_exp.dart';
+import 'package:cardly_app/presentation/contact/view/contact_screen.dart';
+import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class AppBottomNav extends StatelessWidget {
   final int currentIndex;
   const AppBottomNav({super.key, required this.currentIndex});
+
+  void _goIfNeeded(BuildContext context, String routeName) {
+    final currentLocation = GoRouterState.of(context).uri.toString();
+
+    if (currentLocation == routeName) return;
+
+    context.go(routeName);
+  }
+
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
@@ -20,7 +31,7 @@ class AppBottomNav extends StatelessWidget {
             _NavItem(
               icon: Icons.credit_card_outlined,
               isActive: currentIndex == 0,
-              onPressed: () => context.goToHome(),
+              onPressed: () => _goIfNeeded(context, HomePage.routerName),
             ),
             _NavItem(
               // icon: Icons.search,
@@ -31,7 +42,7 @@ class AppBottomNav extends StatelessWidget {
             _NavItem(
               icon: Icons.people_outline,
               isActive: currentIndex == 2,
-              onPressed: () => context.goToContact(),
+              onPressed: () => _goIfNeeded(context, ContactScreen.routerName),
             ),
           ],
         ),

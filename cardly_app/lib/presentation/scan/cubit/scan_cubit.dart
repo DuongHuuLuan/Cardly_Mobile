@@ -57,7 +57,7 @@ class ScanCubit extends Cubit<ScanState> {
     try {
       cameraController?.dispose();
     } catch (e) {
-      print("Lỗi khi hủy camera: $e");
+      throw Exception(e.toString());
     }
     cameraController = null;
   }
@@ -207,7 +207,6 @@ class ScanCubit extends Cubit<ScanState> {
     emit(state.copyWith(status: ScanStatus.uploading, uploadProgress: 0.0));
     try {
       emit(state.copyWith(uploadProgress: 0.3));
-      // await _simulateProgress();
       final result = await scanCardUsecase(state.imagePaths);
       result.fold(
         (failure) => emit(
@@ -231,21 +230,24 @@ class ScanCubit extends Cubit<ScanState> {
     }
   }
 
-  void setProcessing(bool value) {
-    emit(state.copyWith(isProcessing: value));
+  // void setProcessing(bool value) {
+  //   emit(state.copyWith(isProcessing: value));
+  // }
+
+  void replaceImage(int index, String newPath) {
+    final images = List<String>.from(state.imagePaths);
+
+    if (index < 0 || index >= images.length) return;
+
+    images[index] = newPath;
+
+    emit(state.copyWith(imagePaths: images));
   }
 
   void updateDocument(int index, ScannedDocument updatedDoc) {
     final docs = [...state.scannedDocuments];
     docs[index] = updatedDoc;
     emit(state.copyWith(scannedDocuments: docs));
-  }
-
-  Future<void> _simulateProgress() async {
-    for (int i = 1; i <= 10; i++) {
-      await Future.delayed(const Duration(milliseconds: 200));
-      if (!isClosed) emit(state.copyWith(uploadProgress: i / 10));
-    }
   }
 
   Future<String> _saveToTemp(XFile file) async {

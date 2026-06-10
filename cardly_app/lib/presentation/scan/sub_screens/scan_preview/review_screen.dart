@@ -52,6 +52,9 @@ class ReviewScreen extends StatelessWidget {
               onConfirm: () => cubit.uploadAndScan(),
               onRemove: cubit.removeImage,
               canAddMore: state.imagePaths.length < 2,
+              onReplaceImage: (index, newPath) {
+                context.read<ScanCubit>().replaceImage(index, newPath);
+              },
             ),
           );
         },

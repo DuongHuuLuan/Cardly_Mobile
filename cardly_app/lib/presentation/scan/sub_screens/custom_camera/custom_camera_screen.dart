@@ -6,6 +6,7 @@ import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_state.dart';
+import 'package:cardly_app/core/services/card_detector_channel.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/custom_camera/widgets/camera_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
@@ -13,6 +14,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image/image.dart' as img;
+
+enum AutoCaptureStatus { checking, ready, capturing }
 
 class CustomCameraScreen extends StatefulWidget {
   static const routerName = "scan-custom-camera";
@@ -30,6 +33,18 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
   bool _isLandscape = true;
   FlashMode _flashMode = FlashMode.off;
 
+  Timer? _autoCheckTimer;
+  Timer? _readyTimer;
+  bool _hasCaptured = false;
+  AutoCaptureStatus _autoStatus = AutoCaptureStatus.checking;
+
+  bool _autoCaptureEnabled = true;
+  bool _isAutoCapturing = false;
+  bool _isDetectingCard = false;
+
+  static const Duration _checkInterval = Duration(seconds: 3);
+  static const Duration _readyDelay = Duration(seconds: 2);
+
   @override
   void initState() {
     super.initState();
@@ -46,10 +61,114 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
       setState(() {
         _controller = controller;
         _isReady = true;
+        _hasCaptured = false;
+        _isAutoCapturing = false;
+        _autoStatus = AutoCaptureStatus.checking;
       });
+
+      _startAutoCapture();
     } catch (e) {
       if (mounted) _showCameraUnavailableDialog();
     }
+  }
+
+  void _startAutoCapture() {
+    _autoCheckTimer?.cancel();
+
+    _autoCheckTimer = Timer.periodic(_checkInterval, (_) async {
+      if (!_autoCaptureEnabled) return;
+      if (!mounted) return;
+      if (_controller == null || !_controller!.value.isInitialized) return;
+      if (_controller!.value.isTakingPicture) return;
+      if (_isAutoCapturing) return;
+      if (_isDetectingCard) return;
+      if (cubit.state.imagePaths.length >= 2) return;
+
+      bool isReady = false;
+
+      _isDetectingCard = true;
+      try {
+        isReady = await _checkCardReady();
+      } finally {
+        _isDetectingCard = false;
+      }
+
+      if (!mounted) return;
+
+      if (isReady) {
+        if (_autoStatus != AutoCaptureStatus.ready) {
+          setState(() {
+            _autoStatus = AutoCaptureStatus.ready;
+          });
+
+          _readyTimer?.cancel();
+          _readyTimer = Timer(_readyDelay, () async {
+            if (!mounted) return;
+            if (_autoStatus == AutoCaptureStatus.ready) {
+              await _autoTakePicture();
+            }
+          });
+        }
+      } else {
+        _readyTimer?.cancel();
+
+        if (_autoStatus != AutoCaptureStatus.checking) {
+          setState(() {
+            _autoStatus = AutoCaptureStatus.checking;
+          });
+        }
+      }
+    });
+  }
+
+  Future<bool> _checkCardReady() async {
+    print("START DETECT CARD");
+    if (_controller == null || !_controller!.value.isInitialized) return false;
+    if (_controller!.value.isTakingPicture) return false;
+    if (_hasCaptured || _isAutoCapturing) return false;
+
+    try {
+      final tempFile = await _controller!.takePicture();
+      final bytes = await File(tempFile.path).readAsBytes();
+      print("TEMP IMAGE PATH: ${tempFile.path}");
+      print("TEMP IMAGE SIZE: ${bytes.length}");
+
+      final detected = await CardDetectorChannel.detectCard(bytes);
+      print("DETECTED CARD: $detected");
+
+      try {
+        await File(tempFile.path).delete();
+      } catch (e) {
+        throw Exception(e.toString());
+      }
+
+      return detected;
+    } catch (e) {
+      print("DETECT ERROR: $e");
+      return false;
+    }
+  }
+
+  Future<void> _autoTakePicture() async {
+    if (_hasCaptured) return;
+    if (_isAutoCapturing) return;
+    if (_isDetectingCard) return;
+    if (_controller == null || !_controller!.value.isInitialized) return;
+    if (_controller!.value.isTakingPicture) return;
+
+    _hasCaptured = true;
+    _isAutoCapturing = true;
+
+    _autoCheckTimer?.cancel();
+    _readyTimer?.cancel();
+
+    if (mounted) {
+      setState(() {
+        _autoStatus = AutoCaptureStatus.capturing;
+      });
+    }
+
+    await _takePicture();
   }
 
   @override
@@ -98,10 +217,15 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
   }
 
   Future<void> _onPickFromGallery() async {
+    _autoCaptureEnabled = false;
+    _autoCheckTimer?.cancel();
+    _readyTimer?.cancel();
+
     await cubit.pickFromGallery();
     if (!mounted) return;
     if (cubit.state.imagePaths.isNotEmpty) {
-      context.goToScanPreview(cubit);
+      // context.goToScanPreview(cubit);
+      context.goToScanReview(cubit);
     }
   }
 
@@ -119,7 +243,13 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
   }
 
   Future<void> _takePicture() async {
+    _autoCaptureEnabled = false;
+    _autoCheckTimer?.cancel();
+    _readyTimer?.cancel();
+
     if (_controller == null || !_controller!.value.isInitialized) return;
+    if (_controller!.value.isTakingPicture) return;
+
     if (cubit.state.imagePaths.length >= 2) {
       showDialog(
         context: context,
@@ -200,8 +330,21 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
         return;
       }
 
+      final beforeCount = cubit.state.imagePaths.length;
+
       cubit.confirmEdit(path);
-      context.goToScanEdit(cubit);
+
+      _autoCaptureEnabled = false;
+      _autoCheckTimer?.cancel();
+      _readyTimer?.cancel();
+
+      final result = await context.goToScanEdit<bool>(cubit);
+      if (!mounted) return;
+
+      if (result != true && cubit.state.imagePaths.length > beforeCount) {
+        cubit.removeImage(cubit.state.imagePaths.length - 1);
+      }
+      _resumeCameraAfterBack();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -211,8 +354,26 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
     }
   }
 
+  void _resumeCameraAfterBack() {
+    _autoCheckTimer?.cancel();
+    _readyTimer?.cancel();
+
+    setState(() {
+      _hasCaptured = false;
+      _isAutoCapturing = false;
+      _isDetectingCard = false;
+      _autoCaptureEnabled = true;
+      _autoStatus = AutoCaptureStatus.checking;
+    });
+
+    _startAutoCapture();
+  }
+
   @override
   void dispose() {
+    _autoCheckTimer?.cancel();
+    _readyTimer?.cancel();
+
     WidgetsBinding.instance.removeObserver(this);
     cubit.releaseCamera();
     _controller = null;
@@ -251,7 +412,13 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
                   ? CameraPreview(_controller!)
                   : const Center(child: Text("No camera")),
             ),
-            IgnorePointer(child: CameraOverlay(isLandscape: _isLandscape)),
+            // IgnorePointer(child: CameraOverlay(isLandscape: _isLandscape)),
+            IgnorePointer(
+              child: CameraOverlay(
+                isLandscape: _isLandscape,
+                status: _autoStatus,
+              ),
+            ),
 
             //icon back
             Positioned(
@@ -259,8 +426,13 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
               left: 16,
               child: IconButton(
                 onPressed: () {
+                  _autoCheckTimer?.cancel();
+                  _readyTimer?.cancel();
+
                   cubit.releaseCamera();
-                  context.pop();
+                  cubit.reset();
+
+                  context.goToHome();
                 },
                 icon: const Icon(Icons.close, color: AppColor.white, size: 30),
               ),
@@ -301,8 +473,26 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
                     ),
                     tooltip: 'Flash',
                   ),
+                  // nut chup anh
                   GestureDetector(
-                    onTap: _takePicture,
+                    onTap: () async {
+                      if (_hasCaptured) return;
+
+                      _hasCaptured = true;
+                      _isAutoCapturing = true;
+                      _autoCaptureEnabled = false;
+
+                      _autoCheckTimer?.cancel();
+                      _readyTimer?.cancel();
+
+                      if (_controller != null &&
+                          _controller!.value.isInitialized &&
+                          _controller!.value.isStreamingImages) {
+                        await _controller!.stopImageStream();
+                      }
+
+                      await _takePicture();
+                    },
                     child: Container(
                       width: MediaQuery.of(context).size.width * 0.2,
                       height: MediaQuery.of(context).size.height * 0.1,

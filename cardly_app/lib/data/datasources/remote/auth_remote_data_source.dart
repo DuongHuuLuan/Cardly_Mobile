@@ -100,7 +100,7 @@ class AuthRemoteDataSource {
     if (data is Map<String, dynamic>) {
       final error = data['error'] as Map<String, dynamic>?;
       if (error != null) {
-        return error['message'] as String? ?? 'An unexpected error occurred';
+        return error['msg'] as String? ?? 'An unexpected error occurred';
       }
     }
     return 'An unexpected error occurred';

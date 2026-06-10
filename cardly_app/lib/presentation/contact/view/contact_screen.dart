@@ -94,12 +94,25 @@ class _ContactScreenState extends State<ContactScreen> {
                 }
 
                 if (state.contacts.isEmpty) {
-                  return Center(
-                    child: Text(
-                      "No contact",
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColor.grey,
-                      ),
+                  return RefreshIndicator(
+                    onRefresh: () => context.read<ContactCubit>().loadContacts(
+                      refresh: true,
+                    ),
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.6,
+                          child: Center(
+                            child: Text(
+                              "No contact",
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                color: AppColor.grey,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 }

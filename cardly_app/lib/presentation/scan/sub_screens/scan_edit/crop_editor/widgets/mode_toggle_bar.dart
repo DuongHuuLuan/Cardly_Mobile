@@ -20,11 +20,11 @@ class ModeToggleBar extends StatelessWidget {
         children: [
           _buildModeChip('Crop', Icons.crop, CropEditorMode.crop),
           const SizedBox(width: 8),
-          _buildModeChip(
-            'Perspective',
-            Icons.transform,
-            CropEditorMode.perspective,
-          ),
+          // _buildModeChip(
+          //   'Perspective',
+          //   Icons.transform,
+          //   CropEditorMode.perspective,
+          // ),
         ],
       ),
     );
