@@ -97,13 +97,40 @@ class AuthRemoteDataSource {
 
   String _extractErrorMessage(DioException e) {
     final data = e.response?.data;
+
     if (data is Map<String, dynamic>) {
-      final error = data['error'] as Map<String, dynamic>?;
-      if (error != null) {
-        return error['msg'] as String? ?? 'An unexpected error occurred';
+      final detail = data['detail'];
+      if (detail is List && detail.isNotEmpty) {
+        final firstError = detail.first;
+
+        if (firstError is Map<String, dynamic>) {
+          return firstError['msg'] as String? ?? 'Invalid request data';
+        }
+
+        return detail.toString();
+      }
+
+      if (detail is String) {
+        return detail;
+      }
+
+      final error = data['error'];
+      if (error is Map<String, dynamic>) {
+        return error['message'] as String? ??
+            error['msg'] as String? ??
+            'An unexpected error occurred';
+      }
+
+      if (data['message'] is String) {
+        return data['message'];
+      }
+
+      if (data['msg'] is String) {
+        return data['msg'];
       }
     }
-    return 'An unexpected error occurred';
+
+    return e.message ?? 'An unexpected error occurred';
   }
 
   Future<void> logout(String refreshToken) async {
@@ -130,12 +157,8 @@ class AuthRemoteDataSource {
         "email": email,
       });
       return ForgotPasswordMapper.toForgotPasswordResult(response.data);
-      //  return ForgotPasswordResult(
-      //   message: response.data.message,
-      //   success: response.data.success,
-      // );
-    } catch (e) {
-      throw ServerException("OTP sent via Email failed.: ${e.toString()}");
+    } on DioException catch (e) {
+      throw ServerException(_extractErrorMessage(e));
     }
   }
 
