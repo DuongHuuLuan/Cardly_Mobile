@@ -62,8 +62,8 @@ extension AppNavigation on BuildContext {
       push('/scan/${PreviewScreen.routerName}', extra: cubit);
   Future<T?> goToScanEdit<T>(ScanCubit cubit) =>
       push<T>('/scan/${EditScreen.routerName}', extra: cubit);
-  void goToScanReview(ScanCubit cubit) =>
-      push('/scan/${ReviewScreen.routerName}', extra: cubit);
+  Future<T?> goToScanReview<T>(ScanCubit cubit) =>
+      push<T>('/scan/${ReviewScreen.routerName}', extra: cubit);
   void goToScanUpload(ScanCubit cubit) =>
       push('/scan/${UploadScreen.routerName}', extra: cubit);
   void goToScanUploadSuccess(ScanCubit cubit) =>

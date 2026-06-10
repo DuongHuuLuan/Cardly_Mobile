@@ -27,93 +27,90 @@ class PreviewView extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Text('Review your cards', style: AppTextStyles.heading2),
-          const SizedBox(height: 8),
-          Text(
-            '${imagePaths.length}/2 card${imagePaths.length > 1 ? 's' : ''} selected',
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColor.greyDark,
-              fontWeight: FontWeight.w500,
-            ),
+    return Column(
+      children: [
+        Text('Review your cards', style: AppTextStyles.heading2),
+        const SizedBox(height: 8),
+        Text(
+          '${imagePaths.length}/2 card${imagePaths.length > 1 ? 's' : ''} selected',
+          style: AppTextStyles.bodySmall.copyWith(
+            color: AppColor.greyDark,
+            fontWeight: FontWeight.w500,
           ),
-          const SizedBox(height: 24),
-          Expanded(
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-              ),
-              itemCount: imagePaths.length,
-              itemBuilder: (context, index) => Stack(
-                children: [
-                  GestureDetector(
-                    onTap: () => _showPreview(context, index),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        File(imagePaths[index]),
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 4,
-                    right: 4,
-                    child: GestureDetector(
-                      onTap: () => onRemove(index),
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          color: AppColor.black87,
-                          shape: BoxShape.circle,
-                        ),
-                        padding: const EdgeInsets.all(4),
-                        child: const Icon(
-                          Icons.close,
-                          color: AppColor.white,
-                          size: 18,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+        ),
+        const SizedBox(height: 24),
+        Expanded(
+          child: GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
             ),
-          ),
-          const SizedBox(height: 16),
-          if (canAddMore) ...[
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () => _showAddOptions(context),
-                icon: const Icon(Icons.add),
-                label: const Text('Add card'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColor.primary,
-                  side: const BorderSide(color: AppColor.primary),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
+            itemCount: imagePaths.length,
+            itemBuilder: (context, index) => Stack(
+              children: [
+                GestureDetector(
+                  onTap: () => _showPreview(context, index),
+                  child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
+                    child: Image.file(
+                      File(imagePaths[index]),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                    ),
                   ),
+                ),
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: GestureDetector(
+                    onTap: () => onRemove(index),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: AppColor.black87,
+                        shape: BoxShape.circle,
+                      ),
+                      padding: const EdgeInsets.all(4),
+                      child: const Icon(
+                        Icons.close,
+                        color: AppColor.white,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (canAddMore) ...[
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _showAddOptions(context),
+              icon: const Icon(Icons.add),
+              label: const Text('Add card'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColor.primary,
+                side: const BorderSide(color: AppColor.primary),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
-          ],
-          AppElevatedButton(
-            label: 'Confirm & Upload',
-            onPressed: onConfirm,
-            labelColor: AppColor.white,
           ),
+          const SizedBox(height: 12),
         ],
-      ),
-    );
+        AppElevatedButton(
+          label: 'Confirm & Upload',
+          onPressed: onConfirm,
+          labelColor: AppColor.white,
+        ),
+      ],
+    ).paddingOnly(top: 24, left: 24, right: 24, bottom: 30);
   }
 
   void _showAddOptions(BuildContext context) {
