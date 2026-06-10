@@ -1,17 +1,19 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/domain/Entities/business_card_entity.dart';
 import 'package:cardly_app/domain/Entities/scanned_document.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_state.dart';
-import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_document/widgets/action_bar.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_document/widgets/document_form_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DocumentDetailScreen extends StatefulWidget {
+  static const routerName = "scan-document-detail";
+
   final List<ScannedDocument> documents;
   const DocumentDetailScreen({super.key, required this.documents});
 

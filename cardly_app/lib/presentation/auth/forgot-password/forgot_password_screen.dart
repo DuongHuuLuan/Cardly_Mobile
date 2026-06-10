@@ -1,22 +1,19 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/utils/navigation_exp.dart';
+import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/submit_button.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
-import 'package:cardly_app/presentation/auth/view/login_screen.dart';
 import 'package:cardly_app/presentation/auth/view/widgets/auth_form.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-extension ForgotPasswordNavigation on BuildContext {
-  void goToForgotPassword() => go('/forgot-password');
-  void goToOtpVerification(String email) => go('/verify-otp', extra: email);
-}
-
 class ForgotPasswordScreen extends StatefulWidget {
+  static const routerName = "/forgot-password";
   const ForgotPasswordScreen({super.key});
   @override
   State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
@@ -45,47 +42,49 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         title: "Forgot Password",
         onLeadingPressed: () => context.goToLogin(),
       ),
-      body: BlocListener<AuthCubit, AuthState>(
+      body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state.status == AuthStatus.forgotPasswordSuccess) {
-            context.goToOtpVerification(emailController.text.trim());
+            context.goToOtpVerificationForgotPassword(
+              emailController.text.trim(),
+            );
           } else if (state.status == AuthStatus.forgotPasswordFailure &&
               state.errorMessage != null) {
             showDialog(
               context: context,
               builder: (context) => AppAlertDialog(
-                title: "This email address has not been registered.",
+                title:
+                    state.errorMessage ??
+                    "This email address has not been registered.",
                 onConfirm: () => context.pop(),
               ),
             );
           }
         },
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              const SizedBox(height: 30),
-              Text(
-                "Enter your email address, We will send OTP code "
-                "for verification in the next step.",
-                style: AppTextStyles.bodyMedium.copyWith(color: AppColor.grey),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 30),
-              AuthForm(formKey: _formKey, emailController: emailController),
-              const SizedBox(height: 10),
-              SubmitButton(
-                controllers: [emailController],
-                onPressed: () {
-                  final email = emailController.text.trim();
-                  if (email.isEmpty) return;
-                  _authCubit.forgotPassword(email);
-                },
-                label: "Send OTP",
-              ),
-            ],
-          ),
-        ),
+        builder: (context, state) => Column(
+          children: [
+            const SizedBox(height: 30),
+            Text(
+              "Enter your email address, We will send OTP code "
+              "for verification in the next step.",
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColor.grey),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 30),
+            AuthForm(formKey: _formKey, emailController: emailController),
+            const SizedBox(height: 10),
+            SubmitButton(
+              controllers: [emailController],
+              onPressed: () {
+                final email = emailController.text.trim();
+                if (email.isEmpty) return;
+                _authCubit.forgotPassword(email);
+              },
+              label: "Send OTP",
+              isLoading: state.status == AuthStatus.forgotPasswordLoading,
+            ),
+          ],
+        ).paddingAll(16),
       ),
     );
   }

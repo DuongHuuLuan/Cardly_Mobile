@@ -10,9 +10,10 @@ abstract class CardService {
   factory CardService(Dio dio, {String baseUrl}) = _CardService;
 
   @MultiPart()
-  @POST('/cards/scan')
+  @POST('/api/v1/documents')
   Future<HttpResponse<BaseResponse<ScanResponseModel>>> scanCard(
-    @Part(name: "images") List<MultipartFile> images,
+    @Part(name: "file") MultipartFile file,
+    @Part(name: "file2") MultipartFile? file2,
   );
 
   @PUT('/cards/{id}')

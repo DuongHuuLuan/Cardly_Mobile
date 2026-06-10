@@ -5,12 +5,13 @@ part 'user_model.g.dart';
 
 @JsonSerializable()
 class UserModel {
-  final int id;
+  final String id;
   @JsonKey(name: "access_token")
   final String? accessToken;
+  @JsonKey(name: "full_name")
   final String name;
   final String email;
-  final String phone;
+  final String? phone;
   final String? avatar;
   final String? password;
   final String? position;
@@ -22,13 +23,15 @@ class UserModel {
   @JsonKey(name: "card_url")
   final String? cardUrl;
   final String? bio;
+  @JsonKey(name: "is_active")
+  final bool? isActive;
 
   const UserModel({
     required this.id,
     this.accessToken,
     required this.name,
     required this.email,
-    required this.phone,
+    this.phone,
     this.avatar,
     this.password,
     this.position,
@@ -38,6 +41,7 @@ class UserModel {
     this.linkedIn,
     this.cardUrl,
     this.bio,
+    this.isActive,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>
@@ -49,8 +53,8 @@ class UserModel {
     accessToken: accessToken,
     name: name,
     email: email,
-    phone: phone,
-    password: password!,
+    phone: phone ?? '',
+    password: password ?? '',
     avatar: avatar,
     position: position,
     company: company,

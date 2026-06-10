@@ -1,22 +1,17 @@
 import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/password_strength_widget.dart';
 import 'package:cardly_app/core/widgets/submit_button.dart';
 import 'package:cardly_app/domain/Entities/user_entity.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
-import 'package:cardly_app/presentation/auth/view/login_screen.dart';
 import 'package:cardly_app/presentation/auth/view/widgets/auth_form.dart';
-import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-
-extension RegisterNavigation on BuildContext {
-  void goToRegister() => go('/register');
-}
 
 class RegisterPage extends StatefulWidget {
+  static const routerName = "/register";
   const RegisterPage({super.key});
 
   @override
@@ -34,6 +29,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final confirmPasswordController = TextEditingController();
 
   bool _passwordValid = false;
+  UserEntity? _pendingRegistrationUser;
 
   @override
   void initState() {
@@ -69,13 +65,14 @@ class _RegisterPageState extends State<RegisterPage> {
       }
 
       final user = UserEntity(
-        id: DateTime.now().microsecondsSinceEpoch,
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
         name: nameController.text.trim(),
         email: emailController.text.trim(),
         phone: phoneController.text.trim(),
         password: passwordController.text.trim(),
       );
 
+      _pendingRegistrationUser = user;
       _authCubit.register(user);
     }
   }
@@ -85,33 +82,32 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
-          if (state.status == AuthStatus.failed &&
-              state.errorMessage != null &&
-              state.emailError == null) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+          if (state.status == AuthStatus.failed) {
+            final message =
+                state.emailError ??
+                state.errorMessage ??
+                "An unknown error occurred";
+            showDialog(
+              context: context,
+              builder: (_) => AppAlertDialog(
+                icon: Icons.error_outline,
+                color: AppColor.error,
+                title: "Registration Failed",
+                message: message,
+                buttonLabel: "OK",
+                onConfirm: () => Navigator.pop(context),
+              ),
+            );
           }
 
           if (state.status == AuthStatus.authenticated) {
             context.goToHome();
           }
-          if (state.status == AuthStatus.registrationSuccess) {
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (_) => AppAlertDialog(
-                icon: Icons.check_circle,
-                color: AppColor.success,
-                title: "Register Successfully",
-                message: "Check your email to confirm your account.",
-                buttonLabel: "Go to Login",
-                onConfirm: () {
-                  Navigator.pop(context);
-                  context.goToLogin();
-                },
-              ),
-            );
+          if (state.status == AuthStatus.registrationSuccess &&
+              _pendingRegistrationUser != null) {
+            final user = _pendingRegistrationUser!;
+            _pendingRegistrationUser = null;
+            context.goToOtpVerificationRegister(user);
           }
         },
         builder: (context, state) {
@@ -169,6 +165,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       onPressed: () => _register(),
                       label: "Register",
                       canSubmit: _passwordValid,
+                      isLoading: state.status == AuthStatus.loading,
                     ),
 
                     const SizedBox(height: 40),

@@ -1,5 +1,6 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_page_indicator.dart';
 import 'package:flutter/material.dart';
 
@@ -74,70 +75,63 @@ class AppIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeText = Theme.of(context).textTheme;
-    return Padding(
-      padding: padding,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Dots
-          AppPageIndicator(
-            currentIndex: currentIndex,
-            count: totalPages,
-            activeColor: dotsActiveColor ?? AppColor.primary,
-            inactiveColor: dotsInactiveColor ?? AppColor.greyLight,
-            activeWidth: dotsActiveWidth ?? 24,
-            inactiveWidth: dotsInactiveWidth ?? 10,
-            height: dotsHeight ?? 10,
-          ),
-          SizedBox(height: dotsToButtonGap),
-          // Buttons
-          if (onBack != null && currentIndex > 0)
-            Row(
-              children: [
-                Expanded(
-                  child: _buildButton(
-                    label: backLabel,
-                    icon: Icons.arrow_back_ios,
-                    iconOnRight: false,
-                    backgroundColor: backButtonColor,
-                    foregroundColor: backButtonTextColor,
-                    onPressed: onBack!,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(child: _buildNextButton()),
-              ],
-            )
-          else
-            _buildNextButton(),
-          const SizedBox(height: 20),
-          // Skip
-          if (showSkip)
-            Align(
-              alignment: Alignment.center,
-              child: InkWell(
-                onTap: onSkip,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  child: Text(
-                    skipLabel,
-                    style:
-                        skipTextStyle ??
-                        AppTextStyles.bodyMedium.copyWith(
-                          color: skipTextColor ?? AppColor.grey,
-                          fontWeight: FontWeight.w500,
-                        ),
-                  ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Dots
+        AppPageIndicator(
+          currentIndex: currentIndex,
+          count: totalPages,
+          activeColor: dotsActiveColor ?? AppColor.primary,
+          inactiveColor: dotsInactiveColor ?? AppColor.greyLight,
+          activeWidth: dotsActiveWidth ?? 24,
+          inactiveWidth: dotsInactiveWidth ?? 10,
+          height: dotsHeight ?? 10,
+        ),
+        SizedBox(height: dotsToButtonGap),
+        // Buttons
+        if (onBack != null && currentIndex > 0)
+          Row(
+            children: [
+              Expanded(
+                child: _buildButton(
+                  label: backLabel,
+                  icon: Icons.arrow_back_ios,
+                  iconOnRight: false,
+                  backgroundColor: backButtonColor,
+                  foregroundColor: backButtonTextColor,
+                  onPressed: onBack!,
                 ),
               ),
+              const SizedBox(width: 12),
+              Expanded(child: _buildNextButton()),
+            ],
+          )
+        else
+          _buildNextButton(),
+        const SizedBox(height: 20),
+        // Skip
+        if (showSkip)
+          Align(
+            alignment: Alignment.center,
+            child: InkWell(
+              onTap: onSkip,
+              child: Text(
+                skipLabel,
+                style:
+                    skipTextStyle ??
+                    AppTextStyles.bodyMedium.copyWith(
+                      color: skipTextColor ?? AppColor.grey,
+                      fontWeight: FontWeight.w500,
+                    ),
+              )
+                  .paddingHorizontal(8)
+                  .paddingVertical(4),
             ),
-          if (showSkip) SizedBox(height: skipToDotsGap),
-        ],
-      ),
-    );
+          ),
+        if (showSkip) SizedBox(height: skipToDotsGap),
+      ],
+    ).padding(padding);
   }
 
   Widget _buildNextButton() {
@@ -177,10 +171,7 @@ class AppIndicator extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (!iconOnRight)
-              Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: Icon(icon, size: 14),
-              ),
+              Icon(icon, size: 14).paddingRight(6),
             Text(
               label,
               style:
@@ -191,10 +182,7 @@ class AppIndicator extends StatelessWidget {
                   ),
             ),
             if (iconOnRight)
-              Padding(
-                padding: const EdgeInsets.only(left: 10),
-                child: Icon(icon, size: 15),
-              ),
+              Icon(icon, size: 15).paddingLeft(10),
           ],
         ),
       ),

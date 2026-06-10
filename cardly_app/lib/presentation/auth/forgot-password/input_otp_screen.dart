@@ -2,23 +2,21 @@ import 'dart:async';
 
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
+import 'package:cardly_app/domain/Entities/user_entity.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
-import 'package:cardly_app/presentation/auth/forgot-password/forgot_password_screen.dart';
-import 'package:cardly_app/presentation/auth/forgot-password/reset_password_screen.dart';
 import 'package:cardly_app/presentation/auth/forgot-password/widgets/otp_input_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-extension OtpVerificationNavigation on BuildContext {
-  void goToOtpVerification() => go('/verify-otp');
-}
-
 class OtpVerificationScreen extends StatefulWidget {
+  static const routerName = "/verify-otp";
+
   const OtpVerificationScreen({super.key});
   @override
   State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
@@ -26,7 +24,11 @@ class OtpVerificationScreen extends StatefulWidget {
 
 class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   late final AuthCubit _authCubit;
-  late String _email;
+  String _email = '';
+  bool _isRegistration = false;
+  UserEntity? _registrationUser;
+  bool _initialized = false;
+
   String _otp = '';
   final GlobalKey<OtpInputFieldState> _otpFieldKey =
       GlobalKey<OtpInputFieldState>();
@@ -43,7 +45,13 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _email = GoRouterState.of(context).extra as String;
+    if (!_initialized) {
+      _initialized = true;
+      final args = GoRouterState.of(context).extra as Map<String, dynamic>;
+      _email = args['email'] as String;
+      _isRegistration = args['isRegistration'] as bool;
+      _registrationUser = args['user'] as UserEntity?;
+    }
   }
 
   void _startTimer() {
@@ -64,7 +72,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
             buttonLabel: "Re-sen OTP",
             onConfirm: () {
               Navigator.pop(context);
-              _authCubit.forgotPassword(_email);
+              _resendOtp();
               _startTimer();
             },
           ),
@@ -73,23 +81,12 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     });
   }
 
-  void _handleOtpCompleted(String otp) {
-    setState(() => _otp = otp);
-  }
-
-  void _handleVerifyFailure() {
-    // _authCubit.resetStatus();
-    // setState(() => _otp = '');
-    // _otpFieldKey.currentState?.clear();
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AppAlertDialog(
-        title: "Incorrect OTP code",
-        onConfirm: () => Navigator.pop(ctx),
-      ),
-    );
+  void _resendOtp() {
+    if (_isRegistration && _registrationUser != null) {
+      _authCubit.resendRegisterOtp(_registrationUser!);
+    } else {
+      _authCubit.resendOtp(_email);
+    }
   }
 
   @override
@@ -101,14 +98,41 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppAppBar(onLeadingPressed: () => context.goToForgotPassword()),
+      appBar: AppAppBar(
+        onLeadingPressed: () {
+          context.pop();
+        },
+      ),
       body: BlocConsumer<AuthCubit, AuthState>(
         listenWhen: (previous, current) => previous.status != current.status,
         listener: (context, state) {
-          if (state.status == AuthStatus.verifyOtpSuccess) {
-            context.goToResetPassword(_email);
+          if (state.status == AuthStatus.authenticated) {
+            context.goToHome();
+          } else if (state.status == AuthStatus.verifyOtpSuccess &&
+              !_isRegistration) {
+            context.goToResetPassword(_email, _otp);
           } else if (state.status == AuthStatus.verifyOtpFailure) {
-            _handleVerifyFailure();
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (ctx) => AppAlertDialog(
+                title: "Incorrect OTP code",
+                onConfirm: () => Navigator.pop(ctx),
+              ),
+            );
+          } else if (state.status == AuthStatus.failed &&
+              state.errorMessage != null) {
+            showDialog(
+              context: context,
+              builder: (_) => AppAlertDialog(
+                icon: Icons.error_outline,
+                color: AppColor.error,
+                title: "Login Failed",
+                message: state.errorMessage,
+                buttonLabel: "OK",
+                onConfirm: () => Navigator.pop(context),
+              ),
+            );
           }
         },
         builder: (context, state) {
@@ -148,7 +172,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                         )
                       : GestureDetector(
                           onTap: () {
-                            _authCubit.forgotPassword(_email);
+                            _resendOtp();
                             _startTimer();
                           },
                           child: const Text(
@@ -164,7 +188,11 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                 AppElevatedButton(
                   label: "Confirm",
                   onPressed: _otp.length == 6
-                      ? () => _authCubit.verifyOtp(_email, _otp)
+                      ? () => _authCubit.verifyOtp(
+                          _email,
+                          _otp,
+                          password: _registrationUser?.password,
+                        )
                       : null,
                   labelStyle: AppTextStyles.bodyLarge.copyWith(
                     color: AppColor.white,

@@ -1,14 +1,18 @@
 import 'dart:io';
+import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
 
 class PreviewScreen extends StatefulWidget {
+  static const routerName = "scan-preview";
+
   const PreviewScreen({super.key});
   @override
   State<PreviewScreen> createState() => _PreviewScreenState();
@@ -64,67 +68,61 @@ class _PreviewScreenState extends State<PreviewScreen> {
             ),
           ),
           if (imagePaths.length > 1)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  imagePaths.length,
-                  (i) => Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: _currentIndex == i ? 24 : 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: _currentIndex == i
-                          ? AppColor.primary
-                          : AppColor.greyLight,
-                      borderRadius: BorderRadius.circular(4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                imagePaths.length,
+                (i) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: _currentIndex == i ? 24 : 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: _currentIndex == i
+                        ? AppColor.primary
+                        : AppColor.greyLight,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            ).paddingVertical(12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    cubit.reset();
+                    cubit.pickFromGallery();
+                  },
+                  icon: Icon(Icons.photo_library),
+                  label: Text("Select again", style: AppTextStyles.bodyLarge),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColor.primary,
+                    side: const BorderSide(color: AppColor.primary),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
               ),
-            ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-            child: Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      cubit.reset();
-                      cubit.pickFromGallery();
-                    },
-                    icon: Icon(Icons.photo_library),
-                    label: Text("Select again", style: AppTextStyles.bodyLarge),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColor.primary,
-                      side: const BorderSide(color: AppColor.primary),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: AppElevatedButton(
+                  label: 'Continue',
+                  labelStyle: AppTextStyles.bodyLarge.copyWith(
+                    color: AppColor.white,
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: AppElevatedButton(
-                    label: 'Continue',
-                    labelStyle: AppTextStyles.bodyLarge.copyWith(
-                      color: AppColor.white,
-                    ),
-                    iconAfterText: true,
-                    icon: Icon(
-                      Icons.arrow_forward_ios,
-                      color: AppColor.white,
-                      size: 20,
-                    ),
-                    onPressed: () => context.go('/scan/review', extra: cubit),
+                  iconAfterText: true,
+                  icon: Icon(
+                    Icons.arrow_forward_ios,
+                    color: AppColor.white,
+                    size: 20,
                   ),
+                  onPressed: () => context.goToScanReview(cubit),
                 ),
-              ],
-            ),
-          ),
+              ),
+            ],
+          ).paddingOnly(left: 24, right: 24, bottom: 24),
         ],
       ),
     );

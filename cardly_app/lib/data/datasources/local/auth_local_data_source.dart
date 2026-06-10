@@ -6,8 +6,10 @@ import 'dart:convert';
 
 abstract class AuthLocalDataSource {
   Future<void> saveToken(String token);
+  Future<void> saveRefreshToken(String refreshToken);
   Future<void> saveUser(UserEntity user);
   Future<String?> getToken();
+  Future<String?> getRefreshToken();
   Future<UserEntity?> getUser();
   Future<void> clear();
 }
@@ -19,10 +21,16 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
 
   static const String _tokenKey = "access_token";
   static const String _userKey = "current_user";
+  static const String _refreshTokenKey = "refresh_token";
 
   @override
   Future<void> saveToken(String token) async {
     await sharedPreferences.setString(_tokenKey, token);
+  }
+
+  @override
+  Future<void> saveRefreshToken(String refreshToken) async {
+    await sharedPreferences.setString(_refreshTokenKey, refreshToken);
   }
 
   @override
@@ -34,6 +42,10 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
 
   @override
   Future<String?> getToken() async => sharedPreferences.getString(_tokenKey);
+
+  @override
+  Future<String?> getRefreshToken() async =>
+      sharedPreferences.getString(_refreshTokenKey);
 
   @override
   Future<UserEntity?> getUser() async {
@@ -48,6 +60,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   @override
   Future<void> clear() async {
     await sharedPreferences.remove(_tokenKey);
+    await sharedPreferences.remove(_refreshTokenKey);
     await sharedPreferences.remove(_userKey);
   }
 }

@@ -5,9 +5,10 @@ part 'verify_otp_response.g.dart';
 
 @JsonSerializable()
 class VerifyOtpResponse extends Equatable {
+  final bool success;
   final String message;
 
-  const VerifyOtpResponse({required this.message});
+  const VerifyOtpResponse({required this.success, required this.message});
 
   factory VerifyOtpResponse.fromJson(Map<String, dynamic> json) =>
       _$VerifyOtpResponseFromJson(json);
@@ -15,5 +16,5 @@ class VerifyOtpResponse extends Equatable {
   Map<String, dynamic> toJson() => _$VerifyOtpResponseToJson(this);
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [success, message];
 }

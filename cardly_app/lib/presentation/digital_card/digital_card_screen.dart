@@ -1,21 +1,18 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
 import 'package:cardly_app/presentation/digital_card/widgets/digital_card_preview.dart';
 import 'package:cardly_app/presentation/digital_card/widgets/digital_card_share.dart';
-import 'package:cardly_app/presentation/home/view/home_screen.dart';
-import 'package:cardly_app/presentation/profile/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
-extension DigitalCardNavigation on BuildContext {
-  void goToDigitalCard() => go('/digital-card');
-}
+import '../../core/utils/navigation_exp.dart';
 
 class DigitalCardScreen extends StatelessWidget {
+  static const routerName = "/digital-card";
   const DigitalCardScreen({super.key});
 
   @override
@@ -26,16 +23,13 @@ class DigitalCardScreen extends StatelessWidget {
         showBorder: true,
         onLeadingPressed: () => context.goToHome(),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: TextButton(
-              onPressed: () => context.goToProfile(),
-              child: Text(
-                "Chỉnh sửa",
-                style: AppTextStyles.bodyMedium.copyWith(color: AppColor.grey),
-              ),
+          TextButton(
+            onPressed: () => context.goToProfile(),
+            child: Text(
+              "Chỉnh sửa",
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColor.grey),
             ),
-          ),
+          ).paddingOnly(right: 8.0),
         ],
         titleStyle: AppTextStyles.bodyLarge.copyWith(
           fontWeight: FontWeight.bold,
@@ -55,22 +49,19 @@ class DigitalCardScreen extends StatelessWidget {
 
           return SafeArea(
             child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    DigitalCardPreview(
-                      name: name,
-                      company: company,
-                      position: position,
-                    ),
-                    const SizedBox(height: 20),
-                    DigitalCardShare(cardUrl: cardUrl),
-                  ],
-                ),
+              child: Column(
+                children: [
+                  DigitalCardPreview(
+                    name: name,
+                    company: company,
+                    position: position,
+                  ),
+                  const SizedBox(height: 20),
+                  DigitalCardShare(cardUrl: cardUrl),
+                ],
               ),
             ),
-          );
+          ).paddingAll(24);
         },
       ),
 

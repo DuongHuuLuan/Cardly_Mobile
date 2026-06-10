@@ -4,6 +4,8 @@ import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
 import 'crop_editor/crop_editor_screen.dart';
 
 class EditScreen extends StatelessWidget {
+  static const routerName = "scan-camera-edit";
+
   const EditScreen({super.key});
 
   @override

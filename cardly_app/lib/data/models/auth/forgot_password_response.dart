@@ -5,15 +5,10 @@ part 'forgot_password_response.g.dart';
 
 @JsonSerializable()
 class ForgotPasswordResponse extends Equatable {
+  final bool success;
   final String message;
-  final String? nextStep;
-  final String? contact;
 
-  const ForgotPasswordResponse({
-    required this.message,
-    this.contact,
-    this.nextStep,
-  });
+  const ForgotPasswordResponse({required this.message, required this.success});
 
   factory ForgotPasswordResponse.fromJson(Map<String, dynamic> json) =>
       _$ForgotPasswordResponseFromJson(json);
@@ -21,5 +16,5 @@ class ForgotPasswordResponse extends Equatable {
   Map<String, dynamic> toJson() => _$ForgotPasswordResponseToJson(this);
 
   @override
-  List<Object?> get props => [message, contact, nextStep];
+  List<Object?> get props => [message, success];
 }

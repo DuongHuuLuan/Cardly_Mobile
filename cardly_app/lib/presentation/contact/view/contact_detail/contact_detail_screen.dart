@@ -1,25 +1,29 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/utils/navigation_exp.dart';
+import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_avatar.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
 import 'package:cardly_app/core/widgets/app_info_tile.dart';
 import 'package:cardly_app/domain/Entities/business_card_entity.dart';
 import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_icon_button.dart';
-import 'package:cardly_app/presentation/home/view/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-extension ContactDetailNavigation on BuildContext {
-  void goToContactDetail(BusinessCardEntity contact) =>
-      go('/contact-detail', extra: contact);
-}
-
 class ContactDetailScreen extends StatelessWidget {
+  static const routerName = "/contact-detail";
+
   final BusinessCardEntity contact;
   final VoidCallback? onDelete;
+  final bool isLoading;
 
-  const ContactDetailScreen({super.key, required this.contact, this.onDelete});
+  const ContactDetailScreen({
+    super.key,
+    required this.contact,
+    this.onDelete,
+    this.isLoading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -134,22 +138,16 @@ class ContactDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: AppElevatedButton(
-                label: "Delete contact",
-                onPressed: onDelete,
-                backgroundColor: AppColor.background,
-                borderColor: AppColor.error.withValues(alpha: 0.5),
-                labelColor: AppColor.error,
-                iconAfterText: false,
-                icon: Icon(
-                  Icons.delete_outline,
-                  color: AppColor.error,
-                  size: 24,
-                ),
-              ),
-            ),
+            AppElevatedButton(
+              label: "Delete contact",
+              onPressed: onDelete,
+              backgroundColor: AppColor.background,
+              borderColor: AppColor.error.withValues(alpha: 0.5),
+              labelColor: AppColor.error,
+              iconAfterText: false,
+              icon: Icon(Icons.delete_outline, color: AppColor.error, size: 24),
+              isLoading: isLoading,
+            ).paddingAll(20),
           ],
         ),
       ),

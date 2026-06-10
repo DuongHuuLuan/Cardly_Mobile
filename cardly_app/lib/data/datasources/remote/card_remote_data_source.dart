@@ -41,15 +41,19 @@ class CardRemoteDataSource {
     }
 
     try {
-      final files = await Future.wait(
-        imagePaths.map(
-          (e) => MultipartFile.fromFile(
-            e,
-            filename: e.split(RegExp(r'[/\\]')).last,
-          ),
-        ),
+      final files = await MultipartFile.fromFile(
+        imagePaths[0],
+        filename: imagePaths[0].split(RegExp(r'[/\\]')).last,
       );
-      final response = await _cardService.scanCard(files);
+      MultipartFile? file2;
+      if (imagePaths.length > 1) {
+        file2 = await MultipartFile.fromFile(
+          imagePaths[1],
+          filename: imagePaths[1].split(RegExp(r'[/\\]')).last,
+        );
+      }
+
+      final response = await _cardService.scanCard(files, file2);
       return [ScannedDocumentMapper.fromResponse(response.data.data!)];
     } on DioException catch (e) {
       throw ServerException(e.message ?? "Network error");
