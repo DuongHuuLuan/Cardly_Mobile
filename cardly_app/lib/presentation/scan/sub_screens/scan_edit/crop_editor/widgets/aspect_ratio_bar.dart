@@ -1,6 +1,6 @@
+import 'package:cardly_app/presentation/scan/crop_editor/crop_editor_state.dart';
 import 'package:flutter/material.dart';
 import 'package:cardly_app/core/theme/app_color.dart';
-import '../crop_editor_controller.dart';
 
 class AspectRatioBar extends StatelessWidget {
   final AspectRatioOption selected;

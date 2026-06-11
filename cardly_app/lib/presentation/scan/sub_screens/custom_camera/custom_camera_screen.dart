@@ -66,6 +66,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
   }
 
   Future<void> _initCamera() async {
+    // context.showLoading("Initializing camera...");
     try {
       final controller = await cubit.getCameraController();
 
@@ -89,7 +90,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
         _autoCaptureEnabled = true;
         _autoStatus = AutoCaptureStatus.checking;
       });
-
+      // context.hideLoading();
       _startAutoCapture();
     } catch (_) {
       if (mounted) _showCameraUnavailableDialog();
@@ -277,11 +278,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
       if (!mounted) return;
 
       if (!File(path).existsSync()) {
-        _resumeCameraAfterBack();
-
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Failed to save image')));
+        await _resumeCameraAfterBack();
         return;
       }
 
@@ -297,11 +294,11 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
         cubit.removeImage(cubit.state.imagePaths.length - 1);
       }
 
-      _resumeCameraAfterBack();
+      await _resumeCameraAfterBack();
     } catch (e) {
       if (!mounted) return;
 
-      _resumeCameraAfterBack();
+      await _resumeCameraAfterBack();
 
       ScaffoldMessenger.of(
         context,
@@ -337,14 +334,14 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
         }
       }
 
-      _resumeCameraAfterBack();
+      await _resumeCameraAfterBack();
       return;
     }
 
-    _resumeCameraAfterBack();
+    await _resumeCameraAfterBack();
   }
 
-  void _resumeCameraAfterBack() {
+  Future<void> _resumeCameraAfterBack() async {
     _autoCheckTimer?.cancel();
     _readyTimer?.cancel();
 
@@ -356,6 +353,15 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
       _isDetectingCard = false;
       _autoCaptureEnabled = true;
       _autoStatus = AutoCaptureStatus.checking;
+    });
+
+    if (_controller == null || !_controller!.value.isInitialized) {
+      await _initCamera();
+      return;
+    }
+
+    setState(() {
+      _isReady = true;
     });
 
     _startAutoCapture();
@@ -438,10 +444,13 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
 
       cubit.releaseCamera();
       _controller = null;
+      return;
     }
 
     if (state == AppLifecycleState.resumed) {
-      _initCamera();
+      if (_controller == null || !_controller!.value.isInitialized) {
+        _initCamera();
+      }
     }
   }
 
@@ -460,10 +469,6 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
 
   @override
   Widget build(BuildContext context) {
-    if (!_isReady) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
     final size = MediaQuery.sizeOf(context);
     final width = size.width;
     final height = size.height;
