@@ -1,4 +1,5 @@
 import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/utils/camera_frame_helper.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/custom_camera/custom_camera_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -61,15 +62,9 @@ class _CameraOverlayState extends State<CameraOverlay>
   Widget build(BuildContext context) {
     final screen = MediaQuery.of(context).size;
 
-    final frameWidth = screen.width * 0.86;
-    final frameHeight = widget.isLandscape
-        ? frameWidth * 0.62
-        : frameWidth * 1.35;
-
-    final frameRect = Rect.fromCenter(
-      center: Offset(screen.width / 2, screen.height / 2),
-      width: frameWidth,
-      height: frameHeight,
+    final frameRect = CameraFrameHelper.getFrameRect(
+      screen: screen,
+      isLandscape: widget.isLandscape,
     );
 
     return Stack(

@@ -34,8 +34,9 @@ class ScanCubit extends Cubit<ScanState> {
         if (cameras.isNotEmpty) {
           final controller = CameraController(
             cameras.first,
-            ResolutionPreset.high,
+            ResolutionPreset.medium,
             enableAudio: false,
+            imageFormatGroup: ImageFormatGroup.yuv420,
           );
           await controller.initialize();
           cameraController = controller;

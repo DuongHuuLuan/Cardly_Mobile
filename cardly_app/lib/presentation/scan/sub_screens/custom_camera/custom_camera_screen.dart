@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:cardly_app/core/models/card_detection_result.dart';
 import 'package:cardly_app/core/services/card_detector_channel.dart';
 import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/utils/camera_frame_helper.dart';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
@@ -53,9 +55,20 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
   double _minZoom = 1.0;
   double _maxZoom = 1.0;
   double _lastAppliedZoom = 1.0;
+  
+  bool _isProcessingFrame = false;
+  int _stableFrameCount = 0;
+  
+  DateTime _lastFrameTime = DateTime.fromMillisecondsSinceEpoch(0);
+  CardDetectionResult? _lastDetection;
 
-  static const Duration _checkInterval = Duration(seconds: 3);
-  static const Duration _readyDelay = Duration(seconds: 2);
+  static const int _requiredStableFrames = 3;
+  static const Duration _frameThrottle = Duration(milliseconds: 250);
+
+  static const double _minScore = 0.55;
+  static const double _maxCenterDiff = 0.08;
+  static const double _maxSizeDiff = 0.12;
+  static const double _maxAngleDiff = 12;
 
   @override
   void initState() {
@@ -90,59 +103,154 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
         _autoStatus = AutoCaptureStatus.checking;
       });
 
-      _startAutoCapture();
+      _startRealtimeDetection();
     } catch (_) {
       if (mounted) _showCameraUnavailableDialog();
     }
   }
 
-  void _startAutoCapture() {
-    _autoCheckTimer?.cancel();
+  bool _isStableDetection(CardDetectionResult current) {
+    if (!current.detected) return false;
+    if (current.score < _minScore) return false;
 
-    _autoCheckTimer = Timer.periodic(_checkInterval, (_) async {
+    final previous = _lastDetection;
+
+    if (previous == null || !previous.detected) {
+      _lastDetection = current;
+      return false;
+    }
+
+    final centerDiff =
+    ((current.cx - previous.cx).abs() + (current.cy - previous.cy).abs());
+
+    final sizeDiff =
+    ((current.width - previous.width).abs() +
+        (current.height - previous.height).abs());
+
+    final angleDiff = (current.angle - previous.angle).abs();
+
+    _lastDetection = current;
+
+    return centerDiff < _maxCenterDiff &&
+        sizeDiff < _maxSizeDiff &&
+        angleDiff < _maxAngleDiff;
+  }
+
+  Future<void> _startRealtimeDetection() async {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+    if (_controller!.value.isStreamingImages) return;
+
+    await _controller!.startImageStream((CameraImage image) async {
       if (!_autoCaptureEnabled) return;
-      if (!mounted) return;
-      if (_controller == null || !_controller!.value.isInitialized) return;
-      if (_controller!.value.isTakingPicture) return;
+      if (_hasCaptured) return;
       if (_isAutoCapturing) return;
-      if (_isDetectingCard) return;
-      if (cubit.state.imagePaths.length >= 2) return;
+      if (_isProcessingFrame) return;
+      if (!mounted) return;
 
-      bool isReady = false;
+      final now = DateTime.now();
 
-      _isDetectingCard = true;
-      try {
-        isReady = await _checkCardReady();
-      } finally {
-        _isDetectingCard = false;
+      if (now.difference(_lastFrameTime) < _frameThrottle) {
+        return;
       }
 
-      if (!mounted) return;
+      _lastFrameTime = now;
+      _isProcessingFrame = true;
 
-      if (isReady) {
-        if (_autoStatus != AutoCaptureStatus.ready) {
-          setState(() {
-            _autoStatus = AutoCaptureStatus.ready;
-          });
+      try {
+        final screen = MediaQuery.sizeOf(context);
 
-          _readyTimer?.cancel();
-          _readyTimer = Timer(_readyDelay, () async {
-            if (!mounted) return;
-            if (_autoStatus == AutoCaptureStatus.ready) {
+        final frameRect = CameraFrameHelper.getFrameRect(
+          screen: screen,
+          isLandscape: _isLandscape,
+        );
+
+        final cameraAspectRatio = _controller!.value.aspectRatio;
+
+        double previewW;
+        double previewH;
+        double offsetX = 0;
+        double offsetY = 0;
+
+        if (screen.width / screen.height > cameraAspectRatio) {
+          previewW = screen.width;
+          previewH = previewW / cameraAspectRatio;
+          offsetY = (previewH - screen.height) / 2;
+        } else {
+          previewH = screen.height;
+          previewW = previewH * cameraAspectRatio;
+          offsetX = (previewW - screen.width) / 2;
+        }
+
+        final overlayOnPreview = Rect.fromLTWH(
+          frameRect.left + offsetX,
+          frameRect.top + offsetY,
+          frameRect.width,
+          frameRect.height,
+        );
+
+        final result = await CardDetectorChannel.detectCardFromYuv(
+          image: image,
+          overlayLeft: overlayOnPreview.left,
+          overlayTop: overlayOnPreview.top,
+          overlayWidth: overlayOnPreview.width,
+          overlayHeight: overlayOnPreview.height,
+          previewWidth: previewW,
+          previewHeight: previewH,
+        );
+        debugPrint(
+          'CARD DETECT => detected=${result.detected}, score=${result.score}, '
+              'cx=${result.cx}, cy=${result.cy}, w=${result.width}, h=${result.height}, angle=${result.angle}',
+        );
+
+        if (!mounted) return;
+
+        final stable = _isStableDetection(result);
+
+        if (result.detected) {
+          if (_autoStatus != AutoCaptureStatus.ready) {
+            setState(() {
+              _autoStatus = AutoCaptureStatus.ready;
+            });
+          }
+
+          if (stable) {
+            _stableFrameCount++;
+
+            if (_stableFrameCount >= _requiredStableFrames) {
               await _autoTakePicture();
             }
-          });
-        }
-      } else {
-        _readyTimer?.cancel();
+          } else {
+            _stableFrameCount = 0;
+          }
+        } else {
+          _stableFrameCount = 0;
 
-        if (_autoStatus != AutoCaptureStatus.checking) {
-          setState(() {
-            _autoStatus = AutoCaptureStatus.checking;
-          });
+          if (_autoStatus != AutoCaptureStatus.checking) {
+            setState(() {
+              _autoStatus = AutoCaptureStatus.checking;
+            });
+          }
         }
+      } catch (_) {
+        _stableFrameCount = 0;
+        _lastDetection = null;
+      } finally {
+        _isProcessingFrame = false;
       }
     });
+  }
+
+  Future<void> _stopRealtimeDetection() async {
+    _autoCaptureEnabled = false;
+    _stableFrameCount = 0;
+    _isProcessingFrame = false;
+    _lastDetection = null;
+
+    if (_controller != null &&
+        _controller!.value.isInitialized &&
+        _controller!.value.isStreamingImages) {
+      await _controller!.stopImageStream();
+    }
   }
 
   Future<bool> _checkCardReady() async {
@@ -171,14 +279,15 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
     if (_isAutoCapturing) return;
     if (_isDetectingCard) return;
     if (_controller == null || !_controller!.value.isInitialized) return;
-    if (_controller!.value.isTakingPicture) return;
+    // if (_controller!.value.isTakingPicture) return;
 
     _hasCaptured = true;
     _isAutoCapturing = true;
-    _autoCaptureEnabled = false;
+    await _stopRealtimeDetection();
+    // _autoCaptureEnabled = false;
 
-    _autoCheckTimer?.cancel();
-    _readyTimer?.cancel();
+    // _autoCheckTimer?.cancel();
+    // _readyTimer?.cancel();
 
     if (mounted) {
       setState(() {
@@ -310,15 +419,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
   }
 
   Future<void> _onPickFromGallery() async {
-    _autoCaptureEnabled = false;
-    _autoCheckTimer?.cancel();
-    _readyTimer?.cancel();
-
-    if (_controller != null &&
-        _controller!.value.isInitialized &&
-        _controller!.value.isStreamingImages) {
-      await _controller!.stopImageStream();
-    }
+    await _stopRealtimeDetection();
 
     final beforeCount = cubit.state.imagePaths.length;
 
@@ -345,9 +446,6 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
   }
 
   void _resumeCameraAfterBack() {
-    _autoCheckTimer?.cancel();
-    _readyTimer?.cancel();
-
     if (!mounted) return;
 
     setState(() {
@@ -355,10 +453,12 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
       _isAutoCapturing = false;
       _isDetectingCard = false;
       _autoCaptureEnabled = true;
+      _stableFrameCount = 0;
+      _lastDetection = null;
       _autoStatus = AutoCaptureStatus.checking;
     });
 
-    _startAutoCapture();
+    _startRealtimeDetection();
   }
 
   void _resetCaptureFlags() {
@@ -450,6 +550,12 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
     _autoCheckTimer?.cancel();
     _readyTimer?.cancel();
 
+    if (_controller != null &&
+        _controller!.value.isInitialized &&
+        _controller!.value.isStreamingImages) {
+      _controller!.stopImageStream();
+    }
+
     WidgetsBinding.instance.removeObserver(this);
 
     cubit.releaseCamera();
@@ -537,13 +643,13 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
               top: topPadding,
               left: sidePadding,
               child: IconButton(
-                onPressed: () {
-                  _autoCheckTimer?.cancel();
-                  _readyTimer?.cancel();
+                onPressed: () async {
+                  await _stopRealtimeDetection();
 
                   cubit.releaseCamera();
                   cubit.reset();
 
+                  if (!context.mounted) return;
                   context.goToHome();
                 },
                 icon: Icon(Icons.close, color: AppColor.white, size: iconSize),
@@ -615,16 +721,17 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
 
                       _hasCaptured = true;
                       _isAutoCapturing = true;
-                      _autoCaptureEnabled = false;
+                      // _autoCaptureEnabled = false;
 
-                      _autoCheckTimer?.cancel();
-                      _readyTimer?.cancel();
+                      // _autoCheckTimer?.cancel();
+                      // _readyTimer?.cancel();
 
-                      if (_controller != null &&
-                          _controller!.value.isInitialized &&
-                          _controller!.value.isStreamingImages) {
-                        await _controller!.stopImageStream();
-                      }
+                      // if (_controller != null &&
+                      //     _controller!.value.isInitialized &&
+                      //     _controller!.value.isStreamingImages) {
+                      //   await _controller!.stopImageStream();
+                      // }
+                      await _stopRealtimeDetection();
 
                       await _takePicture();
                     },
