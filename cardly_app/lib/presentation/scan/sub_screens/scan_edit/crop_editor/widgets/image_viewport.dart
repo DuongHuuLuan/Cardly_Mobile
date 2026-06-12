@@ -74,8 +74,6 @@ class _ImageViewportState extends State<ImageViewport> {
                         fit: BoxFit.contain,
                         width: imgW,
                         height: imgH,
-                        cacheWidth: imgW.round(),
-                        cacheHeight: imgH.round(),
                       ),
                     ),
                   ),
@@ -122,6 +120,8 @@ class _ImageViewportState extends State<ImageViewport> {
     double offsetY,
   ) {
     if (state.mode == CropEditorMode.crop) {
+      final imageRect = Rect.fromLTWH(offsetX, offsetY, imgW, imgH);
+
       final c = state.cropRect;
       final screenCrop = Rect.fromLTWH(
         offsetX + c.left * imgW,
@@ -136,7 +136,12 @@ class _ImageViewportState extends State<ImageViewport> {
         onPanUpdate: (d) =>
             _onCropPanUpdate(d, screenCrop, imgW, imgH, offsetX, offsetY),
         onPanEnd: (_) => _activeHandle = -1,
-        child: CustomPaint(painter: CropOverlayPainter(cropRect: screenCrop)),
+        child: CustomPaint(
+          painter: CropOverlayPainter(
+            cropRect: screenCrop,
+            imageRect: imageRect,
+          ),
+        ),
       );
     } else {
       return GestureDetector(
