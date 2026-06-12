@@ -5,7 +5,6 @@ import 'package:camera/camera.dart';
 import 'package:cardly_app/core/models/card_detection_result.dart';
 import 'package:cardly_app/core/services/card_detector_channel.dart';
 import 'package:cardly_app/core/theme/app_color.dart';
-import 'package:cardly_app/core/utils/camera_frame_helper.dart';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
@@ -55,10 +54,10 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
   double _minZoom = 1.0;
   double _maxZoom = 1.0;
   double _lastAppliedZoom = 1.0;
-  
+
   bool _isProcessingFrame = false;
   int _stableFrameCount = 0;
-  
+
   DateTime _lastFrameTime = DateTime.fromMillisecondsSinceEpoch(0);
   CardDetectionResult? _lastDetection;
 
@@ -121,10 +120,10 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
     }
 
     final centerDiff =
-    ((current.cx - previous.cx).abs() + (current.cy - previous.cy).abs());
+        ((current.cx - previous.cx).abs() + (current.cy - previous.cy).abs());
 
     final sizeDiff =
-    ((current.width - previous.width).abs() +
+        ((current.width - previous.width).abs() +
         (current.height - previous.height).abs());
 
     final angleDiff = (current.angle - previous.angle).abs();
@@ -148,58 +147,14 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
       if (!mounted) return;
 
       final now = DateTime.now();
-
-      if (now.difference(_lastFrameTime) < _frameThrottle) {
-        return;
-      }
+      if (now.difference(_lastFrameTime) < _frameThrottle) return;
 
       _lastFrameTime = now;
       _isProcessingFrame = true;
 
       try {
-        final screen = MediaQuery.sizeOf(context);
-
-        final frameRect = CameraFrameHelper.getFrameRect(
-          screen: screen,
-          isLandscape: _isLandscape,
-        );
-
-        final cameraAspectRatio = _controller!.value.aspectRatio;
-
-        double previewW;
-        double previewH;
-        double offsetX = 0;
-        double offsetY = 0;
-
-        if (screen.width / screen.height > cameraAspectRatio) {
-          previewW = screen.width;
-          previewH = previewW / cameraAspectRatio;
-          offsetY = (previewH - screen.height) / 2;
-        } else {
-          previewH = screen.height;
-          previewW = previewH * cameraAspectRatio;
-          offsetX = (previewW - screen.width) / 2;
-        }
-
-        final overlayOnPreview = Rect.fromLTWH(
-          frameRect.left + offsetX,
-          frameRect.top + offsetY,
-          frameRect.width,
-          frameRect.height,
-        );
-
         final result = await CardDetectorChannel.detectCardFromYuv(
           image: image,
-          overlayLeft: overlayOnPreview.left,
-          overlayTop: overlayOnPreview.top,
-          overlayWidth: overlayOnPreview.width,
-          overlayHeight: overlayOnPreview.height,
-          previewWidth: previewW,
-          previewHeight: previewH,
-        );
-        debugPrint(
-          'CARD DETECT => detected=${result.detected}, score=${result.score}, '
-              'cx=${result.cx}, cy=${result.cy}, w=${result.width}, h=${result.height}, angle=${result.angle}',
         );
 
         if (!mounted) return;
@@ -215,7 +170,6 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
 
           if (stable) {
             _stableFrameCount++;
-
             if (_stableFrameCount >= _requiredStableFrames) {
               await _autoTakePicture();
             }
@@ -224,7 +178,6 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
           }
         } else {
           _stableFrameCount = 0;
-
           if (_autoStatus != AutoCaptureStatus.checking) {
             setState(() {
               _autoStatus = AutoCaptureStatus.checking;
@@ -253,41 +206,15 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
     }
   }
 
-  Future<bool> _checkCardReady() async {
-    if (_controller == null || !_controller!.value.isInitialized) return false;
-    if (_controller!.value.isTakingPicture) return false;
-    if (_hasCaptured || _isAutoCapturing) return false;
-
-    try {
-      final tempFile = await _controller!.takePicture();
-      final bytes = await File(tempFile.path).readAsBytes();
-
-      final detected = await CardDetectorChannel.detectCard(bytes);
-
-      try {
-        await File(tempFile.path).delete();
-      } catch (_) {}
-
-      return detected;
-    } catch (_) {
-      return false;
-    }
-  }
-
   Future<void> _autoTakePicture() async {
     if (_hasCaptured) return;
     if (_isAutoCapturing) return;
     if (_isDetectingCard) return;
     if (_controller == null || !_controller!.value.isInitialized) return;
-    // if (_controller!.value.isTakingPicture) return;
 
     _hasCaptured = true;
     _isAutoCapturing = true;
     await _stopRealtimeDetection();
-    // _autoCaptureEnabled = false;
-
-    // _autoCheckTimer?.cancel();
-    // _readyTimer?.cancel();
 
     if (mounted) {
       setState(() {
@@ -721,16 +648,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
 
                       _hasCaptured = true;
                       _isAutoCapturing = true;
-                      // _autoCaptureEnabled = false;
 
-                      // _autoCheckTimer?.cancel();
-                      // _readyTimer?.cancel();
-
-                      // if (_controller != null &&
-                      //     _controller!.value.isInitialized &&
-                      //     _controller!.value.isStreamingImages) {
-                      //   await _controller!.stopImageStream();
-                      // }
                       await _stopRealtimeDetection();
 
                       await _takePicture();

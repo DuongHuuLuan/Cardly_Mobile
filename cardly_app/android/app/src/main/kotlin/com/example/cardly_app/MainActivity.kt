@@ -29,37 +29,12 @@ class MainActivity : FlutterActivity() {
                         val v = call.argument<ByteArray>("v")!!
 
                         val yRowStride = call.argument<Int>("yRowStride")!!
-                        val uRowStride = call.argument<Int>("uRowStride")!!
-                        val vRowStride = call.argument<Int>("vRowStride")!!
-
-                        val uPixelStride = call.argument<Int>("uPixelStride")!!
-                        val vPixelStride = call.argument<Int>("vPixelStride")!!
-
-                        val overlayLeft = call.argument<Double>("overlayLeft")!!
-                        val overlayTop = call.argument<Double>("overlayTop")!!
-                        val overlayWidth = call.argument<Double>("overlayWidth")!!
-                        val overlayHeight = call.argument<Double>("overlayHeight")!!
-
-                        val previewWidth = call.argument<Double>("previewWidth")!!
-                        val previewHeight = call.argument<Double>("previewHeight")!!
 
                         val detection = CardDetector.detectFromYuv(
                             width = width,
                             height = height,
                             y = y,
-                            u = u,
-                            v = v,
-                            yRowStride = yRowStride,
-                            uRowStride = uRowStride,
-                            vRowStride = vRowStride,
-                            uPixelStride = uPixelStride,
-                            vPixelStride = vPixelStride,
-                            overlayLeft = overlayLeft,
-                            overlayTop = overlayTop,
-                            overlayWidth = overlayWidth,
-                            overlayHeight = overlayHeight,
-                            previewWidth = previewWidth,
-                            previewHeight = previewHeight
+                            yRowStride = yRowStride
                         )
 
                         result.success(detection)

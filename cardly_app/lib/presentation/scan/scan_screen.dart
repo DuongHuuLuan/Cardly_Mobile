@@ -1,3 +1,4 @@
+import 'package:cardly_app/core/cubit/app_loading_cubit.dart';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/presentation/scan/widgets/initial_view.dart';
@@ -19,40 +20,51 @@ class _ScanScreenState extends State<ScanScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      final cubit = context.read<ScanCubit>();
-      cubit.reset();
-      cubit.pickFromCamera();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final loadingCubit = context.read<AppLoadingCubit>();
+      final scanCubit = context.read<ScanCubit>();
+
+      loadingCubit.show();
+
+      scanCubit.reset();
+      scanCubit.pickFromCamera();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar:
-          context.select((ScanCubit c) => c.state.status) == ScanStatus.initial
-          ? null
-          : AppAppBar(
-              title: "OCR Scanning",
-              onLeadingPressed: () => context.goToHome(),
-            ),
-      body: BlocListener<ScanCubit, ScanState>(
-        listenWhen: (prev, current) =>
-            prev.status == ScanStatus.initial &&
-            current.status == ScanStatus.imageSelected,
-        listener: (context, state) {
-          final cubit = context.read<ScanCubit>();
+    return BlocListener<ScanCubit, ScanState>(
+      listenWhen: (prev, current) => prev.status != current.status,
+      listener: (context, state) {
+        final loadingCubit = context.read<AppLoadingCubit>();
+        final scanCubit = context.read<ScanCubit>();
+
+        if (state.status == ScanStatus.initial) {
+          loadingCubit.show();
+        } else {
+          loadingCubit.hide();
+        }
+
+        if (state.status == ScanStatus.imageSelected) {
           if (state.imageSource == ImageSourceType.camera) {
-            context.goToScanCamera(cubit);
+            context.goToScanCamera(scanCubit);
           } else {
-            context.goToScanReview(cubit);
+            context.goToScanReview(scanCubit);
           }
-        },
-        child: BlocBuilder<ScanCubit, ScanState>(
+        }
+      },
+      child: Scaffold(
+        appBar:
+            context.select((ScanCubit c) => c.state.status) ==
+                ScanStatus.initial
+            ? null
+            : AppAppBar(
+                title: "OCR Scanning",
+                onLeadingPressed: () => context.goToHome(),
+              ),
+        body: BlocBuilder<ScanCubit, ScanState>(
           builder: (context, state) {
-            if (state.status == ScanStatus.initial) {
-              return const Center(child: CircularProgressIndicator());
-            }
             return InitialView(cubit: context.read<ScanCubit>());
           },
         ),

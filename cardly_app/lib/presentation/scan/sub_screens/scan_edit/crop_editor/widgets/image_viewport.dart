@@ -1,14 +1,16 @@
 import 'dart:io';
 import 'dart:math';
+import 'package:cardly_app/presentation/scan/crop_editor/crop_editor_cubit.dart';
+import 'package:cardly_app/presentation/scan/crop_editor/crop_editor_state.dart';
 import 'package:flutter/material.dart';
-import '../crop_editor_controller.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'corner_handle.dart';
 import 'overlay_painters.dart';
 
 class ImageViewport extends StatefulWidget {
-  final CropEditorController controller;
+  final CropEditorCubit cubit;
 
-  const ImageViewport({super.key, required this.controller});
+  const ImageViewport({super.key, required this.cubit});
 
   @override
   State<ImageViewport> createState() => _ImageViewportState();
@@ -22,60 +24,77 @@ class _ImageViewportState extends State<ImageViewport> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final displaySize = Size(constraints.maxWidth, constraints.maxHeight);
-        final imageSize = widget.controller.imageSize;
+    return BlocBuilder<CropEditorCubit, CropEditorState>(
+      builder: (context, state) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final displaySize = Size(
+              constraints.maxWidth,
+              constraints.maxHeight,
+            );
+            final imageSize = state.imageSize;
 
-        if (imageSize == Size.zero) return const SizedBox();
+            if (imageSize == Size.zero) return const SizedBox();
 
-        final containerRatio = displaySize.width / displaySize.height;
-        final imageRatio = imageSize.width / imageSize.height;
+            final containerRatio = displaySize.width / displaySize.height;
+            final imageRatio = imageSize.width / imageSize.height;
 
-        double imgW, imgH;
-        if (imageRatio > containerRatio) {
-          imgW = displaySize.width;
-          imgH = displaySize.width / imageRatio;
-        } else {
-          imgH = displaySize.height;
-          imgW = displaySize.height * imageRatio;
-        }
+            double imgW, imgH;
+            if (imageRatio > containerRatio) {
+              imgW = displaySize.width;
+              imgH = displaySize.width / imageRatio;
+            } else {
+              imgH = displaySize.height;
+              imgW = displaySize.height * imageRatio;
+            }
 
-        final offsetX = (displaySize.width - imgW) / 2;
-        final offsetY = (displaySize.height - imgH) / 2;
+            final offsetX = (displaySize.width - imgW) / 2;
+            final offsetY = (displaySize.height - imgH) / 2;
 
-        Offset normToScreen(Offset p) =>
-            Offset(offsetX + p.dx * imgW, offsetY + p.dy * imgH);
+            Offset normToScreen(Offset p) =>
+                Offset(offsetX + p.dx * imgW, offsetY + p.dy * imgH);
 
-        return Stack(
-          children: [
-            Positioned(
-              left: offsetX,
-              top: offsetY,
-              width: imgW,
-              height: imgH,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: Transform.rotate(
-                  angle: widget.controller.rotationDegrees * (pi / 180),
-                  alignment: Alignment.center,
-                  child: Image.file(
-                    File(widget.controller.imagePath!),
-                    fit: BoxFit.fill,
-                    width: imgW,
-                    height: imgH,
+            return Stack(
+              children: [
+                Positioned(
+                  left: offsetX,
+                  top: offsetY,
+                  width: imgW,
+                  height: imgH,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: Transform.rotate(
+                      angle: state.rotationDegrees * pi / 180,
+                      child: Image.file(
+                        File(
+                          state.imageSize == Size.zero
+                              ? ''
+                              : widget.cubit.imagePath,
+                        ),
+                        fit: BoxFit.contain,
+                        width: imgW,
+                        height: imgH,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-            Positioned.fill(
-              child: _buildOverlay(displaySize, imgW, imgH, offsetX, offsetY),
-            ),
-            if (widget.controller.mode == CropEditorMode.crop)
-              ..._buildCropHandles(normToScreen)
-            else
-              ..._buildQuadHandles(normToScreen),
-          ],
+                Positioned.fill(
+                  child: _buildOverlay(
+                    state,
+                    displaySize,
+                    imgW,
+                    imgH,
+                    offsetX,
+                    offsetY,
+                  ),
+                ),
+                if (state.mode == CropEditorMode.crop)
+                  ..._buildCropHandles(state, normToScreen)
+                else
+                  ..._buildQuadHandles(state, normToScreen),
+              ],
+            );
+          },
         );
       },
     );
@@ -93,14 +112,17 @@ class _ImageViewportState extends State<ImageViewport> {
   );
 
   Widget _buildOverlay(
+    CropEditorState state,
     Size displaySize,
     double imgW,
     double imgH,
     double offsetX,
     double offsetY,
   ) {
-    if (widget.controller.mode == CropEditorMode.crop) {
-      final c = widget.controller.cropRect;
+    if (state.mode == CropEditorMode.crop) {
+      final imageRect = Rect.fromLTWH(offsetX, offsetY, imgW, imgH);
+
+      final c = state.cropRect;
       final screenCrop = Rect.fromLTWH(
         offsetX + c.left * imgW,
         offsetY + c.top * imgH,
@@ -114,7 +136,12 @@ class _ImageViewportState extends State<ImageViewport> {
         onPanUpdate: (d) =>
             _onCropPanUpdate(d, screenCrop, imgW, imgH, offsetX, offsetY),
         onPanEnd: (_) => _activeHandle = -1,
-        child: CustomPaint(painter: CropOverlayPainter(cropRect: screenCrop)),
+        child: CustomPaint(
+          painter: CropOverlayPainter(
+            cropRect: screenCrop,
+            imageRect: imageRect,
+          ),
+        ),
       );
     } else {
       return GestureDetector(
@@ -123,7 +150,7 @@ class _ImageViewportState extends State<ImageViewport> {
         onPanEnd: (_) => _activeHandle = -1,
         child: CustomPaint(
           painter: PerspectiveOverlayPainter(
-            corners: widget.controller.quadCorners
+            corners: state.quadCorners
                 .map(
                   (c) => Offset(offsetX + c.dx * imgW, offsetY + c.dy * imgH),
                 )
@@ -143,9 +170,9 @@ class _ImageViewportState extends State<ImageViewport> {
     double oy,
   ) {
     final pos = _screenToNorm(d.localPosition, imgW, imgH, ox, oy);
-    _activeHandle = _hitTestCrop(pos, widget.controller.cropRect);
+    _activeHandle = _hitTestCrop(pos, widget.cubit.state.cropRect);
     _dragStartNorm = pos;
-    _rectAtStart = widget.controller.cropRect;
+    _rectAtStart = widget.cubit.state.cropRect;
   }
 
   void _onCropPanUpdate(
@@ -205,7 +232,7 @@ class _ImageViewportState extends State<ImageViewport> {
         return;
     }
 
-    widget.controller.setCropRect(newRect);
+    widget.cubit.setCropRect(newRect);
   }
 
   void _onQuadPanStart(
@@ -216,9 +243,9 @@ class _ImageViewportState extends State<ImageViewport> {
     double oy,
   ) {
     final pos = _screenToNorm(d.localPosition, imgW, imgH, ox, oy);
-    _activeHandle = _hitTestQuad(pos, widget.controller.quadCorners);
+    _activeHandle = _hitTestQuad(pos, widget.cubit.state.quadCorners);
     _dragStartNorm = pos;
-    _quadAtStart = List.from(widget.controller.quadCorners);
+    _quadAtStart = List.from(widget.cubit.state.quadCorners);
   }
 
   void _onQuadPanUpdate(
@@ -256,7 +283,7 @@ class _ImageViewportState extends State<ImageViewport> {
       }
     }
 
-    widget.controller.setQuadCorners(newCorners);
+    widget.cubit.setQuadCorners(newCorners);
   }
 
   int _hitTestCrop(Offset pos, Rect rect) {
@@ -293,8 +320,11 @@ class _ImageViewportState extends State<ImageViewport> {
     return inside;
   }
 
-  List<Widget> _buildCropHandles(Offset Function(Offset) normToScreen) {
-    final rect = widget.controller.cropRect;
+  List<Widget> _buildCropHandles(
+    CropEditorState state,
+    Offset Function(Offset) normToScreen,
+  ) {
+    final rect = state.cropRect;
     final corners = [
       rect.topLeft,
       rect.topRight,
@@ -311,8 +341,11 @@ class _ImageViewportState extends State<ImageViewport> {
     }).toList();
   }
 
-  List<Widget> _buildQuadHandles(Offset Function(Offset) normToScreen) {
-    return widget.controller.quadCorners.map((c) {
+  List<Widget> _buildQuadHandles(
+    CropEditorState state,
+    Offset Function(Offset) normToScreen,
+  ) {
+    return state.quadCorners.map((c) {
       final screen = normToScreen(c);
       return Positioned(
         left: screen.dx - 12,

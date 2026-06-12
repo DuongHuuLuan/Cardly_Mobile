@@ -149,7 +149,7 @@ class AppRouter {
         builder: (context, state) {
           return BlocProvider(
             create: (context) => getIt<ScanCubit>(),
-            child: const ScanScreen(),
+            child: const CustomCameraScreen(),
           );
         },
         routes: [
