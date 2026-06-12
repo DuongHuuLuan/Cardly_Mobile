@@ -3,8 +3,13 @@ import 'package:flutter/material.dart';
 
 class CropOverlayPainter extends CustomPainter {
   final Rect cropRect;
+  final Rect imageRect;
   final double cornerBracketLength;
-  CropOverlayPainter({required this.cropRect, this.cornerBracketLength = 20});
+  CropOverlayPainter({
+    required this.cropRect,
+    required this.imageRect,
+    this.cornerBracketLength = 30,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -72,7 +77,7 @@ class CropOverlayPainter extends CustomPainter {
     final borderPaint = Paint()
       ..color = AppColor.white.withValues(alpha: 0.6)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
+      ..strokeWidth = 2;
     canvas.drawRect(cropRect, borderPaint);
 
     final gridPaint = Paint()
@@ -107,7 +112,7 @@ class PerspectiveOverlayPainter extends CustomPainter {
 
   PerspectiveOverlayPainter({
     required this.corners,
-    this.cornerBracketLength = 20,
+    this.cornerBracketLength = 50,
   });
 
   @override

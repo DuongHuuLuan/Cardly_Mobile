@@ -66,6 +66,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
   }
 
   Future<void> _initCamera() async {
+    // context.showLoading("Initializing camera...");
     try {
       final controller = await cubit.getCameraController();
 
@@ -89,7 +90,7 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
         _autoCaptureEnabled = true;
         _autoStatus = AutoCaptureStatus.checking;
       });
-
+      // context.hideLoading();
       _startAutoCapture();
     } catch (_) {
       if (mounted) _showCameraUnavailableDialog();
@@ -197,91 +198,37 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
     if (_controller == null || !_controller!.value.isInitialized) return;
     if (_controller!.value.isTakingPicture) return;
 
-    if (_controller!.value.isStreamingImages) {
-      await _controller!.stopImageStream();
-    }
-
-    if (cubit.state.imagePaths.length >= 2) {
-      _resetCaptureFlags();
-
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => AppAlertDialog(
-          title: "Notification",
-          errors: const ['Maximum 2 images allowed'],
-          onConfirm: () => context.pop(),
-        ),
-      );
-      return;
-    }
-
     try {
+      if (_controller!.value.isStreamingImages) {
+        await _controller!.stopImageStream();
+      }
+
+      if (cubit.state.imagePaths.length >= 2) {
+        _resetCaptureFlags();
+
+        if (!mounted) return;
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => AppAlertDialog(
+            title: "Notification",
+            errors: const ['Maximum 2 images allowed'],
+            onConfirm: () => context.pop(),
+          ),
+        );
+        return;
+      }
+
       final file = await _controller!.takePicture();
-      final image = img.decodeImage(await file.readAsBytes());
 
-      if (image == null) {
-        throw Exception('Cannot decode image');
-      }
+      if (!mounted) return;
 
-      final targetRatio = _isLandscape ? 0.62 : 1.35;
-
-      final imgW = image.width;
-      final imgH = image.height;
-
-      int cropX;
-      int cropY;
-      int cropW;
-      int cropH;
-
-      if (imgH / imgW > targetRatio) {
-        cropW = imgW;
-        cropH = (imgW * targetRatio).toInt();
-        cropX = 0;
-        cropY = (imgH - cropH) ~/ 2;
-      } else {
-        cropH = imgH;
-        cropW = (imgH / targetRatio).toInt();
-        cropX = (imgW - cropW) ~/ 2;
-        cropY = 0;
-      }
-
-      final extraLeftRight = (cropW * 0.085).toInt();
-      final extraTop = (cropH * 0.085).toInt();
-      final extraBottom = (cropH * 0.235).toInt();
-
-      final newCropW = cropW - extraLeftRight * 2;
-      final newCropH = cropH - extraTop - extraBottom;
-
-      final newCropX = cropX + extraLeftRight;
-      final newCropY = cropY + extraTop;
-
-      final safeX = newCropX.clamp(0, imgW - newCropW);
-      final safeY = newCropY.clamp(0, imgH - newCropH);
-      final safeW = newCropW.clamp(1, imgW - safeX);
-      final safeH = newCropH.clamp(1, imgH - safeY);
-
-      final cropped = img.copyCrop(
-        image,
-        x: safeX,
-        y: safeY,
-        width: safeW,
-        height: safeH,
-      );
-
-      final dir = await getTemporaryDirectory();
-      final path = '${dir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
-
-      File(path).writeAsBytesSync(img.encodeJpg(cropped, quality: 95));
+      final path = await _cropImageByOverlay(file: file, context: context);
 
       if (!mounted) return;
 
       if (!File(path).existsSync()) {
-        _resumeCameraAfterBack();
-
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Failed to save image')));
+        await _resumeCameraAfterBack();
         return;
       }
 
@@ -297,16 +244,73 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
         cubit.removeImage(cubit.state.imagePaths.length - 1);
       }
 
-      _resumeCameraAfterBack();
+      await _resumeCameraAfterBack();
     } catch (e) {
       if (!mounted) return;
 
-      _resumeCameraAfterBack();
+      await _resumeCameraAfterBack();
 
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Capture failed: $e')));
     }
+  }
+
+  Future<String> _cropImageByOverlay({
+    required XFile file,
+    required BuildContext context,
+  }) async {
+    final bytes = await file.readAsBytes();
+    final image = img.decodeImage(bytes);
+
+    if (image == null) {
+      throw Exception('Cannot decode image');
+    }
+
+    final imgW = image.width;
+    final imgH = image.height;
+
+    final media = MediaQuery.of(context);
+    final screenW = media.size.width;
+
+    // Chiều cao thật của vùng camera, trừ AppBar + status bar nếu camera nằm dưới AppBar
+    final appBarH = kToolbarHeight;
+    final topPadding = media.padding.top;
+    final cameraViewH = media.size.height - appBarH - topPadding;
+
+    final frameW = screenW * 0.86;
+    final frameH = _isLandscape ? frameW * 0.62 : frameW * 1.35;
+
+    final overlayLeft = (screenW - frameW) / 2;
+    final overlayTop = (cameraViewH - frameH) / 2;
+    final overlayRight = overlayLeft + frameW;
+    final overlayBottom = overlayTop + frameH;
+
+    final nLeft = overlayLeft / screenW;
+    final nTop = overlayTop / cameraViewH;
+    final nRight = overlayRight / screenW;
+    final nBottom = overlayBottom / cameraViewH;
+
+    final cropX = (nLeft * imgW).round().clamp(0, imgW - 1);
+    final cropY = (nTop * imgH).round().clamp(0, imgH - 1);
+
+    final cropW = ((nRight - nLeft) * imgW).round().clamp(1, imgW - cropX);
+    final cropH = ((nBottom - nTop) * imgH).round().clamp(1, imgH - cropY);
+
+    final cropped = img.copyCrop(
+      image,
+      x: cropX,
+      y: cropY,
+      width: cropW,
+      height: cropH,
+    );
+
+    final dir = await getTemporaryDirectory();
+    final path = '${dir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+    await File(path).writeAsBytes(img.encodeJpg(cropped, quality: 95));
+
+    return path;
   }
 
   Future<void> _onPickFromGallery() async {
@@ -337,14 +341,14 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
         }
       }
 
-      _resumeCameraAfterBack();
+      await _resumeCameraAfterBack();
       return;
     }
 
-    _resumeCameraAfterBack();
+    await _resumeCameraAfterBack();
   }
 
-  void _resumeCameraAfterBack() {
+  Future<void> _resumeCameraAfterBack() async {
     _autoCheckTimer?.cancel();
     _readyTimer?.cancel();
 
@@ -356,6 +360,15 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
       _isDetectingCard = false;
       _autoCaptureEnabled = true;
       _autoStatus = AutoCaptureStatus.checking;
+    });
+
+    if (_controller == null || !_controller!.value.isInitialized) {
+      await _initCamera();
+      return;
+    }
+
+    setState(() {
+      _isReady = true;
     });
 
     _startAutoCapture();
@@ -438,10 +451,13 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
 
       cubit.releaseCamera();
       _controller = null;
+      return;
     }
 
     if (state == AppLifecycleState.resumed) {
-      _initCamera();
+      if (_controller == null || !_controller!.value.isInitialized) {
+        _initCamera();
+      }
     }
   }
 
@@ -460,10 +476,6 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
 
   @override
   Widget build(BuildContext context) {
-    if (!_isReady) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
     final size = MediaQuery.sizeOf(context);
     final width = size.width;
     final height = size.height;
