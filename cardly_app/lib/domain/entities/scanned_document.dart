@@ -1,4 +1,4 @@
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
 
 sealed class ScannedDocument {
   final String id;

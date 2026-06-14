@@ -33,7 +33,6 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
 
   CameraController? _controller;
 
-  bool _isReady = false;
   bool _isLandscape = true;
 
   FlashMode _flashMode = FlashMode.off;
@@ -83,7 +82,6 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
 
       setState(() {
         _controller = controller;
-        _isReady = true;
         _hasCaptured = false;
         _isAutoCapturing = false;
         _isDetectingCard = false;
@@ -273,7 +271,6 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
     final media = MediaQuery.of(context);
     final screenW = media.size.width;
 
-    // Chiều cao thật của vùng camera, trừ AppBar + status bar nếu camera nằm dưới AppBar
     final appBarH = kToolbarHeight;
     final topPadding = media.padding.top;
     final cameraViewH = media.size.height - appBarH - topPadding;
@@ -367,10 +364,6 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
       return;
     }
 
-    setState(() {
-      _isReady = true;
-    });
-
     _startAutoCapture();
   }
 
@@ -444,10 +437,6 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
         state == AppLifecycleState.paused) {
       _autoCheckTimer?.cancel();
       _readyTimer?.cancel();
-
-      setState(() {
-        _isReady = false;
-      });
 
       cubit.releaseCamera();
       _controller = null;

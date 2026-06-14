@@ -1,7 +1,7 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/utils/widget_padding.dart';
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
 import 'package:flutter/material.dart';
 
 class ContactDetailEnrichmentSection extends StatelessWidget {

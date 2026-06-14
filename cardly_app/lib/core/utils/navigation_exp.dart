@@ -1,6 +1,6 @@
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
-import 'package:cardly_app/domain/Entities/scanned_document.dart';
-import 'package:cardly_app/domain/Entities/user_entity.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/scanned_document.dart';
+import 'package:cardly_app/domain/entities/user_entity.dart';
 import 'package:cardly_app/presentation/auth/forgot-password/forgot_password_screen.dart';
 import 'package:cardly_app/presentation/auth/forgot-password/input_otp_screen.dart';
 import 'package:cardly_app/presentation/auth/forgot-password/reset_password_screen.dart';
@@ -8,7 +8,6 @@ import 'package:cardly_app/presentation/auth/view/login_screen.dart';
 import 'package:cardly_app/presentation/auth/view/register_screen.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
 import 'package:cardly_app/presentation/contact/view/contact_add/contact_add_screen.dart';
-import 'package:cardly_app/presentation/contact/view/contact_detail/contact_detail_screen.dart';
 
 import 'package:cardly_app/presentation/contact/view/contact_screen.dart';
 import 'package:cardly_app/presentation/digital_card/digital_card_screen.dart';
@@ -76,8 +75,7 @@ extension AppNavigation on BuildContext {
 
   void goToContact() => push(ContactScreen.routerName);
   void goToContactAdd() => push(ContactAddScreen.routerName);
-  void goToContactDetail(BusinessCardEntity c) =>
-      push(ContactDetailScreen.routerName, extra: c);
+  void goToContactDetail(String id) => push('/contact-detail/$id');
 
   void goToDigitalCard() => push(DigitalCardScreen.routerName);
 

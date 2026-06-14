@@ -3,9 +3,9 @@ import 'package:cardly_app/data/models/auth/resend_otp_response.dart';
 import 'package:cardly_app/data/models/auth/reset_password_response.dart';
 import 'package:cardly_app/data/models/auth/verify_otp_response.dart';
 import 'package:cardly_app/data/models/auth/verify_reset_otp_response.dart';
-import 'package:cardly_app/domain/Entities/forgot-password/forgot_password_result.dart';
-import 'package:cardly_app/domain/Entities/forgot-password/reset_password_result.dart';
-import 'package:cardly_app/domain/Entities/forgot-password/verify_otp_result.dart';
+import 'package:cardly_app/domain/entities/forgot-password/forgot_password_result.dart';
+import 'package:cardly_app/domain/entities/forgot-password/reset_password_result.dart';
+import 'package:cardly_app/domain/entities/forgot-password/verify_otp_result.dart';
 import 'package:cardly_app/domain/entities/forgot-password/resend_otp_result.dart';
 import 'package:cardly_app/domain/entities/forgot-password/verify_reset_otp_result.dart';
 

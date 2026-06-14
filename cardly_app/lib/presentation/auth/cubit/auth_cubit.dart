@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cardly_app/data/datasources/local/auth_local_data_source.dart';
-import 'package:cardly_app/domain/Entities/user_entity.dart';
+import 'package:cardly_app/domain/entities/user_entity.dart';
 import 'package:cardly_app/domain/usecase/auth/forgot-password/forgot_password_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/forgot-password/resend_otp_usecase.dart';
 import 'package:cardly_app/domain/usecase/auth/forgot-password/reset_password_usecase.dart';

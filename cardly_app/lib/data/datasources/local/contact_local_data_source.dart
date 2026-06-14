@@ -3,12 +3,14 @@ import 'dart:convert';
 import 'package:cardly_app/core/enums/sync_status.dart';
 import 'package:cardly_app/core/error/exceptions.dart';
 import 'package:cardly_app/data/datasources/local/database_helper.dart';
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/paginated_result.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
 abstract class ContactLocalDataSource {
   Future<List<BusinessCardEntity>> getContacts(String userId);
+  Future<BusinessCardEntity?> findById(String id);
 
   Future<BusinessCardEntity> saveContact(
     BusinessCardEntity contact,
@@ -17,21 +19,16 @@ abstract class ContactLocalDataSource {
   Future<void> deleteContact(String id);
   Future<void> cacheContacts(List<BusinessCardEntity> contacts);
   Future<void> updateProcessingId(String id, String processingId);
-
   Future<PaginatedResult> getContactsPaginated(
     String userId, {
     required int offset,
     required int limit,
   });
+
   Future<List<BusinessCardEntity>> getPendingSync(String userId);
   Future<void> updateSyncStatus(String id, SyncStatus status);
-  Future<BusinessCardEntity?> findByProcessingId(String processingId);
-}
 
-class PaginatedResult {
-  final List<BusinessCardEntity> items;
-  final bool hasMore;
-  const PaginatedResult({required this.items, required this.hasMore});
+  Future<BusinessCardEntity?> findByProcessingId(String processingId);
 }
 
 class ContactLocalDataSourceImpl implements ContactLocalDataSource {
@@ -53,6 +50,19 @@ class ContactLocalDataSourceImpl implements ContactLocalDataSource {
     } catch (e) {
       throw CacheException(e.toString());
     }
+  }
+
+  @override
+  Future<BusinessCardEntity?> findById(String id) async {
+    final db = await dbHelper.database;
+    final rows = await db.query(
+      'business_cards',
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    return _rowToEntity(rows.first);
   }
 
   @override

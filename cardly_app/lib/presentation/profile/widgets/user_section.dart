@@ -1,7 +1,7 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/widgets/app_avatar.dart';
-import 'package:cardly_app/domain/Entities/user_entity.dart';
+import 'package:cardly_app/domain/entities/user_entity.dart';
 import 'package:flutter/material.dart';
 
 class UserSection extends StatelessWidget {
@@ -39,7 +39,6 @@ class UserSection extends StatelessWidget {
                       user?.company,
                     ].whereType<String>().join(" · "),
                     style: AppTextStyles.bodySmall.copyWith(
-                      fontSize: 14,
                       color: AppColor.greyDark,
                     ),
                   ),

@@ -1,7 +1,7 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/widgets/app_avatar.dart';
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
 import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_icon_button.dart';
 import 'package:flutter/material.dart';
 
@@ -11,6 +11,10 @@ class ContactDetailHeader extends StatelessWidget {
   final TextEditingController nameCtrl;
   final TextEditingController titleCtrl;
   final TextEditingController companyCtrl;
+  final VoidCallback? onCall;
+  final VoidCallback? onEmail;
+  final VoidCallback? onLinkedIn;
+  final VoidCallback? onWebsite;
 
   const ContactDetailHeader({
     super.key,
@@ -19,6 +23,10 @@ class ContactDetailHeader extends StatelessWidget {
     required this.nameCtrl,
     required this.titleCtrl,
     required this.companyCtrl,
+    this.onCall,
+    this.onEmail,
+    this.onLinkedIn,
+    this.onWebsite,
   });
 
   @override
@@ -32,7 +40,12 @@ class ContactDetailHeader extends StatelessWidget {
         else ...[
           _buildView(),
           const SizedBox(height: 6),
-          const ContactIconButton(),
+          ContactIconButton(
+            onCall: onCall,
+            onEmail: onEmail,
+            onLinkedIn: onLinkedIn,
+            onWebsite: onWebsite,
+          ),
           const SizedBox(height: 16),
         ],
       ],

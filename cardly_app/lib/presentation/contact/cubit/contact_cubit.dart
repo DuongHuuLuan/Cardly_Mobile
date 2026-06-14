@@ -1,8 +1,9 @@
-import 'package:cardly_app/core/cubit/app_loading_cubit.dart';
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
+import 'package:cardly_app/core/cubit/loading/app_loading_cubit.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
 import 'package:cardly_app/domain/entities/enrichment/enrichment_entity.dart';
-import 'package:cardly_app/domain/repositories/contact_repository.dart';
 import 'package:cardly_app/domain/usecase/contact/delete_contact_usecase.dart';
+import 'package:cardly_app/domain/usecase/contact/get_contact_by_id_usecase.dart';
+import 'package:cardly_app/domain/usecase/contact/get_contacts_paginated_usecase.dart';
 import 'package:cardly_app/domain/usecase/contact/get_contacts_usecase.dart';
 import 'package:cardly_app/domain/usecase/contact/save_contact_usecase.dart';
 import 'package:cardly_app/domain/usecase/contact/sync_contacts_usecase.dart';
@@ -14,19 +15,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ContactCubit extends Cubit<ContactState> {
   final GetContactsUsecase getContacts;
+  final GetContactByIdUsecase getcontactById;
   final SaveContactUsecase saveContact;
   final DeleteContactUsecase deleteContact;
   final EnrichmentUsecase enrichment;
   final SyncContactsUsecase syncContacts;
-  final ContactRepository contactRepository;
+  final GetContactsPaginatedUsecase getContactsPaginated;
 
   ContactCubit({
     required this.getContacts,
+    required this.getcontactById,
     required this.saveContact,
     required this.deleteContact,
     required this.enrichment,
     required this.syncContacts,
-    required this.contactRepository,
+    required this.getContactsPaginated,
   }) : super(const ContactState());
 
   Future<void> loadContacts({bool refresh = false}) async {
@@ -51,7 +54,7 @@ class ContactCubit extends Cubit<ContactState> {
       return;
     }
 
-    final result = await contactRepository.getContactsPaginated(0, 8);
+    final result = await getContactsPaginated(0, 8);
     result.fold(
       (failure) {
         emit(
@@ -79,10 +82,7 @@ class ContactCubit extends Cubit<ContactState> {
 
     emit(state.copyWith(isLoadingMore: true));
     final nextPage = state.currentPage + 1;
-    final result = await contactRepository.getContactsPaginated(
-      nextPage * 20,
-      20,
-    );
+    final result = await getContactsPaginated(nextPage * 20, 20);
 
     result.fold(
       (failure) => emit(state.copyWith(isLoadingMore: false)),
@@ -119,6 +119,22 @@ class ContactCubit extends Cubit<ContactState> {
       },
     );
     return savedEntity;
+  }
+
+  Future<void> getContactById(String id) async {
+    emit(state.copyWith(status: ContactStatus.loading));
+    final result = await getcontactById(id);
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          status: ContactStatus.failure,
+          errorMessage: failure.message,
+        ),
+      ),
+      (contact) => emit(
+        state.copyWith(status: ContactStatus.loaded, contacts: [contact]),
+      ),
+    );
   }
 
   Future<bool> delete(BusinessCardEntity contact) async {

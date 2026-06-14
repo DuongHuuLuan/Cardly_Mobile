@@ -1,4 +1,5 @@
 import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -87,7 +88,7 @@ class OtpInputFieldState extends State<OtpInputField> {
                 LengthLimitingTextInputFormatter(1),
                 FilteringTextInputFormatter.digitsOnly,
               ],
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: AppTextStyles.heading2,
               decoration: InputDecoration(
                 counterText: "",
                 contentPadding: EdgeInsets.zero,

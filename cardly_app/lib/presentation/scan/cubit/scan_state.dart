@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:cardly_app/domain/Entities/scanned_document.dart';
+import 'package:cardly_app/domain/entities/scanned_document.dart';
 
 enum ScanStatus {
   initial,

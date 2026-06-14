@@ -1,4 +1,4 @@
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
 import 'package:equatable/equatable.dart';
 
 enum ContactStatus {
@@ -45,6 +45,12 @@ class ContactState extends Equatable {
   );
 
   @override
-  List<Object?> get props =>
-      [status, contacts, errorMessage, hasMore, isLoadingMore, currentPage];
+  List<Object?> get props => [
+    status,
+    contacts,
+    errorMessage,
+    hasMore,
+    isLoadingMore,
+    currentPage,
+  ];
 }

@@ -1,5 +1,4 @@
 import 'package:cardly_app/core/error/failures.dart';
-import 'package:cardly_app/domain/Entities/user_entity.dart';
 import 'package:cardly_app/domain/entities/auth_tokens.dart';
 import 'package:cardly_app/domain/repositories/auth_repository.dart';
 import 'package:dartz/dartz.dart';

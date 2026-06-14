@@ -1,5 +1,5 @@
 import 'package:cardly_app/core/theme/app_color.dart';
-import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/widgets/app_elevated_button.dart';
 import 'package:flutter/material.dart';
 
 class ActionBar extends StatelessWidget {
@@ -18,66 +18,27 @@ class ActionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColor.primary,
-              side: const BorderSide(color: AppColor.primary),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-            onPressed: isEnriching ? null : onEnrich,
-            icon: isEnriching
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.auto_awesome_outlined, size: 20),
-            label: Text(
-              isEnriching ? "Getting rich..." : "Enriching AI information",
-              style: AppTextStyles.bodyMedium.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+        AppElevatedButton(
+          label: "Enriching AI information",
+          onPressed: isEnriching ? null : onEnrich,
+          icon: const Icon(Icons.auto_awesome_outlined, size: 20),
+          isLoading: isEnriching,
+          backgroundColor: AppColor.white,
+          borderColor: AppColor.primary.withValues(alpha: 0.2),
+          labelColor: AppColor.primary,
+          iconColor: AppColor.primary,
+          height: MediaQuery.of(context).size.height * 0.06,
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColor.primary,
-              foregroundColor: AppColor.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-              elevation: 0,
-            ),
-            onPressed: isSaving ? null : onSave,
-            icon: isSaving
-                ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColor.white,
-                    ),
-                  )
-                : Icon(Icons.save_outlined, size: 20),
-
-            label: Text(
-              isSaving ? "Saving..." : "Save contact",
-              style: AppTextStyles.bodyMedium.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColor.white,
-              ),
-            ),
-          ),
+        AppElevatedButton(
+          label: "Save contact",
+          onPressed: isSaving ? null : onSave,
+          backgroundColor: AppColor.primary,
+          labelColor: AppColor.white,
+          icon: const Icon(Icons.save_outlined, size: 20),
+          iconColor: AppColor.white,
+          isLoading: isSaving,
+          height: MediaQuery.of(context).size.height * 0.06,
         ),
       ],
     );

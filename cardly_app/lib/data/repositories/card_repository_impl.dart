@@ -2,7 +2,7 @@ import 'package:cardly_app/core/error/exceptions.dart';
 import 'package:cardly_app/core/error/failures.dart';
 import 'package:cardly_app/data/datasources/local/card_local_data_source.dart';
 import 'package:cardly_app/data/datasources/remote/card_remote_data_source.dart';
-import 'package:cardly_app/domain/Entities/scanned_document.dart';
+import 'package:cardly_app/domain/entities/scanned_document.dart';
 import 'package:cardly_app/domain/repositories/card_repository.dart';
 import 'package:dartz/dartz.dart';
 

@@ -1,5 +1,5 @@
-import 'package:cardly_app/core/cubit/app_loading_cubit.dart';
-import 'package:cardly_app/core/cubit/app_loading_state.dart';
+import 'package:cardly_app/core/cubit/loading/app_loading_cubit.dart';
+import 'package:cardly_app/core/cubit/loading/app_loading_state.dart';
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/widgets/ripple_wave.dart';

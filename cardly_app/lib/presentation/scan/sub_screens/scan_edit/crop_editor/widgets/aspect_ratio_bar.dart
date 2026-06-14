@@ -1,6 +1,7 @@
+import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/presentation/scan/crop_editor/crop_editor_state.dart';
 import 'package:flutter/material.dart';
-import 'package:cardly_app/core/theme/app_color.dart';
 
 class AspectRatioBar extends StatelessWidget {
   final AspectRatioOption selected;
@@ -24,7 +25,7 @@ class AspectRatioBar extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: ChoiceChip(
-              label: Text(option.label, style: const TextStyle(fontSize: 11)),
+              label: Text(option.label, style: AppTextStyles.caption.copyWith(fontSize: 11)),
               selected: isSelected,
               onSelected: (_) => onChanged(option),
               visualDensity: VisualDensity.compact,

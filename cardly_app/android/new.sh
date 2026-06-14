@@ -1,0 +1,1 @@
+adb shell am start -a android.intent.action.VIEW -d "cardly:///contact-detail/PRC-20260613-GCM3HG"

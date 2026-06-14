@@ -4,7 +4,7 @@ import 'package:cardly_app/data/mappers/contact_mapper.dart';
 import 'package:cardly_app/data/models/contact/contact_detail_response.dart';
 import 'package:cardly_app/data/models/contact/contact_list_response.dart';
 import 'package:cardly_app/data/services/contact_service.dart';
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
 import 'package:dio/dio.dart';
 
 class ContactRemoteDataSource {

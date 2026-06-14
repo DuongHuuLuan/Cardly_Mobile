@@ -3,8 +3,8 @@ import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
-import 'package:cardly_app/domain/Entities/scanned_document.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/scanned_document.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_state.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_document/widgets/action_bar.dart';
@@ -153,7 +153,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     if (!mounted) return;
 
     if (saved != null) {
-      context.goToContactDetail(saved);
+      context.goToContactDetail(saved.id!);
     }
   }
 
@@ -199,7 +199,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColor.white,
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(

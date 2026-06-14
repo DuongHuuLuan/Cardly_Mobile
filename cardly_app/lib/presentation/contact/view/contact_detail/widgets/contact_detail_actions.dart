@@ -7,16 +7,12 @@ import 'package:flutter/material.dart';
 
 class ContactDetailActions extends StatelessWidget {
   final bool isEditing;
-  final bool isSaving;
-  final bool isDeleting;
   final VoidCallback onSave;
   final VoidCallback onDelete;
 
   const ContactDetailActions({
     super.key,
     required this.isEditing,
-    required this.isSaving,
-    required this.isDeleting,
     required this.onSave,
     required this.onDelete,
   });
@@ -35,7 +31,6 @@ class ContactDetailActions extends StatelessWidget {
         color: isEditing ? AppColor.white : AppColor.error,
         size: 24,
       ),
-      isLoading: isEditing ? isSaving : isDeleting,
     ).paddingAll(20);
   }
 

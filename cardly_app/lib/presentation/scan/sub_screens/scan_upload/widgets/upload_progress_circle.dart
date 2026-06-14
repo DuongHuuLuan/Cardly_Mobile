@@ -35,10 +35,10 @@ class UploadProgressCircle extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               "$percent%",
-              style: AppTextStyles.heading3.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
-              ),
+            style: AppTextStyles.heading2.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 22,
+            ),
             ),
           ],
         ),

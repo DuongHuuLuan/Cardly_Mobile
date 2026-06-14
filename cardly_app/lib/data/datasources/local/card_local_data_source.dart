@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:cardly_app/core/error/exceptions.dart';
 import 'package:cardly_app/data/datasources/local/database_helper.dart';
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
-import 'package:cardly_app/domain/Entities/scanned_document.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/scanned_document.dart';
 import 'package:sqflite/sqflite.dart';
 
 abstract class CardLocalDataSource {

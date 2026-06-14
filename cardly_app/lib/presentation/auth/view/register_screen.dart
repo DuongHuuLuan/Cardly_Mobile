@@ -1,10 +1,11 @@
 import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
 import 'package:cardly_app/core/widgets/password_strength_widget.dart';
 import 'package:cardly_app/core/widgets/submit_button.dart';
-import 'package:cardly_app/domain/Entities/user_entity.dart';
+import 'package:cardly_app/domain/entities/user_entity.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
 import 'package:cardly_app/presentation/auth/view/widgets/auth_form.dart';
@@ -132,17 +133,14 @@ class _RegisterPageState extends State<RegisterPage> {
 
                     Text(
                       "Sign Up",
-                      style: Theme.of(context).textTheme.headlineLarge
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: AppTextStyles.heading1,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
 
                     Text(
                       "Enter your information below",
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(color: AppColor.grey),
+                      style: AppTextStyles.bodyMedium.copyWith(color: AppColor.grey),
                     ),
                     const SizedBox(height: 30),
 
@@ -188,11 +186,10 @@ class _RegisterPageState extends State<RegisterPage> {
                           },
                           child: Text(
                             "Login",
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(
-                                  color: AppColor.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: AppTextStyles.bodyLarge.copyWith(
+                              color: AppColor.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],

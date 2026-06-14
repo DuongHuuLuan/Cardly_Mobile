@@ -1,5 +1,8 @@
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
-import 'package:cardly_app/domain/Entities/scanned_document.dart';
+import 'package:cardly_app/core/cubit/deep_link/deep_link_cubit.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/scanned_document.dart';
+import 'package:cardly_app/domain/entities/deep_link/deep_link_entity.dart';
+import 'package:cardly_app/domain/repositories/deep_link_repository.dart';
 import 'package:cardly_app/injection_container.dart';
 import 'package:cardly_app/presentation/auth/view/session_expired_screen.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
@@ -45,6 +48,37 @@ class AppRouter {
         final isExpiredRoute =
             state.matchedLocation == SessionExpiredScreen.routerName;
         return isExpiredRoute ? null : SessionExpiredScreen.routerName;
+      }
+      final isProtectedRoute = [
+        HomePage.routerName,
+        ContactScreen.routerName,
+        ProfileScreen.routerName,
+        ScanScreen.routerName,
+        ContactDetailScreen.routerName,
+      ].any((route) => state.matchedLocation.startsWith(route));
+
+      final isAuthRoute = [
+        LoginPage.routerName,
+        RegisterPage.routerName,
+        OnboardingScreen.routerName,
+        SplashScreen.routerName,
+        ForgotPasswordScreen.routerName,
+        OtpVerificationScreen.routerName,
+        ResetPasswordScreen.routerName,
+      ].any((route) => state.matchedLocation.startsWith(route));
+
+      if (isProtectedRoute && !isAuthRoute) {
+        final token = prefs.getString('access_token');
+        if (token == null || token.isEmpty) {
+          final deepLinkRepo = getIt<DeepLinkRepository>();
+          deepLinkRepo.setPendingDeepLinkSync(
+            DeepLinkEntity(
+              router: state.matchedLocation,
+              params: state.pathParameters,
+            ),
+          );
+          return SplashScreen.routerName;
+        }
       }
       return null;
     },
@@ -114,6 +148,7 @@ class AppRouter {
             BlocProvider(
               create: (context) => getIt<ContactCubit>()..loadContacts(),
             ),
+            BlocProvider(create: (context) => getIt<DeepLinkCubit>()),
           ],
           child: const HomePage(),
         ),
@@ -128,10 +163,10 @@ class AppRouter {
       GoRoute(
         path: ContactDetailScreen.routerName,
         builder: (context, state) {
-          final contact = state.extra as BusinessCardEntity;
+          final id = state.pathParameters['id']!;
           return BlocProvider(
-            create: (context) => getIt<ContactCubit>(),
-            child: ContactDetailScreen(contact: contact),
+            create: (_) => getIt<ContactCubit>()..getContactById(id),
+            child: ContactDetailScreen(contactId: id),
           );
         },
       ),

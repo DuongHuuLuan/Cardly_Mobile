@@ -151,7 +151,7 @@ class EnrichmentHighlightsSection extends StatelessWidget {
             children: [
               const Icon(
                 Icons.auto_awesome_outlined,
-                color: Colors.amberAccent,
+                color: AppColor.secondary,
                 size: 20,
               ),
               const SizedBox(width: 8),

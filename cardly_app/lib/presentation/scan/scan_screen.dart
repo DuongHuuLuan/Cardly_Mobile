@@ -1,4 +1,4 @@
-import 'package:cardly_app/core/cubit/app_loading_cubit.dart';
+import 'package:cardly_app/core/cubit/loading/app_loading_cubit.dart';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/presentation/scan/widgets/initial_view.dart';

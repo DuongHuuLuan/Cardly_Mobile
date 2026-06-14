@@ -28,7 +28,7 @@ class AppIndicator extends StatelessWidget {
   final Color backButtonColor;
   final Color backButtonTextColor;
   // Skip
-  final Color skipTextColor;
+  final Color? skipTextColor;
   final TextStyle? skipTextStyle;
   // Dots
   final Color? dotsActiveColor;
@@ -74,7 +74,6 @@ class AppIndicator extends StatelessWidget {
   bool get _isLastPage => currentIndex == totalPages - 1;
   @override
   Widget build(BuildContext context) {
-    final themeText = Theme.of(context).textTheme;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -124,9 +123,7 @@ class AppIndicator extends StatelessWidget {
                       color: skipTextColor ?? AppColor.grey,
                       fontWeight: FontWeight.w500,
                     ),
-              )
-                  .paddingHorizontal(8)
-                  .paddingVertical(4),
+              ).paddingHorizontal(8).paddingVertical(4),
             ),
           ),
         if (showSkip) SizedBox(height: skipToDotsGap),
@@ -170,8 +167,7 @@ class AppIndicator extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (!iconOnRight)
-              Icon(icon, size: 14).paddingRight(6),
+            if (!iconOnRight) Icon(icon, size: 14).paddingRight(6),
             Text(
               label,
               style:
@@ -181,8 +177,7 @@ class AppIndicator extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
             ),
-            if (iconOnRight)
-              Icon(icon, size: 15).paddingLeft(10),
+            if (iconOnRight) Icon(icon, size: 15).paddingLeft(10),
           ],
         ),
       ),

@@ -1,7 +1,8 @@
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
 import 'package:equatable/equatable.dart';
 
 enum HomeStatus { initial, loading, success, failure }
+
 enum ContactsStatus { initial, loading, loaded, failure }
 
 class HomeState extends Equatable {
@@ -22,13 +23,12 @@ class HomeState extends Equatable {
     String? errorMessage,
     List<BusinessCardEntity>? contacts,
     ContactsStatus? contactsStatus,
-  }) =>
-      HomeState(
-        status: status ?? this.status,
-        errorMessage: errorMessage ?? this.errorMessage,
-        contacts: contacts ?? this.contacts,
-        contactsStatus: contactsStatus ?? this.contactsStatus,
-      );
+  }) => HomeState(
+    status: status ?? this.status,
+    errorMessage: errorMessage ?? this.errorMessage,
+    contacts: contacts ?? this.contacts,
+    contactsStatus: contactsStatus ?? this.contactsStatus,
+  );
 
   @override
   List<Object?> get props => [status, errorMessage, contacts, contactsStatus];

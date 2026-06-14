@@ -1,13 +1,10 @@
 import 'dart:convert';
 import 'package:cardly_app/data/mappers/ocr_mapper.dart';
-import 'package:cardly_app/data/mappers/scanned_document_mapper.dart';
 import 'package:cardly_app/data/models/ocr_response_model.dart';
-import 'package:cardly_app/data/models/scan_response_model.dart';
 import 'package:cardly_app/data/services/card_service.dart';
 import 'package:cardly_app/core/error/exceptions.dart';
-import 'package:cardly_app/domain/Entities/scanned_document.dart';
+import 'package:cardly_app/domain/entities/scanned_document.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 
 import '../../models/upload_response_model.dart';
 
@@ -107,7 +104,9 @@ class CardRemoteDataSource {
         } else {
           rethrow;
         }
-      } catch (e) {}
+      } catch (e) {
+        throw Exception(e);
+      }
       await Future.delayed(const Duration(seconds: 2));
     }
     throw const ServerException("OCR processing timeout after 180s");

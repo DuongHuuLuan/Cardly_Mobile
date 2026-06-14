@@ -2,10 +2,9 @@ import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/utils/widget_padding.dart';
-import 'package:cardly_app/core/widgets/app_avatar.dart';
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
+import 'package:cardly_app/core/widgets/app_contact_card.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
-import 'package:cardly_app/presentation/contact/cubit/contact_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -53,47 +52,13 @@ class RecentContactsSection extends StatelessWidget {
         else
           Column(
             children: contacts.map((c) {
-              return Container(
-                decoration: BoxDecoration(
-                  color: AppColor.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColor.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: AppContactCard(
+                  contact: c,
+                  onTap: () => _onContactTap(context, c),
                 ),
-                child: Material(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(16),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    leading: AppAvatar(radius: 24, name: c.fullName ?? "?"),
-
-                    title: Text(
-                      c.fullName ?? 'Unknown',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    subtitle: Text(
-                      "${c.jobTitle ?? ''} · ${c.company ?? ''}",
-                      style: AppTextStyles.caption,
-                    ),
-                    trailing: const Icon(
-                      Icons.chevron_right_rounded,
-                      color: AppColor.grey,
-                      size: 22,
-                    ),
-                    onTap: () => _onContactTap(context, c),
-                  ),
-                ),
-              ).paddingOnly(bottom: 10);
+              );
             }).toList(),
           ).paddingHorizontal(16),
       ],
@@ -101,6 +66,6 @@ class RecentContactsSection extends StatelessWidget {
   }
 
   void _onContactTap(BuildContext context, BusinessCardEntity contact) {
-    context.goToContactDetail(contact);
+    context.goToContactDetail(contact.id!);
   }
 }

@@ -1,7 +1,7 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/widgets/app_info_tile.dart';
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
 import 'package:flutter/material.dart';
 
 class ContactDetailInfoSection extends StatelessWidget {
@@ -13,6 +13,8 @@ class ContactDetailInfoSection extends StatelessWidget {
   final TextEditingController linkedinCtrl;
   final TextEditingController addressCtrl;
   final TextEditingController notesCtrl;
+  final void Function(String url)? onWebsiteTap;
+  final void Function(String url)? onLinkedinTap;
 
   const ContactDetailInfoSection({
     super.key,
@@ -24,6 +26,8 @@ class ContactDetailInfoSection extends StatelessWidget {
     required this.linkedinCtrl,
     required this.addressCtrl,
     required this.notesCtrl,
+    this.onLinkedinTap,
+    this.onWebsiteTap,
   });
 
   @override

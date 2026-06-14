@@ -1,6 +1,6 @@
 import 'package:cardly_app/data/models/scan_response_model.dart';
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
-import 'package:cardly_app/domain/Entities/scanned_document.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/scanned_document.dart';
 
 class ScannedDocumentMapper {
   static ScannedDocument fromResponse(ScanResponseModel response) {

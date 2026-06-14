@@ -65,9 +65,6 @@ class DatabaseHelper {
     ''');
   }
 
-  @override
-  int get version => 3;
-
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       await db.execute(

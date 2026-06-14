@@ -51,9 +51,8 @@ class ScanActionButton extends StatelessWidget {
                 ),
                 Text(
                   "Take photos to extract information.",
-                  style: AppTextStyles.bodySmall.copyWith(
+                  style: AppTextStyles.caption.copyWith(
                     color: AppColor.grey,
-                    fontSize: 12,
                   ),
                 ),
               ],

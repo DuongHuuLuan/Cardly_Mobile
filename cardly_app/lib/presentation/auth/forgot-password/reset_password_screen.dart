@@ -23,7 +23,6 @@ class ResetPasswordScreen extends StatefulWidget {
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   late final AuthCubit _authCubit;
-  late String _email;
   late String _resetToken;
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -40,7 +39,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final args = GoRouterState.of(context).extra as Map<String, String>;
-    _email = args['email']!;
     _resetToken = args['resetToken']!;
   }
 
@@ -113,14 +111,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 children: [
                   Text(
                     "Enter New Password",
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: AppTextStyles.heading2,
                   ),
                   const SizedBox(height: 20),
                   Text(
                     "Please enter your new password",
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    style: AppTextStyles.bodyMedium.copyWith(
                       color: AppColor.greyDark,
                       fontWeight: FontWeight.w300,
                     ),

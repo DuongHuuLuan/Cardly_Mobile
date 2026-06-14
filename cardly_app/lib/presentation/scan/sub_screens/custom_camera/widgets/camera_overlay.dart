@@ -1,4 +1,5 @@
 import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/custom_camera/custom_camera_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -38,9 +39,9 @@ class _CameraOverlayState extends State<CameraOverlay>
   Color get _borderColor {
     switch (widget.status) {
       case AutoCaptureStatus.checking:
-        return Colors.redAccent;
+        return AppColor.error;
       case AutoCaptureStatus.ready:
-        return Colors.greenAccent;
+        return AppColor.success;
       case AutoCaptureStatus.capturing:
         return AppColor.white;
     }
@@ -117,9 +118,8 @@ class _CameraOverlayState extends State<CameraOverlay>
           child: Text(
             _message,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: AppTextStyles.bodyMedium.copyWith(
               color: AppColor.white,
-              fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
           ),
