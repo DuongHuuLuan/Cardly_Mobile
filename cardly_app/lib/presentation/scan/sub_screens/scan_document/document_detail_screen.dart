@@ -66,10 +66,6 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     super.dispose();
   }
 
-  String? _enrichedBrief;
-  List<String>? _enrichedKeywords;
-  List<String>? _enrichedHighlights;
-
   Future<void> _onEnrich() async {
     final data = {
       "name": _nameCtrl.text.trim(),
@@ -90,6 +86,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     final updatedCardBeforeEnrich = BusinessCardEntity(
       id: _card.id,
       processingId: _card.processingId ?? _card.id,
+      avatar: _card.avatar,
       fullName: _nameCtrl.text.trim(),
       jobTitle: _titleCtrl.text.trim(),
       company: _companyCtrl.text.trim(),
@@ -103,38 +100,20 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
       location: _card.location,
       createdAt: _card.createdAt,
       images: _card.images,
-      brief: _enrichedBrief,
-      keywords: _enrichedKeywords,
-      highlights: _enrichedHighlights,
     );
 
-    final updatedCard = await context.goToEnrichment<BusinessCardEntity>(
+    await context.goToEnrichment<BusinessCardEntity>(
       updatedCardBeforeEnrich,
       data,
       _contactCubit,
     );
-
-    if (updatedCard != null && mounted) {
-      _nameCtrl.text = updatedCard.fullName ?? '';
-      _titleCtrl.text = updatedCard.jobTitle ?? '';
-      _companyCtrl.text = updatedCard.company ?? '';
-      _phoneCtrl.text = updatedCard.phone ?? '';
-      _emailCtrl.text = updatedCard.email ?? '';
-      _websiteCtrl.text = updatedCard.website ?? '';
-      _linkedinCtrl.text = updatedCard.linkedIn ?? '';
-      _addressCtrl.text = updatedCard.address ?? '';
-      _notesCtrl.text = updatedCard.notes ?? '';
-
-      _enrichedBrief = updatedCard.brief;
-      _enrichedKeywords = updatedCard.keywords;
-      _enrichedHighlights = updatedCard.highlights;
-    }
   }
 
   Future<void> _onSave() async {
     final card = BusinessCardEntity(
       id: _card.id,
       processingId: _card.processingId ?? _card.id,
+      avatar: _card.avatar,
       fullName: _nameCtrl.text.trim(),
       jobTitle: _titleCtrl.text.trim(),
       company: _companyCtrl.text.trim(),
@@ -144,11 +123,8 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
       linkedIn: _linkedinCtrl.text.trim(),
       address: _addressCtrl.text.trim(),
       notes: _notesCtrl.text.trim(),
-      brief: _enrichedBrief,
-      keywords: _enrichedKeywords,
-      highlights: _enrichedHighlights,
     );
-    final saved = await _contactCubit.save(card);
+    final saved = await _contactCubit.saveEntity(card);
 
     if (!mounted) return;
 

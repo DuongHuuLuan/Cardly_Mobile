@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 class BusinessCardEntity extends Equatable {
   final String? id;
   final String? userId;
+  final String? avatar;
   final String? fullName;
   final String? jobTitle;
   final String? company;
@@ -30,6 +31,7 @@ class BusinessCardEntity extends Equatable {
   const BusinessCardEntity({
     this.id,
     this.userId,
+    this.avatar,
     this.fullName,
     this.jobTitle,
     this.company,
@@ -56,6 +58,7 @@ class BusinessCardEntity extends Equatable {
 
   BusinessCardEntity copyWith({
     String? id,
+    String? avatar,
     String? userId,
     String? fullName,
     String? jobTitle,
@@ -82,6 +85,7 @@ class BusinessCardEntity extends Equatable {
   }) {
     return BusinessCardEntity(
       id: id ?? this.id,
+      avatar: avatar ?? this.avatar,
       userId: userId ?? this.userId,
       fullName: fullName ?? this.fullName,
       jobTitle: jobTitle ?? this.jobTitle,
@@ -111,6 +115,7 @@ class BusinessCardEntity extends Equatable {
   @override
   List<Object?> get props => [
     id,
+    avatar,
     userId,
     fullName,
     jobTitle,

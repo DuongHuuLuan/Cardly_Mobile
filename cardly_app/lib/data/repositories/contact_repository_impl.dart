@@ -88,7 +88,13 @@ class ContactRepositoryImpl implements ContactRepository {
             remote.processingId!,
           );
         }
-        return Right(remote.copyWith(id: local.id));
+        // return Right(remote.copyWith(id: local.id));
+        return Right(
+          local.copyWith(
+            processingId: remote.processingId,
+            uploadedAt: remote.uploadedAt,
+          ),
+        );
       } on ServerException {
         return Right(local);
       }
@@ -209,7 +215,7 @@ class ContactRepositoryImpl implements ContactRepository {
                   detail,
                   localId: existing.id,
                   localCreatedAt: existing.createdAt,
-                ).copyWith(uploadedAt: serverTime);
+                ).copyWith(avatar: existing.avatar, uploadedAt: serverTime);
                 await localDataSource.saveContact(updated, userId);
               }
             }

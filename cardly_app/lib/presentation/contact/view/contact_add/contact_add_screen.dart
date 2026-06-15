@@ -23,7 +23,7 @@ class _ContactAddScreenState extends State<ContactAddScreen> {
 
   void _onSave() {
     if (!_formKey.currentState!.validate()) return;
-    context.read<ContactCubit>().save(_formKey.currentState!.data);
+    context.read<ContactCubit>().saveEntity(_formKey.currentState!.data);
   }
 
   @override

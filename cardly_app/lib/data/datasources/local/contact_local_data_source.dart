@@ -254,6 +254,7 @@ class ContactLocalDataSourceImpl implements ContactLocalDataSource {
       images: row['images'] != null
           ? (jsonDecode(row['images'] as String) as List).cast<String>()
           : null,
+      avatar: row['avatar_path'] as String?,
       createdAt: row['created_at'] != null
           ? DateTime.tryParse(row['created_at'] as String)
           : null,
@@ -289,6 +290,7 @@ class ContactLocalDataSourceImpl implements ContactLocalDataSource {
       'keywords': e.keywords != null ? jsonEncode(e.keywords) : null,
       'highlights': e.highlights != null ? jsonEncode(e.highlights) : null,
       'images': e.images != null ? jsonEncode(e.images) : null,
+      'avatar_path': e.avatar,
       'created_at': e.createdAt?.toIso8601String() ?? now,
       'updated_at': now,
 

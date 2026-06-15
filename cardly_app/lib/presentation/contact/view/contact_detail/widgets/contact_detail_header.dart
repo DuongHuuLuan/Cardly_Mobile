@@ -11,6 +11,8 @@ class ContactDetailHeader extends StatelessWidget {
   final TextEditingController nameCtrl;
   final TextEditingController titleCtrl;
   final TextEditingController companyCtrl;
+  final VoidCallback? onAvatarTap;
+  final String? avatar;
   final VoidCallback? onCall;
   final VoidCallback? onEmail;
   final VoidCallback? onLinkedIn;
@@ -23,6 +25,8 @@ class ContactDetailHeader extends StatelessWidget {
     required this.nameCtrl,
     required this.titleCtrl,
     required this.companyCtrl,
+    this.avatar,
+    this.onAvatarTap,
     this.onCall,
     this.onEmail,
     this.onLinkedIn,
@@ -33,13 +37,38 @@ class ContactDetailHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        AppAvatar(name: contact.fullName ?? "", radius: 40),
+        Stack(
+          alignment: Alignment.bottomRight,
+          children: [
+            AppAvatar(
+              name: contact.fullName ?? "",
+              radius: 40,
+              imageUrl: avatar,
+            ),
+            if (isEditing && onAvatarTap != null)
+              GestureDetector(
+                onTap: onAvatarTap,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: AppColor.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.camera_alt,
+                    size: 18,
+                    color: AppColor.white,
+                  ),
+                ),
+              ),
+          ],
+        ),
         const SizedBox(height: 12),
         if (isEditing)
           _buildEdit()
         else ...[
           _buildView(),
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           ContactIconButton(
             onCall: onCall,
             onEmail: onEmail,
