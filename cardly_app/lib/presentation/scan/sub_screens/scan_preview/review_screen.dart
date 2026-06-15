@@ -1,4 +1,5 @@
 import 'package:cardly_app/core/utils/navigation_exp.dart';
+import 'package:cardly_app/core/utils/permission_utils.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
@@ -48,7 +49,10 @@ class ReviewScreen extends StatelessWidget {
             body: PreviewView(
               imagePaths: state.imagePaths,
               onCamera: () => context.goToScanCamera(cubit),
-              onGallery: () => cubit.pickFromGallery(),
+              onGallery: () async {
+                final granted = await requestGalleryPermission(context);
+                if (granted) cubit.pickFromGallery();
+              },
               onConfirm: () => cubit.uploadAndScan(),
               onRemove: cubit.removeImage,
               canAddMore: state.imagePaths.length < 2,

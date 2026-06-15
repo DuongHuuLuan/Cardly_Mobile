@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
+import 'package:cardly_app/core/utils/permission_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -73,6 +74,10 @@ class _DigitalCardPreviewState extends State<DigitalCardPreview> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
+    if (source == ImageSource.gallery) {
+      final granted = await requestGalleryPermission(context);
+      if (!granted || !mounted) return;
+    }
     try {
       final file = await _picker.pickImage(source: source);
       if (file == null) return;

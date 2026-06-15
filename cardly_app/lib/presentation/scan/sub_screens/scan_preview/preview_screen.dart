@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
+import 'package:cardly_app/core/utils/permission_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -90,7 +91,9 @@ class _PreviewScreenState extends State<PreviewScreen> {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {
+                  onPressed: () async {
+                    final granted = await requestGalleryPermission(context);
+                    if (!granted || !mounted) return;
                     cubit.reset();
                     cubit.pickFromGallery();
                   },

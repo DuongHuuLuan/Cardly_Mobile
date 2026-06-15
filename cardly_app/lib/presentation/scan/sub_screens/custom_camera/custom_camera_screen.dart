@@ -5,6 +5,7 @@ import 'package:camera/camera.dart';
 import 'package:cardly_app/core/services/card_detector_channel.dart';
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
+import 'package:cardly_app/core/utils/permission_utils.dart';
 import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
@@ -311,6 +312,13 @@ class _CustomCameraScreenState extends State<CustomCameraScreen>
   }
 
   Future<void> _onPickFromGallery() async {
+    final granted = await requestGalleryPermission(context);
+    if (!mounted) return;
+    if (!granted) {
+      context.goToHome();
+      return;
+    }
+
     _autoCaptureEnabled = false;
     _autoCheckTimer?.cancel();
     _readyTimer?.cancel();
