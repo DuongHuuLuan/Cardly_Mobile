@@ -117,7 +117,11 @@ Future<void> init() async {
 
   // Remote Data Source
   getIt.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSource(getIt<AuthService>(), userMock: false),
+    () => AuthRemoteDataSource(
+      getIt<AuthService>(),
+      userMock: false,
+      mockVerifyOtp: false,
+    ),
   );
   getIt.registerLazySingleton<CardRemoteDataSource>(
     () => CardRemoteDataSource(getIt<CardService>(), userMock: false),

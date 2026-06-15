@@ -244,43 +244,43 @@ class AuthCubit extends Cubit<AuthState> {
         ),
       ),
       (_) async {
-        if (password != null) {
-          final loginResult = await loginUsecase(email, password);
-          loginResult.fold(
-            (failure) => emit(
-              state.copyWith(
-                status: AuthStatus.failed,
-                errorMessage: failure.message,
-              ),
-            ),
-            (tokens) async {
-              await localStorage.saveToken(tokens.accessToken);
-              await localStorage.saveRefreshToken(tokens.refreshToken);
-              final profileResult = await getProfileUsecase();
-              profileResult.fold(
-                (failure) => emit(
-                  state.copyWith(
-                    status: AuthStatus.failed,
-                    errorMessage: failure.message,
-                  ),
-                ),
-                (user) async {
-                  await localStorage.saveUser(user);
-                  emit(
-                    state.copyWith(
-                      status: AuthStatus.authenticated,
-                      user: user,
-                      failedAttempts: 0,
-                      lockoutSeconds: 0,
-                    ),
-                  );
-                },
-              );
-            },
-          );
-        } else {
-          emit(state.copyWith(status: AuthStatus.verifyOtpSuccess));
-        }
+        // if (password != null) {
+        //   final loginResult = await loginUsecase(email, password);
+        //   loginResult.fold(
+        //     (failure) => emit(
+        //       state.copyWith(
+        //         status: AuthStatus.failed,
+        //         errorMessage: failure.message,
+        //       ),
+        //     ),
+        //     (tokens) async {
+        //       await localStorage.saveToken(tokens.accessToken);
+        //       await localStorage.saveRefreshToken(tokens.refreshToken);
+        //       final profileResult = await getProfileUsecase();
+        //       profileResult.fold(
+        //         (failure) => emit(
+        //           state.copyWith(
+        //             status: AuthStatus.failed,
+        //             errorMessage: failure.message,
+        //           ),
+        //         ),
+        //         (user) async {
+        //           await localStorage.saveUser(user);
+        //           emit(
+        //             state.copyWith(
+        //               status: AuthStatus.authenticated,
+        //               user: user,
+        //               failedAttempts: 0,
+        //               lockoutSeconds: 0,
+        //             ),
+        //           );
+        //         },
+        //       );
+        //     },
+        //   );
+        // } else {
+        emit(state.copyWith(status: AuthStatus.verifyOtpSuccess));
+        // }
       },
     );
   }

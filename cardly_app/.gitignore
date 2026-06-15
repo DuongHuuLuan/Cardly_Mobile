@@ -31,7 +31,9 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
-
+*.jks
+key.properties
+/ios/Pods/
 # Symbolication related
 app.*.symbols
 
@@ -42,7 +44,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 .env
-
+pubspec.lock
 lib/generated/
 *.g.dart
 *.freezed.dart

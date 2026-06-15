@@ -1,12 +1,13 @@
+import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
+import 'package:cardly_app/core/utils/permission_utils.dart';
 import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
+import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_state.dart';
 import 'package:flutter/material.dart';
-import 'package:cardly_app/core/theme/app_color.dart';
-import 'package:cardly_app/core/theme/text_style.dart';
-import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class InitialView extends StatelessWidget {
@@ -71,11 +72,21 @@ class _CameraGalleryView extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: () => cubit.pickFromGallery(),
+              onPressed: () async {
+                final granted = await requestGalleryPermission(context);
+                if (!context.mounted) return;
+                if (granted) {
+                  cubit.pickFromGallery();
+                } else {
+                  context.goToHome();
+                }
+              },
               icon: Icon(Icons.photo_library, color: AppColor.black87),
               label: Text(
                 "Choose from Gallery",
-                style: AppTextStyles.bodyLarge.copyWith(color: AppColor.black87),
+                style: AppTextStyles.bodyLarge.copyWith(
+                  color: AppColor.black87,
+                ),
               ),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColor.black87,

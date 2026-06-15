@@ -1,4 +1,5 @@
 import 'package:cardly_app/core/utils/navigation_exp.dart';
+import 'package:cardly_app/core/utils/permission_utils.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
 import 'package:cardly_app/domain/entities/business_card_entity.dart';
@@ -95,6 +96,10 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
       ),
     );
     if (source == null) return;
+    if (source == ImageSource.gallery) {
+      final granted = await requestGalleryPermission(context);
+      if (!granted || !mounted) return;
+    }
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: source, maxWidth: 512);
     if (picked != null) {

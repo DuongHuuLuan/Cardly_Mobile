@@ -26,7 +26,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final emailController = TextEditingController();
-  final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
@@ -51,7 +50,6 @@ class _RegisterPageState extends State<RegisterPage> {
     emailController.removeListener(_onEmailChanged);
     nameController.dispose();
     emailController.dispose();
-    phoneController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
     super.dispose();
@@ -70,7 +68,6 @@ class _RegisterPageState extends State<RegisterPage> {
         id: DateTime.now().microsecondsSinceEpoch.toString(),
         name: nameController.text.trim(),
         email: emailController.text.trim(),
-        phone: phoneController.text.trim(),
         password: passwordController.text.trim(),
       );
 
@@ -112,7 +109,7 @@ class _RegisterPageState extends State<RegisterPage> {
           }
 
           if (state.status == AuthStatus.authenticated) {
-            context.goToHome();
+            context.goToLogin();
           }
           if (state.status == AuthStatus.registrationSuccess &&
               _pendingRegistrationUser != null) {
@@ -140,7 +137,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
                     Text(
                       "Enter your information below",
-                      style: AppTextStyles.bodyMedium.copyWith(color: AppColor.grey),
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColor.grey,
+                      ),
                     ),
                     const SizedBox(height: 30),
 
@@ -148,7 +147,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       formKey: _formKey,
                       nameController: nameController,
                       emailController: emailController,
-                      phoneController: phoneController,
                       passwordController: passwordController,
                       confirmPasswordController: confirmPasswordController,
                       emailError: state.emailError,
@@ -165,7 +163,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       controllers: [
                         nameController,
                         emailController,
-                        phoneController,
                         passwordController,
                         confirmPasswordController,
                       ],

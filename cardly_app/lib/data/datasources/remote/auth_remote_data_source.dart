@@ -13,9 +13,14 @@ import 'package:dio/dio.dart';
 class AuthRemoteDataSource {
   final AuthService _authService;
   final bool userMock;
+  final bool mockVerifyOtp;
   final _registeredUsers = <String, UserEntity>{};
 
-  AuthRemoteDataSource(this._authService, {this.userMock = true});
+  AuthRemoteDataSource(
+    this._authService, {
+    this.userMock = true,
+    this.mockVerifyOtp = false,
+  });
 
   Future<LoginResponse> login(String email, String password) async {
     if (userMock) {
@@ -163,7 +168,7 @@ class AuthRemoteDataSource {
   }
 
   Future<VerifyOtpResult> verifyOtp(String email, String otp) async {
-    if (userMock) {
+    if (mockVerifyOtp) {
       if (otp == "444444") {
         return VerifyOtpResult(message: "OTP verified", success: true);
       }

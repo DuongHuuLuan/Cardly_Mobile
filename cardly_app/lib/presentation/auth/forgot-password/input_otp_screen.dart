@@ -34,7 +34,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   final GlobalKey<OtpInputFieldState> _otpFieldKey =
       GlobalKey<OtpInputFieldState>();
   Timer? _timer;
-  int _remainingSeconds = 300;
+  int _remainingSeconds = 180;
 
   @override
   void initState() {
@@ -58,7 +58,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   void _startTimer() {
     _timer?.cancel();
     setState(() {
-      _remainingSeconds = 300;
+      _remainingSeconds = 180;
     });
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_remainingSeconds > 0) {
@@ -125,9 +125,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         body: BlocConsumer<AuthCubit, AuthState>(
           listenWhen: (previous, current) => previous.status != current.status,
           listener: (context, state) {
-            if (state.status == AuthStatus.authenticated) {
+            if (state.status == AuthStatus.verifyOtpSuccess &&
+                _isRegistration) {
               _timer?.cancel();
-              context.goToHome();
+              context.goToLogin();
             } else if (state.status == AuthStatus.verifyResetOtpSuccess &&
                 !_isRegistration) {
               context.goToResetPassword(_email, state.resetToken!);
@@ -171,10 +172,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    "Enter OTP Code",
-                    style: AppTextStyles.heading2,
-                  ),
+                  Text("Enter OTP Code", style: AppTextStyles.heading2),
                   const SizedBox(height: 8),
                   Text(
                     "OTP code has been sent to your email",
@@ -195,7 +193,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                     child: _remainingSeconds > 0
                         ? Text(
                             "Resend code ${_remainingSeconds ~/ 60}:${(_remainingSeconds % 60).toString().padLeft(2, '0')}",
-                            style: AppTextStyles.bodyMedium.copyWith(color: AppColor.greyDark),
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColor.greyDark,
+                            ),
                           )
                         : GestureDetector(
                             onTap: () {
