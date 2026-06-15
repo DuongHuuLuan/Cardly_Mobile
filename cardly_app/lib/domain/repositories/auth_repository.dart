@@ -1,7 +1,7 @@
-import 'package:cardly_app/domain/Entities/forgot-password/forgot_password_result.dart';
-import 'package:cardly_app/domain/Entities/forgot-password/reset_password_result.dart';
-import 'package:cardly_app/domain/Entities/forgot-password/verify_otp_result.dart';
-import 'package:cardly_app/domain/Entities/user_entity.dart';
+import 'package:cardly_app/domain/entities/forgot-password/forgot_password_result.dart';
+import 'package:cardly_app/domain/entities/forgot-password/reset_password_result.dart';
+import 'package:cardly_app/domain/entities/forgot-password/verify_otp_result.dart';
+import 'package:cardly_app/domain/entities/user_entity.dart';
 import 'package:cardly_app/core/error/failures.dart';
 import 'package:cardly_app/domain/entities/auth_tokens.dart';
 import 'package:cardly_app/domain/entities/forgot-password/resend_otp_result.dart';

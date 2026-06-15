@@ -221,7 +221,7 @@ class _ImagePreviewPageState extends State<_ImagePreviewPage> {
         leadingType: AppBarLeading.close,
         backgroundColor: AppColor.black,
         iconLeadingColor: AppColor.white,
-        titleStyle: const TextStyle(color: AppColor.white),
+        titleStyle: AppTextStyles.bodyLarge.copyWith(color: AppColor.white),
         actions: [
           IconButton(
             onPressed: _openEditor,

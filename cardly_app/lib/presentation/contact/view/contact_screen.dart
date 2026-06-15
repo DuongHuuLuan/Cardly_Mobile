@@ -5,7 +5,7 @@ import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_bottom_nav.dart';
 import 'package:cardly_app/core/widgets/app_contact_card.dart';
 import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
 import 'package:cardly_app/presentation/auth/view/session_expired_screen.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_state.dart';
@@ -133,7 +133,9 @@ class _ContactScreenState extends State<ContactScreen> {
                           ...entry.value.map(
                             (contact) => AppContactCard(
                               contact: contact,
-                              onTap: () => context.goToContactDetail(contact),
+                              onTap: () {
+                                context.goToContactDetail(contact.id!);
+                              },
                             ),
                           ),
                         ];

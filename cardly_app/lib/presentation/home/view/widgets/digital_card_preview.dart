@@ -118,7 +118,7 @@ class _DigitalCardPreviewState extends State<DigitalCardPreview> {
           gradient: _cardImagePath != null
               ? null
               : const LinearGradient(
-                  colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+                  colors: [AppColor.primary, Color(0xFF1E293B)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),

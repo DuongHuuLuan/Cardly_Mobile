@@ -5,8 +5,7 @@ import 'package:cardly_app/data/models/auth/resend_otp_response.dart';
 import 'package:cardly_app/data/models/auth/reset_password_response.dart';
 import 'package:cardly_app/data/models/auth/verify_otp_response.dart';
 import 'package:cardly_app/data/models/auth/verify_reset_otp_response.dart';
-import 'package:cardly_app/data/models/base_response.dart';
-import 'package:cardly_app/data/models/user_model.dart';
+import 'package:cardly_app/data/models/user/user_model.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 

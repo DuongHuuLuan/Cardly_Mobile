@@ -23,7 +23,7 @@ class _ContactAddScreenState extends State<ContactAddScreen> {
 
   void _onSave() {
     if (!_formKey.currentState!.validate()) return;
-    context.read<ContactCubit>().save(_formKey.currentState!.data);
+    context.read<ContactCubit>().saveEntity(_formKey.currentState!.data);
   }
 
   @override
@@ -31,7 +31,7 @@ class _ContactAddScreenState extends State<ContactAddScreen> {
     return BlocConsumer<ContactCubit, ContactState>(
       listenWhen: (p, c) =>
           p.status == ContactStatus.saving && c.status == ContactStatus.loaded,
-      listener: (_, __) => context.goToContact(),
+      listener: (_, _) => context.goToContact(),
       builder: (context, state) => Scaffold(
         appBar: AppAppBar(
           title: "Add contact",

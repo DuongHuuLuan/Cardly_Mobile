@@ -1,6 +1,6 @@
 import 'package:cardly_app/data/models/base_response.dart';
-import 'package:cardly_app/data/models/ocr_response_model.dart';
-import 'package:cardly_app/data/models/upload_response_model.dart';
+import 'package:cardly_app/data/models/ocr/ocr_response_model.dart';
+import 'package:cardly_app/data/models/ocr/upload_response_model.dart';
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 

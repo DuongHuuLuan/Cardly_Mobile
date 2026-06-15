@@ -1,4 +1,4 @@
-import 'package:cardly_app/domain/Entities/onboarding.dart';
+import 'package:cardly_app/domain/entities/onboarding.dart';
 import 'package:equatable/equatable.dart';
 
 class OnboardingState extends Equatable {

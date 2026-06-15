@@ -1,10 +1,12 @@
 import 'package:cardly_app/core/constants/app_constant.dart';
-import 'package:cardly_app/core/cubit/app_loading_cubit.dart';
+import 'package:cardly_app/core/cubit/deep_link/deep_link_cubit.dart';
+import 'package:cardly_app/core/cubit/loading/app_loading_cubit.dart';
 import 'package:cardly_app/core/network/auth_interceptor.dart';
 import 'package:cardly_app/data/datasources/local/auth_local_data_source.dart';
 import 'package:cardly_app/data/datasources/local/card_local_data_source.dart';
 import 'package:cardly_app/data/datasources/local/contact_local_data_source.dart';
 import 'package:cardly_app/data/datasources/local/database_helper.dart';
+import 'package:cardly_app/data/datasources/local/deep_link_local_data_source.dart';
 import 'package:cardly_app/data/datasources/mock/onboarding_mock_data_source.dart';
 import 'package:cardly_app/data/datasources/remote/auth_remote_data_source.dart';
 import 'package:cardly_app/data/datasources/remote/card_remote_data_source.dart';
@@ -13,6 +15,7 @@ import 'package:cardly_app/data/datasources/remote/enrichment_remote_data_source
 import 'package:cardly_app/data/repositories/auth_repository_impl.dart';
 import 'package:cardly_app/data/repositories/card_repository_impl.dart';
 import 'package:cardly_app/data/repositories/contact_repository_impl.dart';
+import 'package:cardly_app/data/repositories/deep_link_repository_impl.dart';
 import 'package:cardly_app/data/repositories/enrichment_repository_impl.dart';
 import 'package:cardly_app/data/repositories/onboarding_repository_impl.dart';
 import 'package:cardly_app/data/services/auth_service.dart';
@@ -22,6 +25,7 @@ import 'package:cardly_app/data/services/enrichment_service.dart';
 import 'package:cardly_app/domain/repositories/auth_repository.dart';
 import 'package:cardly_app/domain/repositories/card_repository.dart';
 import 'package:cardly_app/domain/repositories/contact_repository.dart';
+import 'package:cardly_app/domain/repositories/deep_link_repository.dart';
 import 'package:cardly_app/domain/repositories/enrichment_repository.dart';
 import 'package:cardly_app/domain/repositories/onboarding_repository.dart';
 import 'package:cardly_app/domain/usecase/auth/forgot-password/forgot_password_usecase.dart';
@@ -38,9 +42,14 @@ import 'package:cardly_app/domain/usecase/auth/register_usecase.dart';
 import 'package:cardly_app/domain/usecase/card/scan_card_usecase.dart';
 import 'package:cardly_app/domain/usecase/card/update_card_usecase.dart';
 import 'package:cardly_app/domain/usecase/contact/delete_contact_usecase.dart';
+import 'package:cardly_app/domain/usecase/contact/get_contact_by_id_usecase.dart';
+import 'package:cardly_app/domain/usecase/contact/get_contacts_paginated_usecase.dart';
 import 'package:cardly_app/domain/usecase/contact/get_contacts_usecase.dart';
 import 'package:cardly_app/domain/usecase/contact/save_contact_usecase.dart';
 import 'package:cardly_app/domain/usecase/contact/sync_contacts_usecase.dart';
+import 'package:cardly_app/domain/usecase/deep_link/clear_pending_deep_link_usecase.dart';
+import 'package:cardly_app/domain/usecase/deep_link/resolve_pending_deep_link_usecase.dart';
+import 'package:cardly_app/domain/usecase/deep_link/save_pending_deep_link_usecase.dart';
 import 'package:cardly_app/domain/usecase/enrichment/enrichment_usecase.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
@@ -102,6 +111,9 @@ Future<void> init() async {
   getIt.registerLazySingleton<CardLocalDataSource>(
     () => CardLocalDataSourceImpl(getIt<DatabaseHelper>()),
   );
+  getIt.registerLazySingleton<DeepLinkLocalDataSource>(
+    () => DeepLinkLocalDataSourceImpl(getIt<SharedPreferences>()),
+  );
 
   // Remote Data Source
   getIt.registerLazySingleton<AuthRemoteDataSource>(
@@ -148,6 +160,11 @@ Future<void> init() async {
       remoteDataSource: getIt<EnrichmentRemoteDataSource>(),
     ),
   );
+  getIt.registerLazySingleton<DeepLinkRepository>(
+    () => DeepLinkRepositoryImpl(
+      localDataSource: getIt<DeepLinkLocalDataSource>(),
+    ),
+  );
 
   // Use cases
   getIt.registerLazySingleton<GetOnboardingData>(
@@ -177,6 +194,12 @@ Future<void> init() async {
   getIt.registerLazySingleton<GetContactsUsecase>(
     () => GetContactsUsecase(repository: getIt<ContactRepository>()),
   );
+  getIt.registerLazySingleton<GetContactByIdUsecase>(
+    () => GetContactByIdUsecase(repository: getIt<ContactRepository>()),
+  );
+  getIt.registerLazySingleton<GetContactsPaginatedUsecase>(
+    () => GetContactsPaginatedUsecase(repository: getIt<ContactRepository>()),
+  );
   getIt.registerLazySingleton<DeleteContactUsecase>(
     () => DeleteContactUsecase(repository: getIt<ContactRepository>()),
   );
@@ -204,6 +227,17 @@ Future<void> init() async {
   );
   getIt.registerLazySingleton<SyncContactsUsecase>(
     () => SyncContactsUsecase(repository: getIt<ContactRepository>()),
+  );
+  // Use Case Deep link
+  getIt.registerLazySingleton<ResolvePendingDeepLinkUsecase>(
+    () =>
+        ResolvePendingDeepLinkUsecase(repository: getIt<DeepLinkRepository>()),
+  );
+  getIt.registerLazySingleton<SavePendingDeepLinkUsecase>(
+    () => SavePendingDeepLinkUsecase(repository: getIt<DeepLinkRepository>()),
+  );
+  getIt.registerLazySingleton<ClearPendingDeepLinkUsecase>(
+    () => ClearPendingDeepLinkUsecase(repository: getIt<DeepLinkRepository>()),
   );
 
   // Cubit
@@ -234,15 +268,22 @@ Future<void> init() async {
   getIt.registerFactory(
     () => ContactCubit(
       getContacts: getIt<GetContactsUsecase>(),
+      getcontactById: getIt<GetContactByIdUsecase>(),
       saveContact: getIt<SaveContactUsecase>(),
       deleteContact: getIt<DeleteContactUsecase>(),
       enrichment: getIt<EnrichmentUsecase>(),
       syncContacts: getIt<SyncContactsUsecase>(),
-      contactRepository: getIt<ContactRepository>(),
+      getContactsPaginated: getIt<GetContactsPaginatedUsecase>(),
     ),
   );
   getIt.registerFactory(
     () => EnrichmentCubit(enrichmentUsecase: getIt<EnrichmentUsecase>()),
   );
   getIt.registerFactory(() => AppLoadingCubit());
+  getIt.registerFactory(
+    () => DeepLinkCubit(
+      resolveUsecase: getIt<ResolvePendingDeepLinkUsecase>(),
+      clearUsecase: getIt<ClearPendingDeepLinkUsecase>(),
+    ),
+  );
 }

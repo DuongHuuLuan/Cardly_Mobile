@@ -5,8 +5,8 @@ import 'package:cardly_app/core/utils/sync_helper.dart';
 import 'package:cardly_app/data/datasources/local/auth_local_data_source.dart';
 import 'package:cardly_app/data/datasources/local/contact_local_data_source.dart';
 import 'package:cardly_app/data/datasources/remote/contact_remote_data_source.dart';
-import 'package:cardly_app/data/models/contact/contact_detail_response.dart';
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/paginated_result.dart';
 import 'package:cardly_app/domain/repositories/contact_repository.dart';
 import 'package:dartz/dartz.dart';
 
@@ -57,6 +57,17 @@ class ContactRepositoryImpl implements ContactRepository {
   }
 
   @override
+  Future<Either<Failure, BusinessCardEntity>> getContactById(String id) async {
+    try {
+      final contact = await localDataSource.findById(id);
+      if (contact == null) return Left(CacheFailure('Contact not found'));
+      return Right(contact);
+    } on CacheException catch (e) {
+      return Left(CacheFailure(e.message));
+    }
+  }
+
+  @override
   Future<Either<Failure, BusinessCardEntity>> saveContact(
     BusinessCardEntity contact,
   ) async {
@@ -77,7 +88,13 @@ class ContactRepositoryImpl implements ContactRepository {
             remote.processingId!,
           );
         }
-        return Right(remote.copyWith(id: local.id));
+        // return Right(remote.copyWith(id: local.id));
+        return Right(
+          local.copyWith(
+            processingId: remote.processingId,
+            uploadedAt: remote.uploadedAt,
+          ),
+        );
       } on ServerException {
         return Right(local);
       }
@@ -198,7 +215,7 @@ class ContactRepositoryImpl implements ContactRepository {
                   detail,
                   localId: existing.id,
                   localCreatedAt: existing.createdAt,
-                ).copyWith(uploadedAt: serverTime);
+                ).copyWith(avatar: existing.avatar, uploadedAt: serverTime);
                 await localDataSource.saveContact(updated, userId);
               }
             }
@@ -216,11 +233,6 @@ class ContactRepositoryImpl implements ContactRepository {
     } on CacheException catch (e) {
       return Left(CacheFailure(e.toString()));
     }
-  }
-
-  @override
-  Future<ContactDetailResponse> getContactDetail(String processingId) async {
-    return remoteDataSource.getContactDetail(processingId);
   }
 
   @override

@@ -1,4 +1,4 @@
-import 'package:cardly_app/core/cubit/app_loading_cubit.dart';
+import 'package:cardly_app/core/cubit/loading/app_loading_cubit.dart';
 import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
 import 'package:cardly_app/injection_container.dart';
 import 'package:cardly_app/core/theme/app_theme.dart';

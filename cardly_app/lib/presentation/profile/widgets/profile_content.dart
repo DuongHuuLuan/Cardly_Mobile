@@ -1,10 +1,9 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/utils/widget_padding.dart';
-import 'package:cardly_app/core/widgets/app_avatar.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
 import 'package:cardly_app/core/widgets/app_info_tile.dart';
-import 'package:cardly_app/domain/Entities/user_entity.dart';
+import 'package:cardly_app/domain/entities/user_entity.dart';
 import 'package:cardly_app/presentation/profile/widgets/user_section.dart';
 import 'package:flutter/material.dart';
 

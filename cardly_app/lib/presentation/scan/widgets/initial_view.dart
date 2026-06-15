@@ -1,6 +1,7 @@
 import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
+import 'package:cardly_app/core/widgets/app_elevated_button.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_state.dart';
 import 'package:flutter/material.dart';
 import 'package:cardly_app/core/theme/app_color.dart';
@@ -61,41 +62,28 @@ class _CameraGalleryView extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 40),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => cubit.pickFromCamera(),
-              icon: const Icon(Icons.camera_alt),
-              label: const Text("Open Camera"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColor.primary,
-                foregroundColor: AppColor.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 2,
-              ),
-            ),
+          AppElevatedButton(
+            label: "Open Camera",
+            onPressed: () => cubit.pickFromCamera(),
+            icon: const Icon(Icons.camera_alt),
           ),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () => cubit.pickFromGallery(),
-              icon: const Icon(Icons.photo_library),
-              label: const Text("Choose from Gallery"),
+              icon: Icon(Icons.photo_library, color: AppColor.black87),
+              label: Text(
+                "Choose from Gallery",
+                style: AppTextStyles.bodyLarge.copyWith(color: AppColor.black87),
+              ),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColor.black87,
-                side: const BorderSide(
-                  color: AppColor.greyDark,
-                  strokeAlign: 3,
-                ),
+                side: const BorderSide(color: AppColor.greyDark),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                elevation: 3,
               ),
             ),
           ),
@@ -105,9 +93,9 @@ class _CameraGalleryView extends StatelessWidget {
               cubit.reset();
               context.goToHome();
             },
-            child: const Text(
+            child: Text(
               "Back to home",
-              style: TextStyle(color: AppColor.grey),
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColor.grey),
             ),
           ),
         ],

@@ -1,5 +1,5 @@
-import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
   DatabaseHelper._();
@@ -16,7 +16,7 @@ class DatabaseHelper {
     final path = join(await getDatabasesPath(), "cardly.db");
     return openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: (db) async {
@@ -29,6 +29,7 @@ class DatabaseHelper {
     await db.execute('''
     CREATE TABLE business_cards (
         id TEXT PRIMARY KEY,
+        avatar_path TEXT,
         user_id TEXT NOT NULL,
         processing_id TEXT,
         sync_status TEXT NOT NULL DEFAULT 'synced',
@@ -65,9 +66,6 @@ class DatabaseHelper {
     ''');
   }
 
-  @override
-  int get version => 3;
-
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       await db.execute(
@@ -83,6 +81,11 @@ class DatabaseHelper {
       );
       await db.execute(
         'ALTER TABLE business_cards ADD COLUMN uploaded_at TEXT',
+      );
+    }
+    if (oldVersion < 4) {
+      await db.execute(
+        'ALTER TABLE business_cards ADD COLUMN avatar_path TEXT',
       );
     }
   }

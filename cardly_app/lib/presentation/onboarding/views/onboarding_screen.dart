@@ -1,11 +1,10 @@
-import 'package:cardly_app/core/constants/app_transition.dart';
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/widgets/app_indicator.dart';
 import 'package:cardly_app/core/widgets/onboarding_icon.dart';
-import 'package:cardly_app/domain/Entities/onboarding.dart';
+import 'package:cardly_app/domain/entities/onboarding.dart';
 import 'package:cardly_app/presentation/onboarding/cubit/onboarding_cubit.dart';
 import 'package:cardly_app/presentation/onboarding/cubit/onboarding_state.dart';
 import 'package:flutter/material.dart';
@@ -69,13 +68,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Column(
                 children: [
                   Expanded(
-                    child: Expanded(
-                      child: PageView(
-                        controller: _controller,
-                        physics: const ClampingScrollPhysics(),
-                        onPageChanged: (i) => setState(() => _page = i),
-                        children: data.map((item) => _buildPage(item)).toList(),
-                      ),
+                    child: PageView(
+                      controller: _controller,
+                      physics: const ClampingScrollPhysics(),
+                      onPageChanged: (i) => setState(() => _page = i),
+                      children: data.map((item) => _buildPage(item)).toList(),
                     ),
                   ),
                   AppIndicator(

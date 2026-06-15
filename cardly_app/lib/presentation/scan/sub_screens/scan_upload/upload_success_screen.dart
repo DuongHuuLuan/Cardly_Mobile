@@ -5,8 +5,9 @@ import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/core/utils/widget_pop_scope.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
-import 'package:cardly_app/domain/Entities/scanned_document.dart';
+import 'package:cardly_app/domain/entities/scanned_document.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_cubit.dart';
+import 'package:cardly_app/presentation/scan/sub_screens/scan_upload/widgets/document_result_title.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -133,7 +134,7 @@ class _UploadSuccessScreenState extends State<UploadSuccessScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            ..._documents.map((doc) => _DocumentResultTile(document: doc)),
+            ..._documents.map((doc) => DocumentResultTile(document: doc)),
             const SizedBox(height: 24),
             AppElevatedButton(
               label: _documents.length > 1 ? 'View Documents' : 'View Document',
@@ -156,35 +157,4 @@ class _UploadSuccessScreenState extends State<UploadSuccessScreen> {
   }
 
   List<ScannedDocument> get _documents => _scanCubit.state.scannedDocuments;
-}
-
-class _DocumentResultTile extends StatelessWidget {
-  final ScannedDocument document;
-  const _DocumentResultTile({required this.document});
-
-  @override
-  Widget build(BuildContext context) {
-    final d = document as BusinessCardDocument;
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppColor.primary.withValues(alpha: 0.07),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.badge_outlined, color: AppColor.black87),
-        ),
-        title: Text(
-          d.card.fullName ?? 'Unknown',
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColor.black87),
-        ),
-        subtitle: Text(
-          d.card.company ?? d.card.jobTitle ?? 'Business Card',
-          style: AppTextStyles.bodySmall.copyWith(color: AppColor.greyDark),
-        ),
-      ),
-    );
-  }
 }

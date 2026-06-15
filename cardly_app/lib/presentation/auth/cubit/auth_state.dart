@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:cardly_app/domain/Entities/user_entity.dart';
+import 'package:cardly_app/domain/entities/user_entity.dart';
 
 const _nullValue = Object();
 

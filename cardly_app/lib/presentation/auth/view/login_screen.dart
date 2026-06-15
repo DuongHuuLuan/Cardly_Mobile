@@ -1,6 +1,8 @@
 import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/utils/navigation_exp.dart';
 import 'package:cardly_app/core/utils/widget_padding.dart';
+import 'package:cardly_app/core/utils/widget_pop_scope.dart';
 import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
 import 'package:cardly_app/core/widgets/submit_button.dart';
@@ -137,16 +139,15 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 40),
                     Text(
                       "Sign In",
-                      style: Theme.of(context).textTheme.headlineLarge
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: AppTextStyles.heading1,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
                     Text(
                       "Enter your information below",
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(color: AppColor.grey),
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColor.grey,
+                      ),
                     ),
                     const SizedBox(height: 25),
                     Row(
@@ -154,8 +155,9 @@ class _LoginPageState extends State<LoginPage> {
                         Expanded(child: Divider(color: AppColor.greyLight)),
                         Text(
                           "Or login with",
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: AppColor.greyDark),
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColor.greyDark,
+                          ),
                         ).paddingHorizontal(16),
 
                         Expanded(child: Divider(color: AppColor.greyLight)),
@@ -175,11 +177,10 @@ class _LoginPageState extends State<LoginPage> {
                         onPressed: () => context.goToForgotPassword(),
                         child: Text(
                           "Forgot Password?",
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: AppColor.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColor.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -195,9 +196,8 @@ class _LoginPageState extends State<LoginPage> {
                     if (state.lockoutSeconds > 0)
                       Text(
                         "Too many attempts. Try again in ${state.lockoutSeconds}s",
-                        style: const TextStyle(
+                        style: AppTextStyles.caption.copyWith(
                           color: AppColor.error,
-                          fontSize: 13,
                         ),
                         textAlign: TextAlign.center,
                       ).paddingOnly(top: 12),
@@ -211,11 +211,10 @@ class _LoginPageState extends State<LoginPage> {
                           onPressed: () => context.goToRegister(),
                           child: Text(
                             "Register Now",
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(
-                                  color: AppColor.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: AppTextStyles.bodyLarge.copyWith(
+                              color: AppColor.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
@@ -227,6 +226,6 @@ class _LoginPageState extends State<LoginPage> {
           );
         },
       ),
-    );
+    ).canPop(false);
   }
 }

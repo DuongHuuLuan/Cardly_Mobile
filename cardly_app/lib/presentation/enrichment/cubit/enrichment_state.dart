@@ -18,16 +18,15 @@ class EnrichmentState extends Equatable {
     EnrichmentStatus? status,
     Object? enrichment = _nullValue,
     Object? errorMessage = _nullValue,
-  }) =>
-      EnrichmentState(
-        status: status ?? this.status,
-        enrichment: identical(enrichment, _nullValue)
-            ? this.enrichment
-            : enrichment as EnrichmentEntity?,
-        errorMessage: identical(errorMessage, _nullValue)
-            ? this.errorMessage
-            : errorMessage as String?,
-      );
+  }) => EnrichmentState(
+    status: status ?? this.status,
+    enrichment: identical(enrichment, _nullValue)
+        ? this.enrichment
+        : enrichment as EnrichmentEntity?,
+    errorMessage: identical(errorMessage, _nullValue)
+        ? this.errorMessage
+        : errorMessage as String?,
+  );
 
   @override
   List<Object?> get props => [status, enrichment, errorMessage];

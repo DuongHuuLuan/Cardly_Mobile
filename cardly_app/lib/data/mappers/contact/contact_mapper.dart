@@ -1,9 +1,10 @@
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
 
 class ContactMapper {
   static BusinessCardEntity fromJson(Map<String, dynamic> json) {
     return BusinessCardEntity(
       id: json['id'] as String?,
+      avatar: json['avatar'] as String?,
       userId: json['user_id'] as String?,
       fullName: json['full_name'] as String?,
       jobTitle: json['job_title'] as String?,
@@ -27,6 +28,7 @@ class ContactMapper {
   static Map<String, dynamic> toJson(BusinessCardEntity contact) {
     return {
       'user_id': contact.userId,
+      'avatar': contact.avatar,
       'full_name': contact.fullName,
       'job_title': contact.jobTitle,
       'company': contact.company,

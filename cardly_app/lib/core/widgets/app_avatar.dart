@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +26,12 @@ class AppAvatar extends StatelessWidget {
       backgroundColor: imageUrl != null
           ? AppColor.greyLight
           : backgroundColor ?? AppColor.primary.withValues(alpha: 0.08),
-      backgroundImage: imageUrl != null ? NetworkImage(imageUrl!) : null,
+      backgroundImage: imageUrl != null
+          ? (imageUrl!.startsWith('http://') || imageUrl!.startsWith('https://')
+                    ? NetworkImage(imageUrl!)
+                    : FileImage(File(imageUrl!)))
+                as ImageProvider
+          : null,
       child: imageUrl == null
           ? Text(
               name!.isNotEmpty ? name![0].toUpperCase() : "?",

@@ -7,7 +7,7 @@ import 'package:cardly_app/core/widgets/app_alert_dialog.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
 import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
-import 'package:cardly_app/domain/Entities/user_entity.dart';
+import 'package:cardly_app/domain/entities/user_entity.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_cubit.dart';
 import 'package:cardly_app/presentation/auth/cubit/auth_state.dart';
 import 'package:cardly_app/presentation/auth/forgot-password/widgets/otp_input_field.dart';
@@ -173,14 +173,12 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                 children: [
                   Text(
                     "Enter OTP Code",
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: AppTextStyles.heading2,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     "OTP code has been sent to your email",
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    style: AppTextStyles.bodyMedium.copyWith(
                       color: AppColor.greyDark,
                       fontWeight: FontWeight.w300,
                     ),
@@ -197,16 +195,16 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                     child: _remainingSeconds > 0
                         ? Text(
                             "Resend code ${_remainingSeconds ~/ 60}:${(_remainingSeconds % 60).toString().padLeft(2, '0')}",
-                            style: const TextStyle(color: AppColor.greyDark),
+                            style: AppTextStyles.bodyMedium.copyWith(color: AppColor.greyDark),
                           )
                         : GestureDetector(
                             onTap: () {
                               _resendOtp();
                               _startTimer();
                             },
-                            child: const Text(
+                            child: Text(
                               "Re-send OTP",
-                              style: TextStyle(
+                              style: AppTextStyles.bodyMedium.copyWith(
                                 color: AppColor.primary,
                                 fontWeight: FontWeight.bold,
                               ),

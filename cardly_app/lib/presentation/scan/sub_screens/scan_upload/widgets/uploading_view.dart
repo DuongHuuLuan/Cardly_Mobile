@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/utils/widget_padding.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_upload/widgets/upload_progress_circle.dart';
 import 'package:cardly_app/presentation/scan/sub_screens/scan_upload/widgets/upload_steps_card.dart';
@@ -27,17 +28,13 @@ class UploadingView extends StatelessWidget {
           const SizedBox(height: 32),
           Text(
             "Processing Document",
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColor.black,
-            ),
+            style: AppTextStyles.heading2,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
           Text(
             "We are securely uploading and verifying\nyour document for OCR processing.",
-            style: TextStyle(fontSize: 16, color: AppColor.grey, height: 1.4),
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColor.grey, height: 1.4),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
@@ -56,11 +53,10 @@ class UploadingView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(28),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 "Cancel Upload",
-                style: TextStyle(
+                style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColor.grey,
-                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -74,7 +70,7 @@ class UploadingView extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 "Duplicate submissions are automatically blocked",
-                style: TextStyle(color: AppColor.grey, fontSize: 11),
+                style: AppTextStyles.caption.copyWith(color: AppColor.grey),
               ),
             ],
           ),

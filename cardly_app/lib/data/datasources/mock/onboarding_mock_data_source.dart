@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:cardly_app/data/mappers/onboarding_mapper.dart';
-import 'package:cardly_app/domain/Entities/onboarding.dart';
+import 'package:cardly_app/data/mappers/onboarding/onboarding_mapper.dart';
+import 'package:cardly_app/domain/entities/onboarding.dart';
 import 'package:flutter/services.dart';
 
 class OnboardingMockDataSource {

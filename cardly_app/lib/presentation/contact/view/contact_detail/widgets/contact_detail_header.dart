@@ -1,7 +1,7 @@
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/widgets/app_avatar.dart';
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
 import 'package:cardly_app/presentation/contact/view/contact_detail/widgets/contact_icon_button.dart';
 import 'package:flutter/material.dart';
 
@@ -11,6 +11,12 @@ class ContactDetailHeader extends StatelessWidget {
   final TextEditingController nameCtrl;
   final TextEditingController titleCtrl;
   final TextEditingController companyCtrl;
+  final VoidCallback? onAvatarTap;
+  final String? avatar;
+  final VoidCallback? onCall;
+  final VoidCallback? onEmail;
+  final VoidCallback? onLinkedIn;
+  final VoidCallback? onWebsite;
 
   const ContactDetailHeader({
     super.key,
@@ -19,20 +25,56 @@ class ContactDetailHeader extends StatelessWidget {
     required this.nameCtrl,
     required this.titleCtrl,
     required this.companyCtrl,
+    this.avatar,
+    this.onAvatarTap,
+    this.onCall,
+    this.onEmail,
+    this.onLinkedIn,
+    this.onWebsite,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        AppAvatar(name: contact.fullName ?? "", radius: 40),
+        Stack(
+          alignment: Alignment.bottomRight,
+          children: [
+            AppAvatar(
+              name: contact.fullName ?? "",
+              radius: 40,
+              imageUrl: avatar,
+            ),
+            if (isEditing && onAvatarTap != null)
+              GestureDetector(
+                onTap: onAvatarTap,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: AppColor.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.camera_alt,
+                    size: 18,
+                    color: AppColor.white,
+                  ),
+                ),
+              ),
+          ],
+        ),
         const SizedBox(height: 12),
         if (isEditing)
           _buildEdit()
         else ...[
           _buildView(),
-          const SizedBox(height: 6),
-          const ContactIconButton(),
+          const SizedBox(height: 10),
+          ContactIconButton(
+            onCall: onCall,
+            onEmail: onEmail,
+            onLinkedIn: onLinkedIn,
+            onWebsite: onWebsite,
+          ),
           const SizedBox(height: 16),
         ],
       ],

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:camera/camera.dart';
-import 'package:cardly_app/domain/Entities/scanned_document.dart';
+import 'package:cardly_app/domain/entities/scanned_document.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cardly_app/domain/usecase/card/scan_card_usecase.dart';
 import 'package:cardly_app/presentation/scan/cubit/scan_state.dart';

@@ -3,10 +3,9 @@ import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/widgets/app_appbar.dart';
 import 'package:cardly_app/core/widgets/app_elevated_button.dart';
 import 'package:cardly_app/core/widgets/app_loading_overlay.dart';
-import 'package:cardly_app/domain/Entities/business_card_entity.dart';
+import 'package:cardly_app/domain/entities/business_card_entity.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_cubit.dart';
 import 'package:cardly_app/presentation/contact/cubit/contact_state.dart';
-import 'package:cardly_app/presentation/contact/view/contact_detail/contact_detail_screen.dart';
 import 'package:cardly_app/presentation/enrichment/cubit/enrichment_cubit.dart';
 import 'package:cardly_app/presentation/enrichment/cubit/enrichment_state.dart';
 import 'package:cardly_app/presentation/enrichment/widgets/enrichment_sections.dart';
@@ -45,35 +44,10 @@ class _EnrichmentScreenState extends State<EnrichmentScreen> {
   Future<void> _save() async {
     final enriched = _cubit.state.enrichment;
     if (enriched == null) return;
-
-    final data = widget.enrichmentData;
-
-    final updatedCard = BusinessCardEntity(
-      id: widget.card.id,
-      processingId: widget.card.processingId ?? widget.card.id,
-      fullName: widget.card.fullName,
-      jobTitle: widget.card.jobTitle,
-      company: widget.card.company,
-      phone: widget.card.phone,
-      email: widget.card.email,
-      website: widget.card.website,
-      linkedIn: widget.card.linkedIn,
-      facebook: widget.card.facebook,
-      address: widget.card.address,
-      qrCodeContent: widget.card.qrCodeContent,
-      notes: widget.card.notes,
-      eventName: widget.card.eventName,
-      location: widget.card.location,
-      createdAt: widget.card.createdAt,
-      brief: enriched.professionalBrief,
-      keywords: enriched.keywords,
-      highlights: enriched.highlights,
-      images: widget.card.images,
-    );
     final contactCubit = context.read<ContactCubit>();
-    final saved = await contactCubit.save(updatedCard);
+    final saved = await contactCubit.saveWithEnrichment(widget.card, enriched);
     if (saved != null && mounted) {
-      context.go(ContactDetailScreen.routerName, extra: saved);
+      context.go('/contact-detail/${saved.id}');
     }
   }
 

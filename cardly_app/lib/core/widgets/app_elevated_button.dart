@@ -13,6 +13,7 @@ class AppElevatedButton extends StatelessWidget {
   final Color? borderColor;
 
   final Widget? icon;
+  final Color? iconColor;
   final bool iconAfterText;
   final double iconSpacing;
 
@@ -27,6 +28,7 @@ class AppElevatedButton extends StatelessWidget {
     this.isLoading = false,
     this.borderColor,
     this.icon,
+    this.iconColor,
     this.iconAfterText = false,
     this.iconSpacing = 8,
   });
@@ -74,15 +76,16 @@ class AppElevatedButton extends StatelessWidget {
 
     if (icon == null) return textWidget;
 
+    final iconWidget = iconColor != null
+        ? IconTheme(data: IconThemeData(color: iconColor), child: icon!)
+        : icon!;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // nếu iconAfterText == false thì hiển icon nằm phía trước
-        if (!iconAfterText) ...[icon!, SizedBox(width: iconSpacing)],
+        if (!iconAfterText) ...[iconWidget, SizedBox(width: iconSpacing)],
         textWidget,
-
-        //nếu iconAfterText == true thì hiện icon ở phía sau text
-        if (iconAfterText) ...[SizedBox(width: iconSpacing), icon!],
+        if (iconAfterText) ...[SizedBox(width: iconSpacing), iconWidget],
       ],
     );
   }

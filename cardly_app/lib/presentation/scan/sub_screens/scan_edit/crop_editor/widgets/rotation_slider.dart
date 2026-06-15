@@ -1,4 +1,5 @@
 import 'package:cardly_app/core/theme/app_color.dart';
+import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:flutter/material.dart';
 
 class RotationSlider extends StatelessWidget {
@@ -33,7 +34,7 @@ class RotationSlider extends StatelessWidget {
             width: MediaQuery.of(context).size.width * 0.05,
             child: Text(
               '${value.round()}\u00B0',
-              style: const TextStyle(fontSize: 12),
+              style: AppTextStyles.caption,
               textAlign: TextAlign.center,
             ),
           ),

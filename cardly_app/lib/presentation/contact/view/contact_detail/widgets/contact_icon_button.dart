@@ -18,41 +18,46 @@ class ContactIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        AppIconAction(
-          icon: Icons.phone_outlined,
-          label: "Gọi",
-          iconSize: 20,
-          containerSize: 55,
-          onTap: onCall,
-        ),
-        const SizedBox(width: 10),
-        AppIconAction(
-          icon: Icons.email_outlined,
-          label: "Email",
-          iconSize: 20,
-          containerSize: 55,
-          onTap: onEmail,
-        ),
-        const SizedBox(width: 10),
-        AppIconAction(
-          icon: Icons.phone_outlined,
-          label: "LinkedIn",
-          iconSize: 20,
-          containerSize: 55,
-          onTap: onLinkedIn,
-        ),
-        const SizedBox(width: 10),
-        AppIconAction(
-          icon: Icons.language_outlined,
-          label: "Web",
-          iconSize: 20,
-          containerSize: 55,
-          onTap: onWebsite,
-        ),
-      ],
-    ).paddingHorizontal(16);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final itemSize = constraints.maxWidth * 0.15;
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AppIconAction(
+              icon: Icons.phone_outlined,
+              label: "Gọi",
+              iconSize: 20,
+              containerSize: itemSize,
+              onTap: onCall,
+            ),
+            const SizedBox(width: 10),
+            AppIconAction(
+              icon: Icons.email_outlined,
+              label: "Email",
+              iconSize: 20,
+              containerSize: itemSize,
+              onTap: onEmail,
+            ),
+            const SizedBox(width: 10),
+            AppIconAction(
+              icon: Icons.phone_outlined,
+              label: "LinkedIn",
+              iconSize: 20,
+              containerSize: itemSize,
+              onTap: onLinkedIn,
+            ),
+            const SizedBox(width: 10),
+            AppIconAction(
+              icon: Icons.language_outlined,
+              label: "Web",
+              iconSize: 20,
+              containerSize: itemSize,
+              onTap: onWebsite,
+            ),
+          ],
+        ).paddingHorizontal(16);
+      },
+    );
   }
 }

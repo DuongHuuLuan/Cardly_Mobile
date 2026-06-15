@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:cardly_app/core/theme/app_color.dart';
 import 'package:cardly_app/core/theme/text_style.dart';
 import 'package:cardly_app/core/utils/widget_padding.dart';
@@ -10,10 +8,6 @@ import 'package:cardly_app/presentation/digital_card/widgets/digital_card_previe
 import 'package:cardly_app/presentation/digital_card/widgets/digital_card_share.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../core/utils/navigation_exp.dart';
 
 class DigitalCardScreen extends StatelessWidget {
