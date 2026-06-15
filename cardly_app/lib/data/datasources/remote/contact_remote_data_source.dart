@@ -1,6 +1,7 @@
 import 'dart:convert';
+
 import 'package:cardly_app/core/error/exceptions.dart';
-import 'package:cardly_app/data/mappers/contact_mapper.dart';
+import 'package:cardly_app/data/mappers/contact/contact_mapper.dart';
 import 'package:cardly_app/data/models/contact/contact_detail_response.dart';
 import 'package:cardly_app/data/models/contact/contact_list_response.dart';
 import 'package:cardly_app/data/services/contact_service.dart';

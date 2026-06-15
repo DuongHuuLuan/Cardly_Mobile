@@ -1,8 +1,9 @@
-import 'package:cardly_app/data/mappers/user_mapper.dart';
-import 'package:cardly_app/data/models/user_model.dart';
+import 'dart:convert';
+
+import 'package:cardly_app/data/mappers/user/user_mapper.dart';
+import 'package:cardly_app/data/models/user/user_model.dart';
 import 'package:cardly_app/domain/entities/user_entity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 
 abstract class AuthLocalDataSource {
   Future<void> saveToken(String token);

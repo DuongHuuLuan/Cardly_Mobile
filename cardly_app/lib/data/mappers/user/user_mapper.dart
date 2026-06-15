@@ -1,4 +1,4 @@
-import 'package:cardly_app/data/models/user_model.dart';
+import 'package:cardly_app/data/models/user/user_model.dart';
 import 'package:cardly_app/domain/entities/user_entity.dart';
 
 class UserMapper {

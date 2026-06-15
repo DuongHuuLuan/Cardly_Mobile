@@ -1,5 +1,5 @@
-import 'package:cardly_app/data/models/ocr_response_model.dart';
-import 'package:cardly_app/data/models/upload_response_model.dart';
+import 'package:cardly_app/data/models/ocr/ocr_response_model.dart';
+import 'package:cardly_app/data/models/ocr/upload_response_model.dart';
 import 'package:cardly_app/domain/entities/business_card_entity.dart';
 import 'package:cardly_app/domain/entities/scanned_document.dart';
 

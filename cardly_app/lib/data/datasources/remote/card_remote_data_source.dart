@@ -1,12 +1,13 @@
 import 'dart:convert';
-import 'package:cardly_app/data/mappers/ocr_mapper.dart';
-import 'package:cardly_app/data/models/ocr_response_model.dart';
-import 'package:cardly_app/data/services/card_service.dart';
+
 import 'package:cardly_app/core/error/exceptions.dart';
+import 'package:cardly_app/data/mappers/ocr/ocr_mapper.dart';
+import 'package:cardly_app/data/models/ocr/ocr_response_model.dart';
+import 'package:cardly_app/data/services/card_service.dart';
 import 'package:cardly_app/domain/entities/scanned_document.dart';
 import 'package:dio/dio.dart';
 
-import '../../models/upload_response_model.dart';
+import '../../models/ocr/upload_response_model.dart';
 
 class CardRemoteDataSource {
   final CardService _cardService;
